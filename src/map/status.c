@@ -1400,7 +1400,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 				src && src->type != BL_PC && !map_flag_gvg2(target->m) && !map[target->m].flag.battleground && --(sce->val2) < 0)
 				status_change_end(target, SC_ENDURE, INVALID_TIMER);
 			if ((sce = sc->data[SC_GRAVITATION]) && sce->val3 == BCT_SELF) {
-				struct skill_unit_group* sg = skill_id2group(sce->val4);
+				struct skill_unit_group *sg = skill_id2group(sce->val4);
 
 				if (sg) {
 					skill_delunitgroup(sg);
@@ -1436,15 +1436,15 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 	}
 
 	switch (target->type) {
-		case BL_PC:  pc_damage((TBL_PC*)target, src, hp, sp); break;
-		case BL_MOB: mob_damage((TBL_MOB*)target, src, hp); break;
-		case BL_HOM: hom_damage((TBL_HOM*)target); break;
-		case BL_MER: mercenary_heal((TBL_MER*)target, hp, sp); break;
-		case BL_ELEM: elemental_heal((TBL_ELEM*)target, hp, sp); break;
+		case BL_PC:  pc_damage((TBL_PC *)target, src, hp, sp); break;
+		case BL_MOB: mob_damage((TBL_MOB *)target, src, hp); break;
+		case BL_HOM: hom_damage((TBL_HOM *)target); break;
+		case BL_MER: mercenary_heal((TBL_MER *)target, hp, sp); break;
+		case BL_ELEM: elemental_heal((TBL_ELEM *)target, hp, sp); break;
 	}
 
 	//Stop walking when attacked in disguise to prevent walk-delay bug
-	if (src && target->type == BL_PC && ((TBL_PC*)target)->disguise)
+	if (src && target->type == BL_PC && ((TBL_PC *)target)->disguise)
 		unit_stop_walking(target, 1);
 
 	if (status->hp || (flag&8)) { //Still lives or has been dead before this damage
@@ -1460,11 +1460,11 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 	//&2: Also remove object from map
 	//&4: Also delete object from memory
 	switch (target->type) {
-		case BL_PC:  flag = pc_dead((TBL_PC*)target,src); break;
-		case BL_MOB: flag = mob_dead((TBL_MOB*)target, src, (flag&4 ? 3 : 0)); break;
-		case BL_HOM: flag = hom_dead((TBL_HOM*)target); break;
-		case BL_MER: flag = mercenary_dead((TBL_MER*)target); break;
-		case BL_ELEM: flag = elemental_dead((TBL_ELEM*)target); break;
+		case BL_PC:  flag = pc_dead((TBL_PC *)target,src); break;
+		case BL_MOB: flag = mob_dead((TBL_MOB *)target, src, (flag&4 ? 3 : 0)); break;
+		case BL_HOM: flag = hom_dead((TBL_HOM *)target); break;
+		case BL_MER: flag = mercenary_dead((TBL_MER *)target); break;
+		case BL_ELEM: flag = elemental_dead((TBL_ELEM *)target); break;
 		default: //Unhandled case, do nothing to object
 			flag = 0;
 			break;
@@ -2179,10 +2179,7 @@ static inline unsigned short status_base_matk_max(const struct status_data *stat
  * @param flag:
  *  0 - Get MATK
  *  1 - Get MATK w/o SC bonuses
- *  3 - Get MATK w/o EMATK & SC bonuses
- *  4 - Get SMATK
- *  5 - Get WMATK
- *  6 - Get EMATK & SC bonuses
+ *  3 - Get MATK w/o eMATK & SC bonuses
  */
 void status_get_matk_sub(struct block_list *bl, int flag, unsigned short *matk_max, unsigned short *matk_min)
 {
@@ -2192,7 +2189,7 @@ void status_get_matk_sub(struct block_list *bl, int flag, unsigned short *matk_m
 
 	nullpo_retv(bl);
 
-	if( flag != 0 && flag != 1 && flag != 3 && flag != 4 && flag != 5 && flag != 6 ) {
+	if( flag != 0 && flag != 1 && flag != 3 ) {
 		ShowError("status_get_matk_sub: Unknown flag %d!\n", flag);
 		return;
 	}
@@ -2206,43 +2203,40 @@ void status_get_matk_sub(struct block_list *bl, int flag, unsigned short *matk_m
 	 * RE MATK Formula (from irowiki:http://irowiki.org/wiki/MATK)
 	 * MATK = (sMATK + wMATK + eMATK) * Multiplicative Modifiers
 	 */
-	if( flag != 5 && flag != 6 )
-		*matk_min = status_base_matk(bl, status, status_get_lv(bl));
+	*matk_min = status_base_matk(bl, status, status_get_lv(bl));
 
 	//Any +MATK you get from skills and cards, including cards in weapon, is added here
-	if( sd && sd->bonus.ematk > 0 && flag != 3 && flag != 4 && flag != 5 )
+	if( sd && sd->bonus.ematk > 0 && flag != 3 )
 		*matk_min += sd->bonus.ematk;
 
-	if( flag != 1 && flag != 3 && flag != 4 && flag != 5 )
+	if( flag != 1 && flag != 3 )
 		*matk_min = status_calc_ematk(bl, sc, *matk_min);
 
 	*matk_max = *matk_min;
 
-	if( flag != 4 && flag != 6 ) {
-		switch( bl->type ) {
-			case BL_PC:
-				//This is the only portion in MATK that varies depending on the weapon level and refinement rate
-				if( (status->rhw.matk + status->lhw.matk) > 0 ) {
-					int wMatk = status->rhw.matk + status->lhw.matk; //Left and right MATK stacks
-					int variance = wMatk * status->rhw.wlv / 10; //Only use right hand weapon level
+	switch( bl->type ) {
+		case BL_PC:
+			//This is the only portion in MATK that varies depending on the weapon level and refinement rate
+			if( (status->rhw.matk + status->lhw.matk) > 0 ) {
+				int wMatk = status->rhw.matk + status->lhw.matk; //Left and right MATK stacks
+				int variance = wMatk * status->rhw.wlv / 10; //Only use right hand weapon level
 
-					*matk_min += wMatk - variance;
-					*matk_max += wMatk + variance;
-				}
-				break;
-			case BL_MER:
-				*matk_min += 70 * ((TBL_MER*)bl)->battle_status.rhw.atk2 / 100;
-				*matk_max += 130 * ((TBL_MER*)bl)->battle_status.rhw.atk2 / 100;
-				break;
-			case BL_MOB:
-				*matk_min += 70 * ((TBL_MOB*)bl)->status.rhw.atk2 / 100;
-				*matk_max += 130 * ((TBL_MOB*)bl)->status.rhw.atk2 / 100;
-				break;
-			case BL_HOM:
-				*matk_min += (status_get_homint(bl) + status_get_homdex(bl)) / 5;
-				*matk_max += (status_get_homluk(bl) + status_get_homint(bl) + status_get_homdex(bl)) / 3;
-				break;
-		}
+				*matk_min += wMatk - variance;
+				*matk_max += wMatk + variance;
+			}
+			break;
+		case BL_MER:
+			*matk_min += 70 * ((TBL_MER*)bl)->battle_status.rhw.atk2 / 100;
+			*matk_max += 130 * ((TBL_MER*)bl)->battle_status.rhw.atk2 / 100;
+			break;
+		case BL_MOB:
+			*matk_min += 70 * ((TBL_MOB*)bl)->status.rhw.atk2 / 100;
+			*matk_max += 130 * ((TBL_MOB*)bl)->status.rhw.atk2 / 100;
+			break;
+		case BL_HOM:
+			*matk_min += (status_get_homint(bl) + status_get_homdex(bl)) / 5;
+			*matk_max += (status_get_homluk(bl) + status_get_homint(bl) + status_get_homdex(bl)) / 3;
+			break;
 	}
 #else
 	*matk_min = status_base_matk_min(status) + (sd ? sd->bonus.ematk : 0);
@@ -2262,7 +2256,7 @@ void status_get_matk_sub(struct block_list *bl, int flag, unsigned short *matk_m
 	if( sd ) {
 		short index, refine;
 
-		if( (index = sd->equip_index[EQI_HAND_R]) >= 0 && sd->inventory_data[index] &&
+		if( (index = sd->equip_index[EQI_HAND_R]) >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON &&
 			(refine = sd->status.inventory[index].refine) < 16 && refine ) {
 			int r = refine_info[sd->inventory_data[index]->wlv].randombonus_max[refine + (4 - sd->inventory_data[index]->wlv)] / 100;
 
@@ -5183,7 +5177,11 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk += 30;
 	if(sc->data[SC_INCATKRATE])
 		batk += batk * sc->data[SC_INCATKRATE]->val1 / 100;
-	if(sc->data[SC_PROVOKE])
+	if(sc->data[SC_PROVOKE]
+#ifdef RENEWAL
+		&& bl->type != BL_PC
+#endif
+		)
 		batk += batk * sc->data[SC_PROVOKE]->val3 / 100;
 #ifndef RENEWAL
 	if(sc->data[SC_CONCENTRATION])
@@ -5246,7 +5244,11 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 #endif
 	if(sc->data[SC_INCATKRATE])
 		watk += watk * sc->data[SC_INCATKRATE]->val1 / 100;
-	if(sc->data[SC_PROVOKE])
+	if(sc->data[SC_PROVOKE]
+#ifdef RENEWAL
+		&& bl->type != BL_PC
+#endif
+		)
 		watk += watk * sc->data[SC_PROVOKE]->val3 / 100;
 	if(sc->data[SC_FLEET])
 		watk += watk * sc->data[SC_FLEET]->val3 / 100;
@@ -9438,7 +9440,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if( sd ) { //Players
 					short index = sd->equip_index[EQI_HAND_R];
 
-					if( index >= 0 && sd->inventory_data[index] )
+					if( index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON )
 						val2 += 10 * sd->status.job_level + sd->inventory_data[index]->weight / 10 *
 							sd->inventory_data[index]->wlv * status_get_lv(bl) / 100;
 				} else //Monster use
@@ -11483,15 +11485,20 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC_BLEEDING:
 			if( --(sce->val4) >= 0 ) {
-				int hp =  rnd()%600 + 200;
-				struct block_list* src = map_id2bl(sce->val2);
+				struct block_list *src = map_id2bl(sce->val2);
+				int hp = rnd()%600 + 200;
+#ifdef RENEWAL //Leave 50 HP (fixed) for mob [exneval]
+				int cap_mob_hp = 50;
+#else
+				int cap_mob_hp = 1;
+#endif
 
-				if( src && bl && bl->type == BL_MOB )
-					mob_log_damage((TBL_MOB*)bl,src,(sd || hp < status->hp ? hp : status->hp - 1));
+				if( src && bl && !sd )
+					mob_log_damage((TBL_MOB *)bl,src,(hp < status->hp ? hp : status->hp - cap_mob_hp));
 				map_freeblock_lock();
-				status_fix_damage(src,bl,(sd || hp < status->hp ? hp : status->hp - 1),1);
+				status_fix_damage(src,bl,(sd || hp < status->hp ? hp : status->hp - cap_mob_hp),1);
 				if( sc->data[type] ) {
-					if( status->hp == 1 ) {
+					if( status->hp == cap_mob_hp ) {
 						map_freeblock_unlock();
 						return 0;
 					}

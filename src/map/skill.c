@@ -1077,14 +1077,16 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				sc_start(src,bl,SC_BLIND,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
 
-		case AM_ACIDTERROR:
-			sc_start2(src,bl,SC_BLEEDING,(skill_lv * 3),skill_lv,src->id,skill_get_time2(skill_id,skill_lv));
-			if( skill_break_equip(src,bl,EQP_ARMOR,100 * skill_get_time(skill_id,skill_lv),BCT_ENEMY) )
-				clif_emotion(bl,E_OMG);
-			break;
-
 		case AM_DEMONSTRATION:
 			skill_break_equip(src,bl,EQP_WEAPON,100 * skill_lv,BCT_ENEMY);
+			break;
+
+		case AM_ACIDTERROR:
+			sc_start2(src,bl,SC_BLEEDING,(skill_lv * 3),skill_lv,src->id,skill_get_time2(skill_id,skill_lv));
+			if( bl->type == BL_PC && rnd()%1000 < 10 * skill_get_time(skill_id,skill_lv) ) {
+				skill_break_equip(src,bl,EQP_ARMOR,10000,BCT_ENEMY);
+				clif_emotion(bl,E_OMG); //Emote icon still shows even there is no armor equip
+			}
 			break;
 
 		case CR_SHIELDCHARGE:
@@ -1604,8 +1606,9 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			if( rate ) //Self weapon breaking
 				skill_break_equip(src,src,EQP_WEAPON,rate,BCT_SELF);
 		}
-		//Cart Termination / Tomahawk won't trigger breaking data. Why? No idea, go ask Gravity
-		if( battle_config.equip_skill_break_rate && skill_id != WS_CARTTERMINATION && skill_id != ITM_TOMAHAWK ) {
+		//Acid Terror/Cart Termination/Tomahawk won't trigger breaking data
+		if( battle_config.equip_skill_break_rate &&
+			skill_id != AM_ACIDTERROR && skill_id != WS_CARTTERMINATION && skill_id != ITM_TOMAHAWK ) {
 			rate = 0;
 			if( sd )
 				rate += sd->bonus.break_weapon_rate;
@@ -1613,7 +1616,6 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				rate += sc->data[SC_MELTDOWN]->val2;
 			if( rate ) //Target weapon breaking
 				skill_break_equip(src,bl,EQP_WEAPON,rate,BCT_ENEMY);
-
 			rate = 0;
 			if( sd )
 				rate += sd->bonus.break_armor_rate;
@@ -3184,7 +3186,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 	if (skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS)
 		dmg.flag |= BF_WEAPON;
 
-	if (sd && bl->id != src->id && damage > 0 && (dmg.flag&BF_WEAPON || (dmg.flag&BF_MISC &&
+	if (sd && bl->id != src->id && damage > 0 && skill_id != AM_DEMONSTRATION && (dmg.flag&BF_WEAPON || (dmg.flag&BF_MISC &&
 		(skill_id == RA_CLUSTERBOMB || skill_id == RA_FIRINGTRAP || skill_id == RA_ICEBOUNDTRAP)))) {
 		if (battle_config.left_cardfix_to_right)
 			battle_drain(sd, bl, dmg.damage, dmg.damage, tstatus->race, tstatus->class_);
@@ -4006,7 +4008,9 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 		case AC_CHARGEARROW:
 		case MA_CHARGEARROW:
 		case RG_INTIMIDATE:
+#ifndef RENEWAL
 		case AM_ACIDTERROR:
+#endif
 		case BA_MUSICALSTRIKE:
 		case DC_THROWARROW:
 		case BA_DISSONANCE:
@@ -4046,7 +4050,9 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 		case ML_SPIRALPIERCE:
 		case LK_HEADCRUSH:
 		case CG_ARROWVULCAN:
+#ifndef RENEWAL
 		case HW_MAGICCRASHER:
+#endif
 		case ITM_TOMAHAWK:
 		case CH_CHAINCRUSH:
 		case CH_TIGERFIST:
@@ -4672,6 +4678,8 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 		case CR_ACIDDEMONSTRATION:
 		case TF_THROWSTONE:
 #ifdef RENEWAL
+		case AM_ACIDTERROR:
+		case HW_MAGICCRASHER:
 		case ASC_BREAKER:
 #endif
 		case NPC_SMOKING:
@@ -5903,7 +5911,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				mob_class_change(dstmd,mob_id);
 				if (tsc && dstmd->status.mode&MD_BOSS) {
-					const enum sc_type scs[] = { SC_QUAGMIRE,SC_PROVOKE,SC_ROKISWEIL,SC_GRAVITATION,SC_SUITON,SC_STRIPWEAPON,SC_STRIPSHIELD,SC_STRIPARMOR,SC_STRIPHELM,SC_BLADESTOP };
+					const enum sc_type scs[] = { SC_QUAGMIRE,SC_PROVOKE,SC_ROKISWEIL,SC_GRAVITATION,SC_SUITON,
+						SC_STRIPWEAPON,SC_STRIPSHIELD,SC_STRIPARMOR,SC_STRIPHELM,SC_BLADESTOP };
 	
 					for (i = SC_COMMON_MIN; i <= SC_COMMON_MAX; i++)
 						if (tsc->data[i])

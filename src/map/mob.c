@@ -1902,11 +1902,13 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 	int char_id = 0, flag = MDLF_NORMAL;
 
 	if( damage < 0 )
-		return; //Do nothing for absorbed damage.
+		return; //Do nothing for absorbed damage
+
 	if( !damage && !(src->type&DEFAULT_ENEMY_TYPE(md)) )
-		return; //Do not log non-damaging effects from non-enemies.
+		return; //Do not log non-damaging effects from non-enemies
+
 	if( src->id == md->bl.id )
-		return; //Do not log self-damage.
+		return; //Do not log self-damage
 
 	switch( src->type ) {
 		case BL_PC: {
@@ -1958,7 +1960,7 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 				}
 				if( !damage )
 					break;
-				//Let players decide whether to retaliate versus the master or the mob. [Skotlex]
+				//Let players decide whether to retaliate versus the master or the mob [Skotlex]
 				if( md2->master_id && battle_config.retaliate_to_master )
 					md->attacked_id = md2->master_id;
 				else
@@ -1974,11 +1976,11 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 					md->attacked_id = src->id;
 			}
 			break;
-		default: //For all unhandled types.
+		default: //For all unhandled types
 			md->attacked_id = src->id;
 	}
 	
-	if( char_id ) { //Log damage.
+	if( char_id ) { //Log damage
 		int i, minpos;
 		unsigned int mindmg;
 
@@ -1986,7 +1988,7 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 			if( md->dmglog[i].id == char_id &&
 				md->dmglog[i].flag == flag )
 				break;
-			if( md->dmglog[i].id == 0 ) { //Store data in first empty slot.
+			if( md->dmglog[i].id == 0 ) { //Store data in first empty slot
 				md->dmglog[i].id = char_id;
 				md->dmglog[i].flag = flag;
 
@@ -2010,29 +2012,28 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 				pc_damage_log_add(map_charid2sd(char_id),md->bl.id);
 		}
 	}
-	return;
 }
-//Call when a mob has received damage.
+
+//Call when a mob has received damage
 void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 {
-	if (damage > 0) { //Store total damage.
+	if (damage > 0) { //Store total damage
 		if (UINT_MAX - (unsigned int)damage > md->tdmg)
 			md->tdmg += damage;
 		else if (md->tdmg == UINT_MAX)
-			damage = 0; //Stop recording damage once the cap has been reached.
+			damage = 0; //Stop recording damage once the cap has been reached
 		else { //Cap damage log.
 			damage = (int)(UINT_MAX - md->tdmg);
 			md->tdmg = UINT_MAX;
 		}
-		if (md->state.aggressive) { //No longer aggressive, change to retaliate AI.
+		if (md->state.aggressive) { //No longer aggressive, change to retaliate AI
 			md->state.aggressive = 0;
 			if (md->state.skillstate == MSS_ANGRY)
 				md->state.skillstate = MSS_BERSERK;
 			if (md->state.skillstate == MSS_FOLLOW)
 				md->state.skillstate = MSS_RUSH;
 		}
-		//Log damage
-		if (src)
+		if (src) //Log damage
 			mob_log_damage(md, src, damage);
 		md->dmgtick = gettick();
 	}

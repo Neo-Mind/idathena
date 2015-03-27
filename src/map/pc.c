@@ -1554,7 +1554,7 @@ void pc_calc_skilltree(struct map_session_data *sd)
 	for( i = 0; i < MAX_SKILL; i++ ) {
 		if( sd->status.skill[i].flag != SKILL_FLAG_PLAGIARIZED && sd->status.skill[i].flag != SKILL_FLAG_PERM_GRANTED ) //Don't touch these
 			sd->status.skill[i].id = 0; //First clear skills.
-		/* Permanent skills that must be re-checked */
+		//Permanent skills that must be re-checked
 		if( sd->status.skill[i].flag == SKILL_FLAG_PERM_GRANTED ) {
 			switch( i ) {
 				case NV_TRICKDEAD:
@@ -1569,14 +1569,14 @@ void pc_calc_skilltree(struct map_session_data *sd)
 	}
 
 	for( i = 0; i < MAX_SKILL; i++ ) {
-		if( sd->status.skill[i].flag != SKILL_FLAG_PERMANENT && sd->status.skill[i].flag != SKILL_FLAG_PERM_GRANTED && sd->status.skill[i].flag != SKILL_FLAG_PLAGIARIZED )
-		{ //Restore original level of skills after deleting earned skills.
+		if( sd->status.skill[i].flag != SKILL_FLAG_PERMANENT && sd->status.skill[i].flag != SKILL_FLAG_PERM_GRANTED &&
+			sd->status.skill[i].flag != SKILL_FLAG_PLAGIARIZED ) { //Restore original level of skills after deleting earned skills
 			sd->status.skill[i].lv = (sd->status.skill[i].flag == SKILL_FLAG_TEMPORARY) ? 0 : sd->status.skill[i].flag - SKILL_FLAG_REPLACED_LV_0;
 			sd->status.skill[i].flag = SKILL_FLAG_PERMANENT;
 		}
 
-		if( sd->sc.count && sd->sc.data[SC_SPIRIT] && sd->sc.data[SC_SPIRIT]->val2 == SL_BARDDANCER && i >= DC_HUMMING && i<= DC_SERVICEFORYOU )
-		{ //Enable Bard/Dancer spirit linked skills.
+		if( sd->sc.count && sd->sc.data[SC_SPIRIT] &&
+			sd->sc.data[SC_SPIRIT]->val2 == SL_BARDDANCER && i >= DC_HUMMING && i<= DC_SERVICEFORYOU ) { //Enable Bard/Dancer spirit linked skills
 			if( sd->status.sex ) { //Link dancer skills to bard.
 				if( sd->status.skill[i - 8].lv < 10 )
 					continue;
