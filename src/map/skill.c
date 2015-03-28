@@ -7258,11 +7258,9 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						(!sd->status.party_id || sd->status.party_id != dstsd->status.party_id) )
 						break;
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-					if( (dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) ||
-						//Rogue's spirit defends againt dispel
-						(tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_ROGUE) ||
-						//Mado Gear is immune to dispell according to bug report 49 [Ind]
-						(tsc && (tsc->option&OPTION_MADOGEAR)) ||
+					if( (dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) || //Soul Linkers are naturally immune
+						(tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_ROGUE) || //Rogue's spirit defends against dispel
+						(tsc && (tsc->option&OPTION_MADOGEAR)) || //Mado Gear is immune to dispell according to bugreport:49 [Ind]
 						rnd()%100 >= 50 + 10 * skill_lv )
 					{
 						if( sd )
@@ -7318,7 +7316,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 							//RK
 							case SC_DEATHBOUND:		case SC_CRUSHSTRIKE:		case SC_REFRESH:
 							case SC_GIANTGROWTH:		case SC_STONEHARDSKIN:		case SC_VITALITYACTIVATION:
-							case SC_FIGHTINGSPIRIT:		case SC_ABUNDANCE:
+							case SC_FIGHTINGSPIRIT:		case SC_ABUNDANCE:		case SC_MILLENNIUMSHIELD:
 							//AB
 							case SC_EPICLESIS:		case SC_ORATIO:			case SC_LAUDAAGNUS:
 							case SC_LAUDARAMUS:		case SC_RENOVATIO:		case SC_EXPIATIO:
@@ -7389,7 +7387,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 							case SC_PARALYSIS:		case SC_PAIN_KILLER:		case SC_LIGHT_OF_REGENE:
 							case SC_OVERED_BOOST:		case SC_STYLE_CHANGE:		case SC_GOLDENE_FERSE:
 							case SC_ANGRIFFS_MODUS:		case SC_TINDER_BREAKER:		case SC_TINDER_BREAKER2:
-							case SC_CBC:	case SC_EQC:	case SC_MAGMA_FLOW:
+							case SC_CBC:			case SC_EQC:			case SC_MAGMA_FLOW:
 							case SC_GRANITIC_ARMOR:		case SC_PYROCLASTIC:		case SC_ASH:
 							case SC_BLOODSUCKER:		case SC_MANDRAGORA:		case SC_STOMACHACHE:
 							case SC_MYSTERIOUS_POWDER:
@@ -8839,7 +8837,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					if( bl->type != BL_MOB && battle_check_target(src,bl,BCT_PARTY) <= 0 )
 						break;
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-					if( (dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) || rnd()%100 >= 60 + 8 * skill_lv ) {
+					if( (dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) || //Soul Linkers are naturally immune
+						rnd()%100 >= 60 + 8 * skill_lv ) {
 						if( sd )
 							clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
 						break;
@@ -8959,7 +8958,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 							case SC_PARALYSIS:		case SC_PAIN_KILLER:		case SC_LIGHT_OF_REGENE:
 							case SC_OVERED_BOOST:		case SC_STYLE_CHANGE:		case SC_GOLDENE_FERSE:
 							case SC_ANGRIFFS_MODUS:		case SC_TINDER_BREAKER:		case SC_TINDER_BREAKER2:
-							case SC_CBC:	case SC_EQC:	case SC_MAGMA_FLOW:
+							case SC_CBC:			case SC_EQC:			case SC_MAGMA_FLOW:
 							case SC_GRANITIC_ARMOR:		case SC_PYROCLASTIC:		case SC_ASH:
 							//KO/OB
 							case SC_KAGEHUMI:		case SC_JYUMONJIKIRI:		case SC_MEIKYOUSISUI:
@@ -10545,7 +10544,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 				if( flag&1 ) {
 					if( (dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) ) {
-						if( sd )
+						if( sd ) //Soul Linkers are naturally immune
 							clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
 						break;
 					}
@@ -10598,7 +10597,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 							//RK
 							case SC_DEATHBOUND:		case SC_CRUSHSTRIKE:		case SC_REFRESH:
 							case SC_GIANTGROWTH:		case SC_STONEHARDSKIN:		case SC_VITALITYACTIVATION:
-							case SC_FIGHTINGSPIRIT:		case SC_ABUNDANCE:
+							case SC_FIGHTINGSPIRIT:		case SC_ABUNDANCE:		case SC_MILLENNIUMSHIELD:
 							//AB
 							case SC_EPICLESIS:		case SC_ORATIO:			case SC_LAUDAAGNUS:
 							case SC_LAUDARAMUS:		case SC_RENOVATIO:		case SC_EXPIATIO:
@@ -10669,7 +10668,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 							case SC_PARALYSIS:		case SC_PAIN_KILLER:		case SC_LIGHT_OF_REGENE:
 							case SC_OVERED_BOOST:		case SC_STYLE_CHANGE:		case SC_GOLDENE_FERSE:
 							case SC_ANGRIFFS_MODUS:		case SC_TINDER_BREAKER:		case SC_TINDER_BREAKER2:
-							case SC_CBC:	case SC_EQC:	case SC_MAGMA_FLOW:
+							case SC_CBC:			case SC_EQC:			case SC_MAGMA_FLOW:
 							case SC_GRANITIC_ARMOR:		case SC_PYROCLASTIC:		case SC_ASH:
 							case SC_BLOODSUCKER:		case SC_MANDRAGORA:		case SC_STOMACHACHE:
 							case SC_MYSTERIOUS_POWDER:
