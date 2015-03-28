@@ -564,7 +564,6 @@ void initChangeTables(void) {
 	set_sc( MH_NEEDLE_OF_PARALYZE , SC_PARALYSIS       , SI_NEEDLE_OF_PARALYZE , SCB_DEF2 );
 	add_sc( MH_POISON_MIST        , SC_BLIND );
 	set_sc( MH_PAIN_KILLER        , SC_PAIN_KILLER     , SI_PAIN_KILLER     , SCB_ASPD );
-
 	set_sc( MH_SILENT_BREEZE      , SC_SILENCE         , SI_SILENT_BREEZE   , SCB_NONE );
 	add_sc( MH_STYLE_CHANGE       , SC_STYLE_CHANGE );
 	set_sc( MH_TINDER_BREAKER     , SC_TINDER_BREAKER2 , SI_TINDER_BREAKER  , SCB_FLEE );
@@ -608,7 +607,7 @@ void initChangeTables(void) {
 	set_sc( RK_DEATHBOUND        , SC_DEATHBOUND        , SI_DEATHBOUND        , SCB_NONE );
 	set_sc( RK_WINDCUTTER        , SC_FEAR              , SI_BLANK             , SCB_FLEE|SCB_HIT );
 	set_sc( RK_DRAGONBREATH      , SC_BURNING           , SI_BURNT             , SCB_MDEF|SCB_MDEF2 );
-	set_sc( RK_MILLENNIUMSHIELD  , SC_MILLENNIUMSHIELD  , SI_REUSE_MILLENNIUMSHIELD, SCB_NONE );
+	add_sc( RK_MILLENNIUMSHIELD  , SC_MILLENNIUMSHIELD  );
 	set_sc( RK_REFRESH           , SC_REFRESH           , SI_REFRESH               , SCB_NONE );
 	set_sc( RK_GIANTGROWTH       , SC_GIANTGROWTH       , SI_GIANTGROWTH           , SCB_STR );
 	set_sc( RK_STONEHARDSKIN     , SC_STONEHARDSKIN     , SI_STONEHARDSKIN         , SCB_DEF|SCB_MDEF );
@@ -637,7 +636,7 @@ void initChangeTables(void) {
 	set_sc( AB_RENOVATIO         , SC_RENOVATIO       , SI_RENOVATIO       , SCB_REGEN );
 	set_sc( AB_EXPIATIO          , SC_EXPIATIO        , SI_EXPIATIO        , SCB_NONE );
 	set_sc( AB_DUPLELIGHT        , SC_DUPLELIGHT      , SI_DUPLELIGHT      , SCB_NONE );
-	set_sc( AB_SECRAMENT         , SC_SECRAMENT       , SI_SECRAMENT       , SCB_NONE );
+	set_sc( AB_SECRAMENT         , SC_SECRAMENT       , SI_AB_SECRAMENT    , SCB_NONE );
 	set_sc( AB_OFFERTORIUM       , SC_OFFERTORIUM     , SI_OFFERTORIUM     , SCB_NONE );
 
 	add_sc( WL_WHITEIMPRISON     , SC_WHITEIMPRISON	  );
@@ -721,36 +720,36 @@ void initChangeTables(void) {
 	set_sc( SR_GENTLETOUCH_REVITALIZE, SC_GT_REVITALIZE      , SI_GENTLETOUCH_REVITALIZE, SCB_MAXHP|SCB_DEF2|SCB_REGEN );
 	set_sc( SR_FLASHCOMBO            , SC_FLASHCOMBO         , SI_FLASHCOMBO            , SCB_NONE );
 
-	set_sc( WA_SWING_DANCE            , SC_SWINGDANCE           , SI_SWINGDANCE           , SCB_SPEED|SCB_ASPD );
-	set_sc( WA_SYMPHONY_OF_LOVER      , SC_SYMPHONYOFLOVER      , SI_SYMPHONYOFLOVERS     , SCB_MDEF );
-	set_sc( WA_MOONLIT_SERENADE       , SC_MOONLITSERENADE      , SI_MOONLITSERENADE      , SCB_MATK );
-	set_sc( MI_RUSH_WINDMILL          , SC_RUSHWINDMILL         , SI_RUSHWINDMILL         , SCB_NONE );
-	set_sc( MI_ECHOSONG               , SC_ECHOSONG             , SI_ECHOSONG             , SCB_DEF );
-	set_sc( MI_HARMONIZE              , SC_HARMONIZE            , SI_HARMONIZE            , SCB_STR|SCB_AGI|SCB_VIT|SCB_INT|SCB_DEX|SCB_LUK );
-	set_sc_with_vfx( WM_POEMOFNETHERWORLD , SC_NETHERWORLD      , SI_NETHERWORLD          , SCB_NONE );
+	set_sc( WA_SWING_DANCE            , SC_SWINGDANCE           , SI_SWING              , SCB_SPEED|SCB_ASPD );
+	set_sc( WA_SYMPHONY_OF_LOVER      , SC_SYMPHONYOFLOVER      , SI_SYMPHONY_LOVE      , SCB_MDEF );
+	set_sc( WA_MOONLIT_SERENADE       , SC_MOONLITSERENADE      , SI_MOONLIT_SERENADE   , SCB_MATK );
+	set_sc( MI_RUSH_WINDMILL          , SC_RUSHWINDMILL         , SI_RUSH_WINDMILL      , SCB_NONE );
+	set_sc( MI_ECHOSONG               , SC_ECHOSONG             , SI_ECHOSONG           , SCB_DEF );
+	set_sc( MI_HARMONIZE              , SC_HARMONIZE            , SI_HARMONIZE          , SCB_STR|SCB_AGI|SCB_VIT|SCB_INT|SCB_DEX|SCB_LUK );
+	set_sc_with_vfx( WM_POEMOFNETHERWORLD , SC_NETHERWORLD      , SI_NETHERWORLD        , SCB_NONE );
 	add_sc( WM_POEMOFNETHERWORLD      , SC_NETHERWORLD_IMMUNE );
-	set_sc_with_vfx( WM_VOICEOFSIREN      , SC_VOICEOFSIREN     , SI_VOICEOFSIREN         , SCB_NONE );
-	set_sc_with_vfx( WM_LULLABY_DEEPSLEEP , SC_DEEPSLEEP        , SI_DEEPSLEEP            , SCB_NONE );
-	set_sc( WM_SIRCLEOFNATURE         , SC_SIRCLEOFNATURE       , SI_SIRCLEOFNATURE       , SCB_NONE );
-	set_sc( WM_GLOOMYDAY              , SC_GLOOMYDAY            , SI_GLOOMYDAY            , SCB_FLEE|SCB_SPEED|SCB_ASPD );
-	set_sc( WM_SONG_OF_MANA           , SC_SONGOFMANA           , SI_SONGOFMANA           , SCB_NONE );
-	set_sc( WM_DANCE_WITH_WUG         , SC_DANCEWITHWUG         , SI_DANCEWITHWUG         , SCB_ASPD );
-	set_sc( WM_SATURDAY_NIGHT_FEVER   , SC_SATURDAYNIGHTFEVER   , SI_SATURDAYNIGHTFEVER   , SCB_FLEE|SCB_DEF|SCB_DEF2|SCB_REGEN );
-	set_sc( WM_LERADS_DEW             , SC_LERADSDEW            , SI_LERADSDEW            , SCB_MAXHP );
-	set_sc( WM_MELODYOFSINK           , SC_MELODYOFSINK         , SI_MELODYOFSINK         , SCB_INT );
-	set_sc( WM_BEYOND_OF_WARCRY       , SC_BEYONDOFWARCRY       , SI_WARCRYOFBEYOND       , SCB_STR|SCB_CRI|SCB_MAXHP );
-	set_sc( WM_UNLIMITED_HUMMING_VOICE, SC_UNLIMITEDHUMMINGVOICE, SI_UNLIMITEDHUMMINGVOICE, SCB_NONE );
-	set_sc( WM_FRIGG_SONG             , SC_FRIGG_SONG           , SI_FRIGG_SONG           , SCB_MAXHP );
+	set_sc_with_vfx( WM_VOICEOFSIREN      , SC_VOICEOFSIREN     , SI_SIREN                  , SCB_NONE );
+	set_sc_with_vfx( WM_LULLABY_DEEPSLEEP , SC_DEEPSLEEP        , SI_DEEP_SLEEP             , SCB_NONE );
+	set_sc( WM_SIRCLEOFNATURE         , SC_SIRCLEOFNATURE       , SI_SIRCLEOFNATURE         , SCB_NONE );
+	set_sc( WM_GLOOMYDAY              , SC_GLOOMYDAY            , SI_GLOOMYDAY              , SCB_FLEE|SCB_SPEED|SCB_ASPD );
+	set_sc( WM_SONG_OF_MANA           , SC_SONGOFMANA           , SI_SONG_OF_MANA           , SCB_NONE );
+	set_sc( WM_DANCE_WITH_WUG         , SC_DANCEWITHWUG         , SI_DANCE_WITH_WUG         , SCB_ASPD );
+	set_sc( WM_SATURDAY_NIGHT_FEVER   , SC_SATURDAYNIGHTFEVER   , SI_SATURDAY_NIGHT_FEVER   , SCB_FLEE|SCB_DEF|SCB_DEF2|SCB_REGEN );
+	set_sc( WM_LERADS_DEW             , SC_LERADSDEW            , SI_LERADS_DEW             , SCB_MAXHP );
+	set_sc( WM_MELODYOFSINK           , SC_MELODYOFSINK         , SI_MELODYOFSINK           , SCB_INT );
+	set_sc( WM_BEYOND_OF_WARCRY       , SC_BEYONDOFWARCRY       , SI_BEYOND_OF_WARCRY       , SCB_STR|SCB_CRI|SCB_MAXHP );
+	set_sc( WM_UNLIMITED_HUMMING_VOICE, SC_UNLIMITEDHUMMINGVOICE, SI_UNLIMITED_HUMMING_VOICE, SCB_NONE );
+	set_sc( WM_FRIGG_SONG             , SC_FRIGG_SONG           , SI_FRIGG_SONG             , SCB_MAXHP );
 
 	set_sc( SO_FIREWALK          , SC_PROPERTYWALK    , SI_PROPERTYWALK    , SCB_NONE );
 	set_sc( SO_ELECTRICWALK      , SC_PROPERTYWALK    , SI_PROPERTYWALK    , SCB_NONE );
 	set_sc( SO_SPELLFIST         , SC_SPELLFIST       , SI_SPELLFIST       , SCB_NONE );
 	set_sc_with_vfx( SO_DIAMONDDUST , SC_CRYSTALIZE   , SI_COLD            , SCB_NONE );
-	set_sc( SO_CLOUD_KILL        , SC_POISON          , SI_CLOUDKILL       , SCB_NONE );
+	set_sc( SO_CLOUD_KILL        , SC_POISON          , SI_CLOUD_KILL      , SCB_NONE );
 	set_sc( SO_STRIKING          , SC_STRIKING        , SI_STRIKING        , SCB_WATK|SCB_CRI );
 	set_sc( SO_WARMER            , SC_WARMER          , SI_WARMER          , SCB_NONE );
 	set_sc( SO_VACUUM_EXTREME    , SC_VACUUM_EXTREME  , SI_VACUUM_EXTREME  , SCB_NONE );
-	set_sc( SO_ARRULLO           , SC_DEEPSLEEP       , SI_DEEPSLEEP       , SCB_NONE );
+	set_sc( SO_ARRULLO           , SC_DEEPSLEEP       , SI_DEEP_SLEEP      , SCB_NONE );
 	set_sc( SO_FIRE_INSIGNIA     , SC_FIRE_INSIGNIA   , SI_FIRE_INSIGNIA   , SCB_BATK|SCB_WATK|SCB_MATK|SCB_ATK_ELE|SCB_REGEN );
 	set_sc( SO_WATER_INSIGNIA    , SC_WATER_INSIGNIA  , SI_WATER_INSIGNIA  , SCB_BATK|SCB_WATK|SCB_ATK_ELE|SCB_REGEN );
 	set_sc( SO_WIND_INSIGNIA     , SC_WIND_INSIGNIA   , SI_WIND_INSIGNIA   , SCB_BATK|SCB_WATK|SCB_ATK_ELE|SCB_REGEN );
@@ -758,12 +757,12 @@ void initChangeTables(void) {
 	add_sc( SO_ELEMENTAL_SHIELD  , SC_ELEMENTAL_SHIELD );
 
 	set_sc( GN_CARTBOOST                  , SC_GN_CARTBOOST, SI_GN_CARTBOOST               , SCB_SPEED );
-	set_sc( GN_THORNS_TRAP                , SC_THORNSTRAP  , SI_THORNTRAP                  , SCB_NONE );
-	set_sc_with_vfx( GN_BLOOD_SUCKER      , SC_BLOODSUCKER , SI_BLOODSUCKER                , SCB_NONE );
+	set_sc( GN_THORNS_TRAP                , SC_THORNSTRAP  , SI_THORNS_TRAP                , SCB_NONE );
+	set_sc_with_vfx( GN_BLOOD_SUCKER      , SC_BLOODSUCKER , SI_BLOOD_SUCKER               , SCB_NONE );
 	set_sc( GN_FIRE_EXPANSION_SMOKE_POWDER, SC_SMOKEPOWDER , SI_FIRE_EXPANSION_SMOKE_POWDER, SCB_FLEE );
 	set_sc( GN_FIRE_EXPANSION_TEAR_GAS    , SC_TEARGAS     , SI_FIRE_EXPANSION_TEAR_GAS    , SCB_HIT|SCB_FLEE );
 	set_sc( GN_MANDRAGORA                 , SC_MANDRAGORA  , SI_MANDRAGORA                 , SCB_INT );
-	set_sc_with_vfx( GN_ILLUSIONDOPING    , SC_ILLUSIONDOPING  , SI_ILLUSIONDOPING         , SCB_HIT );
+	set_sc_with_vfx( GN_ILLUSIONDOPING    , SC_ILLUSIONDOPING, SI_ILLUSIONDOPING           , SCB_HIT );
 
 	//Elemental Spirit summoner's 'side' status changes
 	set_sc( EL_CIRCLE_OF_FIRE  , SC_CIRCLE_OF_FIRE_OPTION, SI_CIRCLE_OF_FIRE_OPTION, SCB_NONE );
@@ -904,11 +903,11 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_MERC_HPUP] = SI_MERC_HPUP;
 	StatusIconChangeTable[SC_MERC_SPUP] = SI_MERC_SPUP;
 	StatusIconChangeTable[SC_MERC_HITUP] = SI_MERC_HITUP;
-	StatusIconChangeTable[SC_SPHERE_1] = SI_SPHERE_1;
-	StatusIconChangeTable[SC_SPHERE_2] = SI_SPHERE_2;
-	StatusIconChangeTable[SC_SPHERE_3] = SI_SPHERE_3;
-	StatusIconChangeTable[SC_SPHERE_4] = SI_SPHERE_4;
-	StatusIconChangeTable[SC_SPHERE_5] = SI_SPHERE_5;
+	StatusIconChangeTable[SC_SPHERE_1] = SI_SUMMON1;
+	StatusIconChangeTable[SC_SPHERE_2] = SI_SUMMON2;
+	StatusIconChangeTable[SC_SPHERE_3] = SI_SUMMON3;
+	StatusIconChangeTable[SC_SPHERE_4] = SI_SUMMON4;
+	StatusIconChangeTable[SC_SPHERE_5] = SI_SUMMON5;
 	StatusIconChangeTable[SC_SPELLBOOK1] = SI_SPELLBOOK1;
 	StatusIconChangeTable[SC_SPELLBOOK2] = SI_SPELLBOOK2;
 	StatusIconChangeTable[SC_SPELLBOOK3] = SI_SPELLBOOK3;
@@ -5976,7 +5975,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 				if( sc->data[SC__LAZINESS] )
 					val = max( val, 25 );
 				if( sc->data[SC_BANDING_DEFENCE] )
-					val = max( val, sc->data[SC_BANDING_DEFENCE]->val1 ); //-90% Walking speed.
+					val = max( val, sc->data[SC_BANDING_DEFENCE]->val1 ); //-90% Walking speed
 				if( sc->data[SC_ROCK_CRUSHER_ATK] )
 					val = max( val, sc->data[SC_ROCK_CRUSHER_ATK]->val2 );
 				if( sc->data[SC_POWER_OF_GAIA] )
@@ -10722,7 +10721,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 							status_change_end(&tsd->bl,type,INVALID_TIMER);
 					}
 				} else if (bl->type == BL_MER && ((TBL_MER*)bl)->devotion_flag) { //Clear Status from Master
-					tsd = ((TBL_MER*)bl)->master;
+					tsd = ((TBL_MER *)bl)->master;
 					if (tsd && tsd->sc.data[type])
 						status_change_end(&tsd->bl,type,INVALID_TIMER);
 				}

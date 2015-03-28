@@ -7280,66 +7280,141 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						if( !tsc->data[i] )
 							continue;
 						switch( i ) {
-							case SC_WEIGHT50:			case SC_WEIGHT90:		case SC_HALLUCINATION:
-							case SC_STRIPWEAPON:			case SC_STRIPSHIELD:		case SC_STRIPARMOR:
-							case SC_STRIPHELM:			case SC_CP_WEAPON:		case SC_CP_SHIELD:
-							case SC_CP_ARMOR:			case SC_CP_HELM:		case SC_COMBO:
-							case SC_STRFOOD:			case SC_AGIFOOD:		case SC_VITFOOD:
-							case SC_INTFOOD:			case SC_DEXFOOD:		case SC_LUKFOOD:
-							case SC_HITFOOD:			case SC_FLEEFOOD:		case SC_BATKFOOD:
-							case SC_WATKFOOD:			case SC_MATKFOOD:		case SC_DANCING:
-							case SC_EDP:				case SC_AUTOBERSERK:
-							case SC_CARTBOOST:			case SC_MELTDOWN:		case SC_SAFETYWALL:
-							case SC_SMA:				case SC_SPEEDUP0:		case SC_NOCHAT:
-							case SC_ANKLE:				case SC_SPIDERWEB:		case SC_JAILED:
-							case SC_ITEMBOOST:			case SC_EXPBOOST:		case SC_LIFEINSURANCE:
-							case SC_BOSSMAPINFO:			case SC_PNEUMA:			case SC_AUTOSPELL:
-							case SC_INCHITRATE:			case SC_INCATKRATE:		case SC_NEN:
-							case SC_READYSTORM:			case SC_READYDOWN:		case SC_READYTURN:
-							case SC_READYCOUNTER:			case SC_DODGE:			case SC_WARM:
-							/*case SC_SPEEDUP1:*/			case SC_AUTOTRADE:		case SC_CRITICALWOUND:
-							case SC_JEXPBOOST:			case SC_INVINCIBLE:		case SC_INVINCIBLEOFF:
-							case SC_HELLPOWER:			case SC_MANU_ATK:		case SC_MANU_DEF:
-							case SC_SPL_ATK:			case SC_SPL_DEF:		case SC_MANU_MATK:
-							case SC_SPL_MATK:			case SC_RICHMANKIM:		case SC_ETERNALCHAOS:
-							case SC_DRUMBATTLE:			case SC_NIBELUNGEN:		case SC_ROKISWEIL:
-							case SC_INTOABYSS:			case SC_SIEGFRIED:		case SC_FOOD_STR_CASH:
-							case SC_FOOD_AGI_CASH:			case SC_FOOD_VIT_CASH:		case SC_FOOD_DEX_CASH:
-							case SC_FOOD_INT_CASH:			case SC_FOOD_LUK_CASH:		case SC_SEVENWIND:
-							case SC_MIRACLE:			case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:
-							case SC_INCHEALRATE:			case SC_ELECTRICSHOCKER:	case SC__STRIPACCESSORY:
-							case SC_SAVAGE_STEAK:			case SC_COCKTAIL_WARG_BLOOD:	case SC_MINOR_BBQ:
-							case SC_SIROMA_ICE_TEA:			case SC_DROCERA_HERB_STEAMED:	case SC_PUTTI_TAILS_NOODLES:
-							case SC_NEUTRALBARRIER_MASTER:		case SC_NEUTRALBARRIER:		case SC_STEALTHFIELD_MASTER:
-							case SC_STEALTHFIELD:			case SC_GIANTGROWTH:		case SC_MILLENNIUMSHIELD:
-							case SC_REFRESH:			case SC_STONEHARDSKIN:		case SC_VITALITYACTIVATION:
-							case SC_FIGHTINGSPIRIT:			case SC_ABUNDANCE:		case SC__SHADOWFORM:
-							case SC_RECOGNIZEDSPELL:		case SC_LEADERSHIP:		case SC_GLORYWOUNDS:
-							case SC_SOULCOLD:			case SC_HAWKEYES:		case SC_REGENERATION:
-							case SC_PUSH_CART:			case SC_RAISINGDRAGON:		case SC_GT_ENERGYGAIN:
-							case SC_GT_CHANGE:			case SC_GT_REVITALIZE:		case SC_REFLECTDAMAGE:
-							case SC_INSPIRATION:			case SC_EXEEDBREAK:		case SC_FORCEOFVANGUARD:
-							case SC_BANDING:			case SC_DUPLELIGHT:		case SC_EXPIATIO:
-							case SC_LAUDAAGNUS:			case SC_LAUDARAMUS:		case SC_GATLINGFEVER:
-							case SC_INCREASING:			case SC_ADJUSTMENT:		case SC_MADNESSCANCEL:
-							case SC_ANGEL_PROTECT:			case SC_MONSTER_TRANSFORM:	case SC_FULL_THROTTLE:
-							case SC_REBOUND:			case SC_TELEKINESIS_INTENSE:	case SC_MOONSTAR:
-							case SC_SUPER_STAR:			case SC_ALL_RIDING:		case SC_MTF_ASPD:
-							case SC_MTF_RANGEATK:			case SC_MTF_MATK:		case SC_MTF_MLEATKED:
-							case SC_MTF_CRIDAMAGE:			case SC_HEAT_BARREL:		case SC_HEAT_BARREL_AFTER:
-							case SC_P_ALTER:			case SC_E_CHAIN:		case SC_C_MARKER:
-							case SC_B_TRAP:				case SC_H_MINE:			case SC_STRANGELIGHTS:
-							case SC_DECORATION_OF_MUSIC:		case SC_GN_CARTBOOST:		case SC_CHASEWALK2:
+							case SC_WEIGHT50:		case SC_WEIGHT90:		case SC_HALLUCINATION:
+							case SC_STRIPWEAPON:		case SC_STRIPSHIELD:		case SC_STRIPARMOR:
+							case SC_STRIPHELM:		case SC_CP_WEAPON:		case SC_CP_SHIELD:
+							case SC_CP_ARMOR:		case SC_CP_HELM:		case SC_COMBO:
+							case SC_STRFOOD:		case SC_AGIFOOD:		case SC_VITFOOD:
+							case SC_INTFOOD:		case SC_DEXFOOD:		case SC_LUKFOOD:
+							case SC_HITFOOD:		case SC_FLEEFOOD:		case SC_CRIFOOD:
+							case SC_BATKFOOD:		case SC_WATKFOOD:		case SC_MATKFOOD:
+							case SC_DANCING:		case SC_LEADERSHIP:		case SC_GLORYWOUNDS:
+							case SC_SOULCOLD:		case SC_HAWKEYES:		case SC_REGENERATION:
+							case SC_EDP:			case SC_AUTOBERSERK:		case SC_CARTBOOST:
+							case SC_MELTDOWN:		case SC_SAFETYWALL:		case SC_SMA:
+							case SC_SPEEDUP0:		case SC_NOCHAT:			case SC_ANKLE:
+							case SC_SPIDERWEB:		case SC_JAILED:			case SC_ITEMBOOST:
+							case SC_EXPBOOST:		case SC_LIFEINSURANCE:		case SC_BOSSMAPINFO:
+							case SC_PNEUMA:			case SC_AUTOSPELL:		case SC_INCHITRATE:
+							case SC_INCATKRATE:		case SC_NEN:			case SC_UTSUSEMI:
+							case SC_READYSTORM:		case SC_READYDOWN:		case SC_READYTURN:
+							case SC_READYCOUNTER:		case SC_DODGE:			case SC_WARM:
+							case SC_AUTOTRADE:		case SC_CRITICALWOUND:		case SC_JEXPBOOST:
+							case SC_INVINCIBLE:		case SC_INVINCIBLEOFF:		case SC_HELLPOWER:
+							case SC_MANU_ATK:		case SC_MANU_DEF:		case SC_SPL_ATK:
+							case SC_SPL_DEF:		case SC_MANU_MATK:		case SC_SPL_MATK:
+							case SC_RICHMANKIM:		case SC_ETERNALCHAOS:		case SC_DRUMBATTLE:
+							case SC_NIBELUNGEN:		case SC_ROKISWEIL:		case SC_INTOABYSS:
+							case SC_SIEGFRIED:		case SC_FOOD_STR_CASH:		case SC_FOOD_AGI_CASH:
+							case SC_FOOD_VIT_CASH:		case SC_FOOD_DEX_CASH:		case SC_FOOD_INT_CASH:
+							case SC_FOOD_LUK_CASH:		case SC_SEVENWIND:		case SC_MIRACLE:
+							case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:		case SC_INCHEALRATE:
+							case SC_HIDING:			case SC_CLOAKING:		case SC_CHASEWALK:
+							case SC_CHASEWALK2:		case SC_GATLINGFEVER:		case SC_INCREASING:
+							case SC_ADJUSTMENT:		case SC_MADNESSCANCEL:
 #ifdef RENEWAL
 							case SC_EXTREMITYFIST2:
 #endif
-							case SC_HIDING:				case SC_CLOAKING:		case SC_CHASEWALK:
-							case SC_CLOAKINGEXCEED:			case SC__INVISIBILITY:		case SC_CRIFOOD:
-							case SC_UTSUSEMI:			case SC_MTF_ASPD2:		case SC_MTF_RANGEATK2:
-							case SC_MTF_MATK2:			case SC_2011RWC_SCROLL:		case SC_JP_EVENT04:
-							case SC_MTF_MHP:			case SC_MTF_MSP:		case SC_MTF_PUMPKIN:
-							case SC_MTF_HITFLEE:
+							//RK
+							case SC_DEATHBOUND:		case SC_CRUSHSTRIKE:		case SC_REFRESH:
+							case SC_GIANTGROWTH:		case SC_STONEHARDSKIN:		case SC_VITALITYACTIVATION:
+							case SC_FIGHTINGSPIRIT:		case SC_ABUNDANCE:
+							//AB
+							case SC_EPICLESIS:		case SC_ORATIO:			case SC_LAUDAAGNUS:
+							case SC_LAUDARAMUS:		case SC_RENOVATIO:		case SC_EXPIATIO:
+							case SC_DUPLELIGHT:		case SC_OFFERTORIUM:
+							//GX
+							case SC_CLOAKINGEXCEED:		case SC_HALLUCINATIONWALK:	case SC_HALLUCINATIONWALK_POSTDELAY:
+							case SC_WEAPONBLOCKING:		case SC_ROLLINGCUTTER:		case SC_POISONINGWEAPON:
+							case SC_TOXIN:			case SC_PARALYSE:		case SC_VENOMBLEED:
+							case SC_MAGICMUSHROOM:		case SC_DEATHHURT:		case SC_PYREXIA:
+							case SC_OBLIVIONCURSE:		case SC_LEECHESEND:		case SC_VENOMIMPRESS:
+							case SC_DARKCROW:
+							//RA
+							case SC_FEARBREEZE:		case SC_ELECTRICSHOCKER:	case SC_WUGDASH:
+							case SC_BITE:			case SC_CAMOUFLAGE:		case SC_UNLIMIT:
+							//NC
+							case SC_ACCELERATION:		case SC_HOVERING:		case SC_OVERHEAT_LIMITPOINT:
+							case SC_OVERHEAT:		case SC_SHAPESHIFT:		case SC_INFRAREDSCAN:
+							case SC_MAGNETICFIELD:		case SC_NEUTRALBARRIER:		case SC_NEUTRALBARRIER_MASTER:
+							case SC_STEALTHFIELD_MASTER:	case SC_ANALYZE:		case SC_STEALTHFIELD:
+							//WL
+							case SC_FREEZE_SP:		case SC_MARSHOFABYSS:		case SC_RECOGNIZEDSPELL:
+							case SC_TELEKINESIS_INTENSE:
+							//SC
+							case SC__REPRODUCE:		case SC__SHADOWFORM:		case SC__INVISIBILITY:
+							case SC__STRIPACCESSORY:	case SC__MANHOLE:		case SC__BODYPAINT:
+							case SC__DEADLYINFECT:
+							//LG
+							case SC_FORCEOFVANGUARD:	case SC_EXEEDBREAK:		case SC_BANDING:
+							case SC_INSPIRATION:		case SC_BANDING_DEFENCE:	case SC_REFLECTDAMAGE:
+							case SC_EARTHDRIVE:		case SC_KINGS_GRACE:
+							//SR
+							case SC_RAISINGDRAGON:		case SC_LIGHTNINGWALK:		case SC_CURSEDCIRCLE_ATKER:
+							case SC_CURSEDCIRCLE_TARGET:	case SC_CRESCENTELBOW:		case SC_GT_ENERGYGAIN:
+							case SC_GT_CHANGE:		case SC_GT_REVITALIZE:		case SC_FLASHCOMBO:
+							//WM
+							case SC_SWINGDANCE:		case SC_SYMPHONYOFLOVER:	case SC_RUSHWINDMILL:
+							case SC_ECHOSONG:		case SC_MOONLITSERENADE:	case SC_LERADSDEW:
+							case SC_MELODYOFSINK:		case SC_BEYONDOFWARCRY:		case SC_UNLIMITEDHUMMINGVOICE:
+							case SC_FRIGG_SONG:
+							//SO
+							case SC_WARMER:			case SC_VACUUM_EXTREME:		case SC_WATER_BARRIER:
+							case SC_ZEPHYR:			case SC_POWER_OF_GAIA:		case SC_PYROTECHNIC:
+							case SC_PYROTECHNIC_OPTION:	case SC_HEATER:			case SC_HEATER_OPTION:
+							case SC_TROPIC:			case SC_TROPIC_OPTION:		case SC_AQUAPLAY:
+							case SC_AQUAPLAY_OPTION:	case SC_COOLER:			case SC_COOLER_OPTION:
+							case SC_CHILLY_AIR_OPTION:	case SC_GUST:			case SC_GUST_OPTION:
+							case SC_BLAST:			case SC_BLAST_OPTION:		case SC_WILD_STORM:
+							case SC_WILD_STORM_OPTION:	case SC_PETROLOGY:		case SC_PETROLOGY_OPTION:
+							case SC_CURSED_SOIL:		case SC_CURSED_SOIL_OPTION:	case SC_UPHEAVAL:
+							case SC_UPHEAVAL_OPTION:	case SC_CIRCLE_OF_FIRE:		case SC_CIRCLE_OF_FIRE_OPTION:
+							case SC_FIRE_CLOAK:		case SC_FIRE_CLOAK_OPTION:	case SC_WATER_SCREEN:
+							case SC_WATER_SCREEN_OPTION:	case SC_WATER_DROP:		case SC_WATER_DROP_OPTION:
+							case SC_WIND_STEP:		case SC_WIND_STEP_OPTION:	case SC_WIND_CURTAIN:
+							case SC_WIND_CURTAIN_OPTION:	case SC_SOLID_SKIN:		case SC_SOLID_SKIN_OPTION:
+							case SC_STONE_SHIELD:		case SC_STONE_SHIELD_OPTION:	case SC_TIDAL_WEAPON:
+							case SC_TIDAL_WEAPON_OPTION:	case SC_ROCK_CRUSHER:		case SC_ROCK_CRUSHER_ATK:
+							case SC_FIRE_INSIGNIA:		case SC_WATER_INSIGNIA:		case SC_WIND_INSIGNIA:
+							case SC_EARTH_INSIGNIA:		case SC_ELEMENTAL_SHIELD:
+							//GN
+							case SC_GN_CARTBOOST:		case SC_THORNSTRAP:		case SC_SMOKEPOWDER:
+							case SC_TEARGAS:		case SC_TEARGAS_SOB:		case SC_SAVAGE_STEAK:
+							case SC_COCKTAIL_WARG_BLOOD:	case SC_MINOR_BBQ:		case SC_SIROMA_ICE_TEA:
+							case SC_DROCERA_HERB_STEAMED:	case SC_PUTTI_TAILS_NOODLES:	case SC_MELON_BOMB:
+							case SC_BANANA_BOMB_SITDOWN:	case SC_BANANA_BOMB:		case SC_PROMOTE_HEALTH_RESERCH:
+							case SC_ENERGY_DRINK_RESERCH:	case SC_EXTRACT_WHITE_POTION_Z:	case SC_VITATA_500:
+							case SC_EXTRACT_SALAMINE_JUICE:	case SC_BOOST500:		case SC_FULL_SWING_K:
+							case SC_MANA_PLUS:		case SC_MUSTLE_M:		case SC_LIFE_FORCE_F:
+							case SC_PARALYSIS:		case SC_PAIN_KILLER:		case SC_LIGHT_OF_REGENE:
+							case SC_OVERED_BOOST:		case SC_STYLE_CHANGE:		case SC_GOLDENE_FERSE:
+							case SC_ANGRIFFS_MODUS:		case SC_TINDER_BREAKER:		case SC_TINDER_BREAKER2:
+							case SC_CBC:	case SC_EQC:	case SC_MAGMA_FLOW:
+							case SC_GRANITIC_ARMOR:		case SC_PYROCLASTIC:		case SC_ASH:
+							case SC_BLOODSUCKER:		case SC_MANDRAGORA:		case SC_STOMACHACHE:
+							case SC_MYSTERIOUS_POWDER:
+							//KO/OB
+							case SC_KAGEHUMI:		case SC_JYUMONJIKIRI:		case SC_MEIKYOUSISUI:
+							case SC_KYOUGAKU:		case SC_IZAYOI:			case SC_ZENKAI:
+							//RL
+							case SC_HEAT_BARREL:		case SC_HEAT_BARREL_AFTER:	case SC_P_ALTER:
+							case SC_E_CHAIN:		case SC_C_MARKER:		case SC_B_TRAP:
+							case SC_H_MINE:
+							//Misc
+							case SC_SITDOWN_FORCE:		case SC_ALL_RIDING:		case SC_MONSTER_TRANSFORM:
+							case SC_PUSH_CART:		case SC_FULL_THROTTLE:		case SC_REBOUND:
+							case SC_FREEZING:		case SC_ANGEL_PROTECT:		case SC_MOONSTAR:
+							case SC_SUPER_STAR:		case SC_STRANGELIGHTS:		case SC_DECORATION_OF_MUSIC:
+							case SC_2011RWC_SCROLL:		case SC_JP_EVENT04:		case SC_MTF_ASPD:
+							case SC_MTF_ASPD2:		case SC_MTF_RANGEATK:		case SC_MTF_RANGEATK2:
+							case SC_MTF_MATK:		case SC_MTF_MATK2:		case SC_MTF_MLEATKED:
+							case SC_MTF_MHP:		case SC_MTF_MSP:		case SC_MTF_HITFLEE:
+							case SC_MTF_CRIDAMAGE:		case SC_MTF_PUMPKIN:
 								continue;
+							case SC_SILENCE:
+								if( tsc->data[i]->val4 )
+									continue; //Silence from Silent Breeze can't be dispeled
+								break;
 							//bugreport:4888 these songs may only be dispelled if you're not in their song area anymore
 							case SC_WHISTLE:
 							case SC_ASSNCROS:
@@ -8786,59 +8861,140 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 							case SC_CP_ARMOR:		case SC_CP_HELM:		case SC_COMBO:
 							case SC_STRFOOD:		case SC_AGIFOOD:		case SC_VITFOOD:
 							case SC_INTFOOD:		case SC_DEXFOOD:		case SC_LUKFOOD:
-							case SC_HITFOOD:		case SC_FLEEFOOD:		case SC_BATKFOOD:
-							case SC_WATKFOOD:		case SC_MATKFOOD:		case SC_DANCING:
-							case SC_SPIRIT:			case SC_AUTOBERSERK:
-							case SC_CARTBOOST:		case SC_MELTDOWN:		case SC_SAFETYWALL:
-							case SC_SMA:			case SC_SPEEDUP0:		case SC_NOCHAT:
-							case SC_ANKLE:			case SC_SPIDERWEB:		case SC_JAILED:
-							case SC_ITEMBOOST:		case SC_EXPBOOST:		case SC_LIFEINSURANCE:
-							case SC_BOSSMAPINFO:		case SC_PNEUMA:			case SC_AUTOSPELL:
-							case SC_INCHITRATE:		case SC_INCATKRATE:		case SC_NEN:
+							case SC_HITFOOD:		case SC_FLEEFOOD:		case SC_CRIFOOD:
+							case SC_BATKFOOD:		case SC_WATKFOOD:		case SC_MATKFOOD:
+							case SC_DANCING:		case SC_LEADERSHIP:		case SC_GLORYWOUNDS:
+							case SC_SOULCOLD:		case SC_HAWKEYES:		case SC_REGENERATION:
+							case SC_EDP:			case SC_AUTOBERSERK:		case SC_CARTBOOST:
+							case SC_MELTDOWN:		case SC_SAFETYWALL:		case SC_SMA:
+							case SC_SPEEDUP0:		case SC_NOCHAT:			case SC_ANKLE:
+							case SC_SPIDERWEB:		case SC_JAILED:			case SC_ITEMBOOST:
+							case SC_EXPBOOST:		case SC_LIFEINSURANCE:		case SC_BOSSMAPINFO:
+							case SC_PNEUMA:			case SC_AUTOSPELL:		case SC_INCHITRATE:
+							case SC_INCATKRATE:		case SC_NEN:			case SC_UTSUSEMI:
 							case SC_READYSTORM:		case SC_READYDOWN:		case SC_READYTURN:
 							case SC_READYCOUNTER:		case SC_DODGE:			case SC_WARM:
-							/*case SC_SPEEDUP1:*/		case SC_AUTOTRADE:		case SC_CRITICALWOUND:
-							case SC_JEXPBOOST:		case SC_INVINCIBLE:		case SC_INVINCIBLEOFF:
-							case SC_HELLPOWER:		case SC_MANU_ATK:		case SC_MANU_DEF:
-							case SC_SPL_ATK:		case SC_SPL_DEF:		case SC_MANU_MATK:
-							case SC_SPL_MATK:		case SC_RICHMANKIM:		case SC_ETERNALCHAOS:
-							case SC_DRUMBATTLE:		case SC_NIBELUNGEN:		case SC_ROKISWEIL:
-							case SC_INTOABYSS:		case SC_SIEGFRIED:		case SC_WHISTLE:
-							case SC_ASSNCROS:		case SC_POEMBRAGI:		case SC_APPLEIDUN:
-							case SC_HUMMING:		case SC_DONTFORGETME:		case SC_FORTUNE:
-							case SC_SERVICE4U:		case SC_FOOD_STR_CASH:		case SC_FOOD_AGI_CASH:
+							case SC_AUTOTRADE:		case SC_CRITICALWOUND:		case SC_JEXPBOOST:
+							case SC_INVINCIBLE:		case SC_INVINCIBLEOFF:		case SC_HELLPOWER:
+							case SC_MANU_ATK:		case SC_MANU_DEF:		case SC_SPL_ATK:
+							case SC_SPL_DEF:		case SC_MANU_MATK:		case SC_SPL_MATK:
+							case SC_RICHMANKIM:		case SC_ETERNALCHAOS:		case SC_DRUMBATTLE:
+							case SC_NIBELUNGEN:		case SC_ROKISWEIL:		case SC_INTOABYSS:
+							case SC_SIEGFRIED:		case SC_FOOD_STR_CASH:		case SC_FOOD_AGI_CASH:
 							case SC_FOOD_VIT_CASH:		case SC_FOOD_DEX_CASH:		case SC_FOOD_INT_CASH:
-							case SC_FOOD_LUK_CASH:		case SC_ELECTRICSHOCKER:	case SC_BITE:
-							case SC__STRIPACCESSORY:	case SC__ENERVATION:		case SC__GROOMY:
-							case SC__IGNORANCE: 		case SC__LAZINESS:		case SC__UNLUCKY:
-							case SC__WEAKNESS:		case SC_SAVAGE_STEAK:		case SC_COCKTAIL_WARG_BLOOD:
-							case SC_MAGNETICFIELD:		case SC_MINOR_BBQ:		case SC_SIROMA_ICE_TEA:
-							case SC_DROCERA_HERB_STEAMED:	case SC_PUTTI_TAILS_NOODLES:	case SC_NEUTRALBARRIER_MASTER:
-							case SC_NEUTRALBARRIER:		case SC_STEALTHFIELD_MASTER:	case SC_STEALTHFIELD:
-							case SC_LEADERSHIP:		case SC_GLORYWOUNDS:		case SC_SOULCOLD:
-							case SC_HAWKEYES:		case SC_REGENERATION:		case SC_SEVENWIND:
-							case SC_MIRACLE:		case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:
-							case SC_INCHEALRATE:		case SC_PUSH_CART:		case SC_PARTYFLEE:
-							case SC_RAISINGDRAGON:		case SC_GT_REVITALIZE:		case SC_GT_ENERGYGAIN:
-							case SC_GT_CHANGE:		case SC_ANGEL_PROTECT:		case SC_MONSTER_TRANSFORM:
-							case SC_FULL_THROTTLE:		case SC_REBOUND:		case SC_TELEKINESIS_INTENSE:
-							case SC_MOONSTAR:		case SC_SUPER_STAR:		case SC_ALL_RIDING:
-							case SC_MTF_ASPD:		case SC_MTF_RANGEATK:		case SC_MTF_MATK:
-							case SC_MTF_MLEATKED:		case SC_MTF_CRIDAMAGE:		case SC_HEAT_BARREL:
-							case SC_HEAT_BARREL_AFTER:	case SC_P_ALTER:		case SC_E_CHAIN:
-							case SC_C_MARKER:		case SC_B_TRAP:			case SC_H_MINE:
-							case SC_STRANGELIGHTS:		case SC_DECORATION_OF_MUSIC:	case SC_GN_CARTBOOST:
-							case SC_RECOGNIZEDSPELL:	case SC_CHASEWALK2:
+							case SC_FOOD_LUK_CASH:		case SC_SEVENWIND:		case SC_MIRACLE:
+							case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:		case SC_INCHEALRATE:
+							case SC_HIDING:			case SC_CLOAKING:		case SC_CHASEWALK:
+							case SC_CHASEWALK2:		case SC_GATLINGFEVER:		case SC_INCREASING:
+							case SC_ADJUSTMENT:		case SC_MADNESSCANCEL:
 #ifdef RENEWAL
 							case SC_EXTREMITYFIST2:
 #endif
-							case SC_HIDING:			case SC_CLOAKING:		case SC_CHASEWALK:
-							case SC_CLOAKINGEXCEED:		case SC__INVISIBILITY:		case SC_CRIFOOD:
-							case SC_UTSUSEMI:		case SC_MTF_ASPD2:		case SC_MTF_RANGEATK2:
-							case SC_MTF_MATK2:		case SC_2011RWC_SCROLL:		case SC_JP_EVENT04:
-							case SC_MTF_MHP:		case SC_MTF_MSP:		case SC_MTF_PUMPKIN:
-							case SC_MTF_HITFLEE:
+							//RK
+							case SC_DEATHBOUND:
+							//AB
+							case SC_EPICLESIS:		case SC_OFFERTORIUM:
+							//GX
+							case SC_CLOAKINGEXCEED:		case SC_HALLUCINATIONWALK:	case SC_HALLUCINATIONWALK_POSTDELAY:
+							case SC_WEAPONBLOCKING:		case SC_ROLLINGCUTTER:		case SC_POISONINGWEAPON:
+							case SC_DARKCROW:
+							//RA
+							case SC_FEARBREEZE:		case SC_ELECTRICSHOCKER:	case SC_WUGDASH:
+							case SC_BITE:			case SC_CAMOUFLAGE:		case SC_UNLIMIT:
+							//NC
+							case SC_ACCELERATION:		case SC_HOVERING:		case SC_OVERHEAT_LIMITPOINT:
+							case SC_OVERHEAT:		case SC_SHAPESHIFT:		case SC_INFRAREDSCAN:
+							case SC_MAGNETICFIELD:		case SC_NEUTRALBARRIER:		case SC_NEUTRALBARRIER_MASTER:
+							case SC_STEALTHFIELD_MASTER:	case SC_ANALYZE:		case SC_STEALTHFIELD:
+							//WL
+							case SC_FREEZE_SP:		case SC_SPHERE_1:		case SC_SPHERE_2:
+							case SC_SPHERE_3:		case SC_SPHERE_4:		case SC_SPHERE_5:
+							case SC_SPELLBOOK1:		case SC_SPELLBOOK2:		case SC_SPELLBOOK3:
+							case SC_SPELLBOOK4:		case SC_SPELLBOOK5:		case SC_SPELLBOOK6:
+							case SC_MAXSPELLBOOK:		case SC_TELEKINESIS_INTENSE:
+							//SC
+							case SC__REPRODUCE:		case SC__SHADOWFORM:		case SC__INVISIBILITY:
+							case SC__STRIPACCESSORY:	case SC__MANHOLE:
+							//LG
+							case SC_FORCEOFVANGUARD:	case SC_EXEEDBREAK:		case SC_BANDING:
+							case SC_INSPIRATION:		case SC_BANDING_DEFENCE:	case SC_REFLECTDAMAGE:
+							case SC_KINGS_GRACE:
+							//SR
+							case SC_RAISINGDRAGON:		case SC_LIGHTNINGWALK:		case SC_CURSEDCIRCLE_ATKER:
+							case SC_CURSEDCIRCLE_TARGET:	case SC_CRESCENTELBOW:		case SC_GT_ENERGYGAIN:
+							case SC_GT_CHANGE:		case SC_GT_REVITALIZE:		case SC_FLASHCOMBO:
+							//WM
+							case SC_SWINGDANCE:		case SC_SYMPHONYOFLOVER:	case SC_RUSHWINDMILL:
+							case SC_ECHOSONG:		case SC_MOONLITSERENADE:	case SC_LERADSDEW:
+							case SC_MELODYOFSINK:		case SC_BEYONDOFWARCRY:		case SC_UNLIMITEDHUMMINGVOICE:
+							case SC_FRIGG_SONG:
+							//SO
+							case SC_WARMER:			case SC_VACUUM_EXTREME:		case SC_WATER_BARRIER:
+							case SC_ZEPHYR:			case SC_POWER_OF_GAIA:		case SC_PYROTECHNIC:
+							case SC_PYROTECHNIC_OPTION:	case SC_HEATER:			case SC_HEATER_OPTION:
+							case SC_TROPIC:			case SC_TROPIC_OPTION:		case SC_AQUAPLAY:
+							case SC_AQUAPLAY_OPTION:	case SC_COOLER:			case SC_COOLER_OPTION:
+							case SC_CHILLY_AIR_OPTION:	case SC_GUST:			case SC_GUST_OPTION:
+							case SC_BLAST:			case SC_BLAST_OPTION:		case SC_WILD_STORM:
+							case SC_WILD_STORM_OPTION:	case SC_PETROLOGY:		case SC_PETROLOGY_OPTION:
+							case SC_CURSED_SOIL:		case SC_CURSED_SOIL_OPTION:	case SC_UPHEAVAL:
+							case SC_UPHEAVAL_OPTION:	case SC_CIRCLE_OF_FIRE:		case SC_CIRCLE_OF_FIRE_OPTION:
+							case SC_FIRE_CLOAK:		case SC_FIRE_CLOAK_OPTION:	case SC_WATER_SCREEN:
+							case SC_WATER_SCREEN_OPTION:	case SC_WATER_DROP:		case SC_WATER_DROP_OPTION:
+							case SC_WIND_STEP:		case SC_WIND_STEP_OPTION:	case SC_WIND_CURTAIN:
+							case SC_WIND_CURTAIN_OPTION:	case SC_SOLID_SKIN:		case SC_SOLID_SKIN_OPTION:
+							case SC_STONE_SHIELD:		case SC_STONE_SHIELD_OPTION:	case SC_TIDAL_WEAPON:
+							case SC_TIDAL_WEAPON_OPTION:	case SC_ROCK_CRUSHER:		case SC_ROCK_CRUSHER_ATK:
+							case SC_FIRE_INSIGNIA:		case SC_WATER_INSIGNIA:		case SC_WIND_INSIGNIA:
+							case SC_EARTH_INSIGNIA:		case SC_ELEMENTAL_SHIELD:
+							//GN
+							case SC_GN_CARTBOOST:		case SC_THORNSTRAP:		case SC_SMOKEPOWDER:
+							case SC_TEARGAS:		case SC_TEARGAS_SOB:		case SC_SAVAGE_STEAK:
+							case SC_COCKTAIL_WARG_BLOOD:	case SC_MINOR_BBQ:		case SC_SIROMA_ICE_TEA:
+							case SC_DROCERA_HERB_STEAMED:	case SC_PUTTI_TAILS_NOODLES:	case SC_MELON_BOMB:
+							case SC_BANANA_BOMB_SITDOWN:	case SC_BANANA_BOMB:		case SC_PROMOTE_HEALTH_RESERCH:
+							case SC_ENERGY_DRINK_RESERCH:	case SC_EXTRACT_WHITE_POTION_Z:	case SC_VITATA_500:
+							case SC_EXTRACT_SALAMINE_JUICE:	case SC_BOOST500:		case SC_FULL_SWING_K:
+							case SC_MANA_PLUS:		case SC_MUSTLE_M:		case SC_LIFE_FORCE_F:
+							case SC_PARALYSIS:		case SC_PAIN_KILLER:		case SC_LIGHT_OF_REGENE:
+							case SC_OVERED_BOOST:		case SC_STYLE_CHANGE:		case SC_GOLDENE_FERSE:
+							case SC_ANGRIFFS_MODUS:		case SC_TINDER_BREAKER:		case SC_TINDER_BREAKER2:
+							case SC_CBC:	case SC_EQC:	case SC_MAGMA_FLOW:
+							case SC_GRANITIC_ARMOR:		case SC_PYROCLASTIC:		case SC_ASH:
+							//KO/OB
+							case SC_KAGEHUMI:		case SC_JYUMONJIKIRI:		case SC_MEIKYOUSISUI:
+							case SC_KYOUGAKU:		case SC_IZAYOI:			case SC_ZENKAI:
+							//RL
+							case SC_HEAT_BARREL:		case SC_HEAT_BARREL_AFTER:	case SC_P_ALTER:
+							case SC_E_CHAIN:		case SC_C_MARKER:		case SC_B_TRAP:
+							case SC_H_MINE:
+							//Misc
+							case SC_SITDOWN_FORCE:		case SC_ALL_RIDING:		case SC_MONSTER_TRANSFORM:
+							case SC_PUSH_CART:		case SC_FULL_THROTTLE:		case SC_REBOUND:
+							case SC_ANGEL_PROTECT:		case SC_MOONSTAR:
+							case SC_SUPER_STAR:		case SC_STRANGELIGHTS:		case SC_DECORATION_OF_MUSIC:
+							case SC_2011RWC_SCROLL:		case SC_JP_EVENT04:		case SC_MTF_ASPD:
+							case SC_MTF_ASPD2:		case SC_MTF_RANGEATK:		case SC_MTF_RANGEATK2:
+							case SC_MTF_MATK:		case SC_MTF_MATK2:		case SC_MTF_MLEATKED:
+							case SC_MTF_MHP:		case SC_MTF_MSP:		case SC_MTF_HITFLEE:
+							case SC_MTF_CRIDAMAGE:		case SC_MTF_PUMPKIN:
 								continue;
+							case SC_SILENCE:
+								if( tsc->data[i]->val4 )
+									continue; //Silence from Silent Breeze can't be dispeled
+								break;
+							//bugreport:4888 these songs may only be dispelled if you're not in their song area anymore
+							case SC_WHISTLE:
+							case SC_ASSNCROS:
+							case SC_POEMBRAGI:
+							case SC_APPLEIDUN:
+							case SC_HUMMING:
+							case SC_DONTFORGETME:
+							case SC_FORTUNE:
+							case SC_SERVICE4U:
+								if( !tsc->data[i]->val4 )
+									continue; //If in song-area don't end it
+								break;
 							case SC_ASSUMPTIO:
 								if( bl->type == BL_MOB )
 									continue;
@@ -10287,9 +10443,9 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				;
 				status_heal(bl,heal,0,0);
 				clif_skill_nodamage(src,src,skill_id,skill_lv,clif_skill_nodamage(src,bl,AL_HEAL,heal,1));
-				status_change_start(src,src,type,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),SCFLAG_NOAVOID|SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE);
+				status_change_start(src,src,type,10000,skill_lv,0,0,1,skill_get_time(skill_id,skill_lv),SCFLAG_NOAVOID|SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE);
 				if( battle_check_target(src,bl,BCT_ENEMY) > 0 && !is_boss(bl) )
-					status_change_start(src,bl,type,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),SCFLAG_NOAVOID|SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE);
+					status_change_start(src,bl,type,10000,skill_lv,0,0,1,skill_get_time(skill_id,skill_lv),SCFLAG_NOAVOID|SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE);
 				skill_blockhomun_start(hd,skill_id,skill_get_cooldown(NULL,skill_id,skill_lv));
 			}
 			break;
@@ -10410,59 +10566,147 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 							case SC_CP_ARMOR:		case SC_CP_HELM:		case SC_COMBO:
 							case SC_STRFOOD:		case SC_AGIFOOD:		case SC_VITFOOD:
 							case SC_INTFOOD:		case SC_DEXFOOD:		case SC_LUKFOOD:
-							case SC_HITFOOD:		case SC_FLEEFOOD:		case SC_BATKFOOD:
-							case SC_WATKFOOD:		case SC_MATKFOOD:		case SC_DANCING:
-							case SC_SPIRIT:			case SC_AUTOBERSERK:
-							case SC_CARTBOOST:		case SC_MELTDOWN:		case SC_SAFETYWALL:
-							case SC_SMA:			case SC_SPEEDUP0:		case SC_NOCHAT:
-							case SC_ANKLE:			case SC_SPIDERWEB:		case SC_JAILED:
-							case SC_ITEMBOOST:		case SC_EXPBOOST:		case SC_LIFEINSURANCE:
-							case SC_BOSSMAPINFO:		case SC_PNEUMA:			case SC_AUTOSPELL:
-							case SC_INCHITRATE:		case SC_INCATKRATE:		case SC_NEN:
+							case SC_HITFOOD:		case SC_FLEEFOOD:		case SC_CRIFOOD:
+							case SC_BATKFOOD:		case SC_WATKFOOD:		case SC_MATKFOOD:
+							case SC_DANCING:		case SC_LEADERSHIP:		case SC_GLORYWOUNDS:
+							case SC_SOULCOLD:		case SC_HAWKEYES:		case SC_REGENERATION:
+							case SC_EDP:			case SC_AUTOBERSERK:		case SC_CARTBOOST:
+							case SC_MELTDOWN:		case SC_SAFETYWALL:		case SC_SMA:
+							case SC_SPEEDUP0:		case SC_NOCHAT:			case SC_ANKLE:
+							case SC_SPIDERWEB:		case SC_JAILED:			case SC_ITEMBOOST:
+							case SC_EXPBOOST:		case SC_LIFEINSURANCE:		case SC_BOSSMAPINFO:
+							case SC_PNEUMA:			case SC_AUTOSPELL:		case SC_INCHITRATE:
+							case SC_INCATKRATE:		case SC_NEN:			case SC_UTSUSEMI:
 							case SC_READYSTORM:		case SC_READYDOWN:		case SC_READYTURN:
 							case SC_READYCOUNTER:		case SC_DODGE:			case SC_WARM:
-							/*case SC_SPEEDUP1:*/		case SC_AUTOTRADE:		case SC_CRITICALWOUND:
-							case SC_JEXPBOOST:		case SC_INVINCIBLE:		case SC_INVINCIBLEOFF:
-							case SC_HELLPOWER:		case SC_MANU_ATK:		case SC_MANU_DEF:
-							case SC_SPL_ATK:		case SC_SPL_DEF:		case SC_MANU_MATK:
-							case SC_SPL_MATK:		case SC_RICHMANKIM:		case SC_ETERNALCHAOS:
-							case SC_DRUMBATTLE:		case SC_NIBELUNGEN:		case SC_ROKISWEIL:
-							case SC_INTOABYSS:		case SC_SIEGFRIED:		case SC_WHISTLE:
-							case SC_ASSNCROS:		case SC_POEMBRAGI:		case SC_APPLEIDUN:
-							case SC_HUMMING:		case SC_DONTFORGETME:		case SC_FORTUNE:
-							case SC_SERVICE4U:		case SC_FOOD_STR_CASH:		case SC_FOOD_AGI_CASH:
+							case SC_AUTOTRADE:		case SC_CRITICALWOUND:		case SC_JEXPBOOST:
+							case SC_INVINCIBLE:		case SC_INVINCIBLEOFF:		case SC_HELLPOWER:
+							case SC_MANU_ATK:		case SC_MANU_DEF:		case SC_SPL_ATK:
+							case SC_SPL_DEF:		case SC_MANU_MATK:		case SC_SPL_MATK:
+							case SC_RICHMANKIM:		case SC_ETERNALCHAOS:		case SC_DRUMBATTLE:
+							case SC_NIBELUNGEN:		case SC_ROKISWEIL:		case SC_INTOABYSS:
+							case SC_SIEGFRIED:		case SC_FOOD_STR_CASH:		case SC_FOOD_AGI_CASH:
 							case SC_FOOD_VIT_CASH:		case SC_FOOD_DEX_CASH:		case SC_FOOD_INT_CASH:
-							case SC_FOOD_LUK_CASH:		case SC_ELECTRICSHOCKER:	case SC_BITE:
-							case SC__STRIPACCESSORY:	case SC__ENERVATION:		case SC__GROOMY:
-							case SC__IGNORANCE: 		case SC__LAZINESS:		case SC__UNLUCKY:
-							case SC__WEAKNESS:		case SC_SAVAGE_STEAK:		case SC_COCKTAIL_WARG_BLOOD:
-							case SC_MAGNETICFIELD:		case SC_MINOR_BBQ:		case SC_SIROMA_ICE_TEA:
-							case SC_DROCERA_HERB_STEAMED:	case SC_PUTTI_TAILS_NOODLES:	case SC_NEUTRALBARRIER_MASTER:
-							case SC_NEUTRALBARRIER:		case SC_STEALTHFIELD_MASTER:	case SC_STEALTHFIELD:
-							case SC_LEADERSHIP:		case SC_GLORYWOUNDS:		case SC_SOULCOLD:
-							case SC_HAWKEYES:		case SC_REGENERATION:		case SC_SEVENWIND:
-							case SC_MIRACLE:		case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:
-							case SC_INCHEALRATE:		case SC_PUSH_CART:		case SC_PARTYFLEE:
-							case SC_RAISINGDRAGON:		case SC_GT_REVITALIZE:		case SC_GT_ENERGYGAIN:
-							case SC_GT_CHANGE:		case SC_ANGEL_PROTECT:		case SC_MONSTER_TRANSFORM:
-							case SC_FULL_THROTTLE:		case SC_REBOUND:		case SC_TELEKINESIS_INTENSE:
-							case SC_MOONSTAR:		case SC_SUPER_STAR:		case SC_ALL_RIDING:
-							case SC_MTF_ASPD:		case SC_MTF_RANGEATK:		case SC_MTF_MATK:
-							case SC_MTF_MLEATKED:		case SC_MTF_CRIDAMAGE:		case SC_HEAT_BARREL:
-							case SC_HEAT_BARREL_AFTER:	case SC_P_ALTER:		case SC_E_CHAIN:
-							case SC_C_MARKER:		case SC_B_TRAP:			case SC_H_MINE:
-							case SC_STRANGELIGHTS:		case SC_DECORATION_OF_MUSIC:	case SC_GN_CARTBOOST:
-							case SC_RECOGNIZEDSPELL:	case SC_CHASEWALK2:
+							case SC_FOOD_LUK_CASH:		case SC_SEVENWIND:		case SC_MIRACLE:
+							case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:		case SC_INCHEALRATE:
+							case SC_HIDING:			case SC_CLOAKING:		case SC_CHASEWALK:
+							case SC_CHASEWALK2:		case SC_GATLINGFEVER:		case SC_INCREASING:
+							case SC_ADJUSTMENT:		case SC_MADNESSCANCEL:
 #ifdef RENEWAL
 							case SC_EXTREMITYFIST2:
 #endif
-							case SC_HIDING:			case SC_CLOAKING:		case SC_CHASEWALK:
-							case SC_CLOAKINGEXCEED:		case SC__INVISIBILITY:		case SC_CRIFOOD:
-							case SC_UTSUSEMI:		case SC_MTF_ASPD2:		case SC_MTF_RANGEATK2:
-							case SC_MTF_MATK2:		case SC_2011RWC_SCROLL:		case SC_JP_EVENT04:
-							case SC_MTF_MHP:		case SC_MTF_MSP:		case SC_MTF_PUMPKIN:
-							case SC_MTF_HITFLEE:
+							//RK
+							case SC_DEATHBOUND:		case SC_CRUSHSTRIKE:		case SC_REFRESH:
+							case SC_GIANTGROWTH:		case SC_STONEHARDSKIN:		case SC_VITALITYACTIVATION:
+							case SC_FIGHTINGSPIRIT:		case SC_ABUNDANCE:
+							//AB
+							case SC_EPICLESIS:		case SC_ORATIO:			case SC_LAUDAAGNUS:
+							case SC_LAUDARAMUS:		case SC_RENOVATIO:		case SC_EXPIATIO:
+							case SC_DUPLELIGHT:		case SC_OFFERTORIUM:
+							//GX
+							case SC_CLOAKINGEXCEED:		case SC_HALLUCINATIONWALK:	case SC_HALLUCINATIONWALK_POSTDELAY:
+							case SC_WEAPONBLOCKING:		case SC_ROLLINGCUTTER:		case SC_POISONINGWEAPON:
+							case SC_TOXIN:			case SC_PARALYSE:		case SC_VENOMBLEED:
+							case SC_MAGICMUSHROOM:		case SC_DEATHHURT:		case SC_PYREXIA:
+							case SC_OBLIVIONCURSE:		case SC_LEECHESEND:		case SC_VENOMIMPRESS:
+							case SC_DARKCROW:
+							//RA
+							case SC_FEARBREEZE:		case SC_ELECTRICSHOCKER:	case SC_WUGDASH:
+							case SC_BITE:			case SC_CAMOUFLAGE:		case SC_UNLIMIT:
+							//NC
+							case SC_ACCELERATION:		case SC_HOVERING:		case SC_OVERHEAT_LIMITPOINT:
+							case SC_OVERHEAT:		case SC_SHAPESHIFT:		case SC_INFRAREDSCAN:
+							case SC_MAGNETICFIELD:		case SC_NEUTRALBARRIER:		case SC_NEUTRALBARRIER_MASTER:
+							case SC_STEALTHFIELD_MASTER:	case SC_ANALYZE:		case SC_STEALTHFIELD:
+							//WL
+							case SC_FREEZE_SP:		case SC_MARSHOFABYSS:		case SC_RECOGNIZEDSPELL:
+							case SC_TELEKINESIS_INTENSE:
+							//SC
+							case SC__REPRODUCE:		case SC__SHADOWFORM:		case SC__INVISIBILITY:
+							case SC__STRIPACCESSORY:	case SC__MANHOLE:		case SC__BODYPAINT:
+							case SC__DEADLYINFECT:
+							//LG
+							case SC_FORCEOFVANGUARD:	case SC_EXEEDBREAK:		case SC_BANDING:
+							case SC_INSPIRATION:		case SC_BANDING_DEFENCE:	case SC_REFLECTDAMAGE:
+							case SC_EARTHDRIVE:		case SC_KINGS_GRACE:
+							//SR
+							case SC_RAISINGDRAGON:		case SC_LIGHTNINGWALK:		case SC_CURSEDCIRCLE_ATKER:
+							case SC_CURSEDCIRCLE_TARGET:	case SC_CRESCENTELBOW:		case SC_GT_ENERGYGAIN:
+							case SC_GT_CHANGE:		case SC_GT_REVITALIZE:		case SC_FLASHCOMBO:
+							//WM
+							case SC_SWINGDANCE:		case SC_SYMPHONYOFLOVER:	case SC_RUSHWINDMILL:
+							case SC_ECHOSONG:		case SC_MOONLITSERENADE:	case SC_LERADSDEW:
+							case SC_MELODYOFSINK:		case SC_BEYONDOFWARCRY:		case SC_UNLIMITEDHUMMINGVOICE:
+							case SC_FRIGG_SONG:
+							//SO
+							case SC_WARMER:			case SC_VACUUM_EXTREME:		case SC_WATER_BARRIER:
+							case SC_ZEPHYR:			case SC_POWER_OF_GAIA:		case SC_PYROTECHNIC:
+							case SC_PYROTECHNIC_OPTION:	case SC_HEATER:			case SC_HEATER_OPTION:
+							case SC_TROPIC:			case SC_TROPIC_OPTION:		case SC_AQUAPLAY:
+							case SC_AQUAPLAY_OPTION:	case SC_COOLER:			case SC_COOLER_OPTION:
+							case SC_CHILLY_AIR_OPTION:	case SC_GUST:			case SC_GUST_OPTION:
+							case SC_BLAST:			case SC_BLAST_OPTION:		case SC_WILD_STORM:
+							case SC_WILD_STORM_OPTION:	case SC_PETROLOGY:		case SC_PETROLOGY_OPTION:
+							case SC_CURSED_SOIL:		case SC_CURSED_SOIL_OPTION:	case SC_UPHEAVAL:
+							case SC_UPHEAVAL_OPTION:	case SC_CIRCLE_OF_FIRE:		case SC_CIRCLE_OF_FIRE_OPTION:
+							case SC_FIRE_CLOAK:		case SC_FIRE_CLOAK_OPTION:	case SC_WATER_SCREEN:
+							case SC_WATER_SCREEN_OPTION:	case SC_WATER_DROP:		case SC_WATER_DROP_OPTION:
+							case SC_WIND_STEP:		case SC_WIND_STEP_OPTION:	case SC_WIND_CURTAIN:
+							case SC_WIND_CURTAIN_OPTION:	case SC_SOLID_SKIN:		case SC_SOLID_SKIN_OPTION:
+							case SC_STONE_SHIELD:		case SC_STONE_SHIELD_OPTION:	case SC_TIDAL_WEAPON:
+							case SC_TIDAL_WEAPON_OPTION:	case SC_ROCK_CRUSHER:		case SC_ROCK_CRUSHER_ATK:
+							case SC_FIRE_INSIGNIA:		case SC_WATER_INSIGNIA:		case SC_WIND_INSIGNIA:
+							case SC_EARTH_INSIGNIA:		case SC_ELEMENTAL_SHIELD:
+							//GN
+							case SC_GN_CARTBOOST:		case SC_THORNSTRAP:		case SC_SMOKEPOWDER:
+							case SC_TEARGAS:		case SC_TEARGAS_SOB:		case SC_SAVAGE_STEAK:
+							case SC_COCKTAIL_WARG_BLOOD:	case SC_MINOR_BBQ:		case SC_SIROMA_ICE_TEA:
+							case SC_DROCERA_HERB_STEAMED:	case SC_PUTTI_TAILS_NOODLES:	case SC_MELON_BOMB:
+							case SC_BANANA_BOMB_SITDOWN:	case SC_BANANA_BOMB:		case SC_PROMOTE_HEALTH_RESERCH:
+							case SC_ENERGY_DRINK_RESERCH:	case SC_EXTRACT_WHITE_POTION_Z:	case SC_VITATA_500:
+							case SC_EXTRACT_SALAMINE_JUICE:	case SC_BOOST500:		case SC_FULL_SWING_K:
+							case SC_MANA_PLUS:		case SC_MUSTLE_M:		case SC_LIFE_FORCE_F:
+							case SC_PARALYSIS:		case SC_PAIN_KILLER:		case SC_LIGHT_OF_REGENE:
+							case SC_OVERED_BOOST:		case SC_STYLE_CHANGE:		case SC_GOLDENE_FERSE:
+							case SC_ANGRIFFS_MODUS:		case SC_TINDER_BREAKER:		case SC_TINDER_BREAKER2:
+							case SC_CBC:	case SC_EQC:	case SC_MAGMA_FLOW:
+							case SC_GRANITIC_ARMOR:		case SC_PYROCLASTIC:		case SC_ASH:
+							case SC_BLOODSUCKER:		case SC_MANDRAGORA:		case SC_STOMACHACHE:
+							case SC_MYSTERIOUS_POWDER:
+							//KO/OB
+							case SC_KAGEHUMI:		case SC_JYUMONJIKIRI:		case SC_MEIKYOUSISUI:
+							case SC_KYOUGAKU:		case SC_IZAYOI:			case SC_ZENKAI:
+							//RL
+							case SC_HEAT_BARREL:		case SC_HEAT_BARREL_AFTER:	case SC_P_ALTER:
+							case SC_E_CHAIN:		case SC_C_MARKER:		case SC_B_TRAP:
+							case SC_H_MINE:
+							//Misc
+							case SC_SITDOWN_FORCE:		case SC_ALL_RIDING:		case SC_MONSTER_TRANSFORM:
+							case SC_PUSH_CART:		case SC_FULL_THROTTLE:		case SC_REBOUND:
+							case SC_FREEZING:		case SC_ANGEL_PROTECT:		case SC_MOONSTAR:
+							case SC_SUPER_STAR:		case SC_STRANGELIGHTS:		case SC_DECORATION_OF_MUSIC:
+							case SC_2011RWC_SCROLL:		case SC_JP_EVENT04:		case SC_MTF_ASPD:
+							case SC_MTF_ASPD2:		case SC_MTF_RANGEATK:		case SC_MTF_RANGEATK2:
+							case SC_MTF_MATK:		case SC_MTF_MATK2:		case SC_MTF_MLEATKED:
+							case SC_MTF_MHP:		case SC_MTF_MSP:		case SC_MTF_HITFLEE:
+							case SC_MTF_CRIDAMAGE:		case SC_MTF_PUMPKIN:
 								continue;
+							case SC_SILENCE:
+								if( tsc->data[i]->val4 )
+									continue; //Silence from Silent Breeze can't be dispeled
+								break;
+							//bugreport:4888 these songs may only be dispelled if you're not in their song area anymore
+							case SC_WHISTLE:
+							case SC_ASSNCROS:
+							case SC_POEMBRAGI:
+							case SC_APPLEIDUN:
+							case SC_HUMMING:
+							case SC_DONTFORGETME:
+							case SC_FORTUNE:
+							case SC_SERVICE4U:
+								if( !tsc->data[i]->val4 )
+									continue; //If in song-area don't end it
+								break;
 							case SC_ASSUMPTIO:
 								if( bl->type == BL_MOB )
 									continue;
@@ -13661,15 +13905,17 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 					break;
 				if (distance_xy(unit->bl.x,unit->bl.y,bl->x,bl->y) <= range) //Don't consider outer bounderies
 					sc_start(src,bl,type,100,skill_lv,sec);
-				if (bl->type != BL_PC && distance_xy(unit->bl.x,unit->bl.y,bl->x,bl->y) <= range) {
-					if (tsc && (!tsc->data[type] || (tsc->data[type] && tsc->data[type]->val4 < 1)))
-						break;
-					if (unit_movepos(bl,unit->bl.x,unit->bl.y,0,0)) //Only snap if the target is inside the range
-						clif_blown(bl,&unit->bl);
+				if (bl->type != BL_PC) {
+					if (!unit_blown_immune(bl,0x3) && distance_xy(unit->bl.x,unit->bl.y,bl->x,bl->y) <= range) {
+						if (tsc && (!tsc->data[type] || (tsc->data[type] && tsc->data[type]->val4 < 1)))
+							break;
+						if (unit_movepos(bl,unit->bl.x,unit->bl.y,0,0)) //Only snap if the target is inside the range
+							clif_blown(bl,&unit->bl);
+					}
 				} else {
 					if (unit_is_walking(bl) && //Wait until target stop walking
 						(tsc && tsc->data[type] && tsc->data[type]->val4 >= tsc->data[type]->val3 - range))
-							break;
+						break;
 				}
 			}
 			break;
@@ -19100,7 +19346,7 @@ int skill_magicdecoy(struct map_session_data *sd, unsigned short nameid) {
 	nullpo_ret(sd);
 
 	skill = sd->menuskill_val;
-	if( !nameid || !itemdb_is_element(nameid) || (i = pc_search_inventory(sd,nameid)) == INDEX_NOT_FOUND ||
+	if( !nameid || !itemdb_is_elementpoint(nameid) || (i = pc_search_inventory(sd,nameid)) == INDEX_NOT_FOUND ||
 		!skill || pc_delitem(sd,i,1,0,0,LOG_TYPE_CONSUME) ) {
 		clif_skill_fail(sd,NC_MAGICDECOY,USESKILL_FAIL_LEVEL,0,0);
 		return 0;
@@ -19184,9 +19430,9 @@ void skill_spellbook(struct map_session_data *sd, unsigned short nameid) {
 			clif_skill_fail(sd, WL_READING_SB, USESKILL_FAIL_SPELLBOOK_PRESERVATION_POINT, 0, 0);
 			return;
 		}
-		for( i = SC_MAXSPELLBOOK; i >= SC_SPELLBOOK1; i-- ) { //This is how official seals the spells. [malufett]
+		for( i = SC_MAXSPELLBOOK; i >= SC_SPELLBOOK1; i-- ) { //This is how official seals the spells [malufett]
 			if( !sc->data[i] ) {
-				sc->data[SC_FREEZE_SP]->val2 += point; //Increase points.
+				sc->data[SC_FREEZE_SP]->val2 += point; //Increase points
 				sc_start4(&sd->bl, &sd->bl, (sc_type)i, 100, skill_id, pc_checkskill(sd, skill_id), point, 0, INVALID_TIMER);
 				break;
 			}

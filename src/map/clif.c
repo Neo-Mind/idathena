@@ -17209,7 +17209,7 @@ int clif_magicdecoy_list(struct map_session_data *sd, uint16 skill_lv, short x, 
 	WFIFOW(fd,0) = 0x1ad; // This is the official packet. [pakpil]
 
 	for( i = 0, c = 0; i < MAX_INVENTORY; i ++ ) {
-		if( itemdb_is_element(sd->status.inventory[i].nameid) ) {
+		if( itemdb_is_elementpoint(sd->status.inventory[i].nameid) ) {
 			WFIFOW(fd, c * 2 + 4) = sd->status.inventory[i].nameid;
 			c ++;
 		}
@@ -17244,7 +17244,7 @@ int clif_poison_list(struct map_session_data *sd, uint16 skill_lv) {
 	WFIFOW(fd,0) = 0x1ad; // This is the official packet. [pakpil]
 
 	for( i = 0, c = 0; i < MAX_INVENTORY; i ++ ) {
-		if( itemdb_is_poison(sd->status.inventory[i].nameid) ) {
+		if( itemdb_is_guillotinepoison(sd->status.inventory[i].nameid) ) {
 			WFIFOW(fd, c * 2 + 4) = sd->status.inventory[i].nameid;
 			c ++;
 		}
