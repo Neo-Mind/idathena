@@ -1872,7 +1872,7 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 			return false; //New mounts can't attack nor use skills in the client. This check makes it cheat-safe [Ind]
 
 		if (sc->data[SC_ASH] && rnd()%2 && src->type == BL_PC) { //Gain 50% of failing rate when casting skills
-			clif_skill_fail((TBL_PC*)src, skill_id, 0, 0, 0);
+			clif_skill_fail((TBL_PC *)src, skill_id, 0, 0, 0);
 			return false;
 		}
 
@@ -11714,7 +11714,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			break;
 
 		case SC_BLIND:
-			if( sc->data[SC_FOGWALL] ) { //Blind lasts forever while you are standing on the fog.
+			if( sc->data[SC_FOGWALL] ) { //Blind lasts forever while you are standing on the fog
 				sc_timer_next(5000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}

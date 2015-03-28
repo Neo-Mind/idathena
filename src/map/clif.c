@@ -10178,13 +10178,13 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 	if(!battle_config.pc_invincible_time)
 		skill_unit_move(&sd->bl,gettick(),1); //Trigger skill effects if you appear standing on them
 
-	//NPC Quest / Event Icon Check [Kisuka]
+	//NPC Quest/Event Icon Check [Kisuka]
 #if PACKETVER >= 20090218
 	for(i = 0; i < map[sd->bl.m].qi_count; i++) {
 		struct questinfo *qi = &map[sd->bl.m].qi_data[i];
 
-		if(quest_check(sd, qi->quest_id, HAVEQUEST) == -1) { // Check if quest is not started
-			if(qi->hasJob) { // Check if quest is job-specific, check is user is said job class.
+		if(quest_check(sd,qi->quest_id,HAVEQUEST) == -1) { //Check if quest is not started
+			if(qi->hasJob) { //Check if quest is job-specific, check is user is said job class
 				if(sd->class_ == qi->job)
 					clif_quest_show_event(sd,&qi->nd->bl,qi->icon,qi->color);
 			} else
@@ -13862,10 +13862,10 @@ void clif_parse_NoviceDoriDori(int fd, struct map_session_data *sd)
 ///       "Help me out~ Please~ T_T"
 void clif_parse_NoviceExplosionSpirits(int fd, struct map_session_data *sd)
 {
-	/* [Ind] */
-	/* Game client is currently broken on this (not sure the packetver range) */
-	/* It sends the request when the criteria doesn't match (and of course we let it fail) */
-	/* So restoring the old parse_globalmes method. */
+	//[Ind]
+	//Game client is currently broken on this (not sure the packetver range)
+	//It sends the request when the criteria doesn't match (and of course we let it fail)
+	//So restoring the old parse_globalmes method
 	if( (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE ) {
 		unsigned int next = pc_nextbaseexp(sd);
 

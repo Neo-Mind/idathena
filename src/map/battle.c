@@ -1110,10 +1110,11 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			damage -= damage * 20 / 100;
 #endif
 
-		if( sc->data[SC_FOGWALL] && skill_id != RK_DRAGONBREATH && skill_id != RK_DRAGONBREATH_WATER ) {
-			if( flag&BF_SKILL && !(skill_get_inf(skill_id)&INF_GROUND_SKILL) && !(skill_get_nk(skill_id)&NK_SPLASH) )
-				damage -= damage * 25 / 100; //25% reduction
-			else if( (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
+		if( sc->data[SC_FOGWALL] ) {
+			if( flag&BF_SKILL ) {
+				if( !(skill_get_inf(skill_id)&INF_GROUND_SKILL) && !(skill_get_nk(skill_id)&NK_SPLASH) )
+					damage -= damage * 25 / 100; //25% reduction
+			} else if( (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
 				damage >>= 2; //75% reduction
 		}
 
@@ -1653,23 +1654,24 @@ static int battle_calc_base_weapon_attack(struct block_list *src, struct status_
 	if ((index = sd->equip_index[type]) >= 0 && sd->inventory_data[index]) {
 		float variance = 5.0f * watk->atk * sd->inventory_data[index]->wlv / 100.0f;
 
-		atkmin = max(0, atkmin - (int)variance);
-		atkmax = min(UINT16_MAX, atkmax + (int)variance);
+		atkmin = max(0, (int)(atkmin - variance));
+		atkmax = min(UINT16_MAX, (int)(atkmax + variance));
 	}
 
-	if (!(sc && sc->data[SC_MAXIMIZEPOWER]) || (skill_id && skill_id != SR_TIGERCANNON)) {
-		if (atkmax > atkmin)
-			atkmax = atkmin + rnd()%(atkmax - atkmin + 1);
-		else
-			atkmax = atkmin;
-	}
+	if (skill_id != SR_TIGERCANNON) {
+		if (!(sc && sc->data[SC_MAXIMIZEPOWER])) {
+			if (atkmax > atkmin)
+				atkmax = atkmin + rnd()%(atkmax - atkmin + 1);
+			else
+				atkmax = atkmin;
+		}
+		if ((index = sd->equip_index[EQI_HAND_R]) >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON &&
+			(refine = sd->status.inventory[index].refine) < 16 && refine) {
+			int r = refine_info[sd->inventory_data[index]->wlv].randombonus_max[refine + (4 - sd->inventory_data[index]->wlv)] / 100;
 
-	if ((index = sd->equip_index[EQI_HAND_R]) >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON &&
-		(refine = sd->status.inventory[index].refine) < 16 && refine) {
-		int r = refine_info[sd->inventory_data[index]->wlv].randombonus_max[refine + (4 - sd->inventory_data[index]->wlv)] / 100;
-
-		if (r)
-			atkmax += (rnd()%100)%r + 1;
+			if (r)
+				atkmax += (rnd()%100)%r + 1;
+		}
 	}
 
 	damage = atkmax;
@@ -2313,7 +2315,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 		hitrate += sd->bonus.arrow_hit;
 
 #ifdef RENEWAL
-	if(sd) //In Renewal hit bonus from Vultures Eye is not anymore shown in status window
+	if(sd) //In renewal, hit bonus from Vultures Eye is not anymore shown in status window
 		hitrate += pc_checkskill(sd,AC_VULTURE);
 #endif
 
@@ -5117,7 +5119,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		wd = battle_calc_skill_base_damage(wd, src, target, skill_id, skill_lv); //Base skill damage
 
 #ifdef RENEWAL
-		//In renewal we only cardfix to the weapon and equip ATK
+		//In renewal, we only cardfix to the weapon and equip ATK
 		//Card Fix for attacker (sd), 2 is added to the "left" flag meaning "attacker cards only"
 		wd.weaponAtk += battle_calc_cardfix(BF_WEAPON, src, target, skill_id, nk, right_element, left_element, wd.weaponAtk, 2, wd.flag);
 		wd.equipAtk += battle_calc_cardfix(BF_WEAPON, src, target, skill_id, nk, right_element, left_element, wd.equipAtk, 2, wd.flag);
@@ -5679,7 +5681,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						}
 						break;
 					case MG_THUNDERSTORM:
-						//In renewal Thunder Storm boost is 100% (in pre-re, 80%)
+						//In renewal, Thunder Storm boost is 100% (in pre-re, 80%)
 #ifndef RENEWAL
 						skillratio -= 20;
 #endif
@@ -6623,7 +6625,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 
 			hitrate += sstatus->hit - flee;
 #ifdef RENEWAL
-			if(sd) //In Renewal hit bonus from Vultures Eye is not shown anymore in status window
+			if(sd) //In renewal, hit bonus from Vultures Eye is not shown anymore in status window
 				hitrate += pc_checkskill(sd,AC_VULTURE);
 #endif
 			hitrate = cap_value(hitrate,battle_config.min_hitrate,battle_config.max_hitrate);

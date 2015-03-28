@@ -967,17 +967,14 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				}
 			}
 			break;
-
 		case SM_BASH: //BaseChance gets multiplied with BaseLevel/50.0; 500/50 simplifies to 10 [Playtester]
 			if( sd && skill_lv > 5 && pc_checkskill(sd,SM_FATALBLOW) > 0 )
 				status_change_start(src,bl,SC_STUN,(skill_lv - 5) * sd->status.base_level * 10,
 					skill_lv,0,0,0,skill_get_time2(SM_FATALBLOW,skill_lv),SCFLAG_NONE);
 			break;
-
 		case MER_CRASH:
 			sc_start(src,bl,SC_STUN,(6 * skill_lv),skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case AS_VENOMKNIFE:
 			if( sd ) //Poison chance must be that of Envenom. [Skotlex]
 				skill_lv = pc_checkskill(sd,TF_POISON);
@@ -987,15 +984,12 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				sd && skill_id == TF_POISON)
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
 			break;
-
 		case AS_SONICBLOW:
 			sc_start(src,bl,SC_STUN,(2 * skill_lv + 10),skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case WZ_FIREPILLAR:
 			unit_set_walkdelay(bl,tick,skill_get_time2(skill_id,skill_lv),1);
 			break;
-
 		case MG_FROSTDIVER:
 #ifndef RENEWAL
 		case WZ_FROSTNOVA:
@@ -1004,13 +998,11 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				sd && skill_id == MG_FROSTDIVER )
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
 			break;
-
 #ifdef RENEWAL
 		case WZ_FROSTNOVA:
 			sc_start(src,bl,SC_FREEZE,skill_lv * 5 + 33,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
 #endif
-
 		case WZ_STORMGUST:
 #ifdef RENEWAL //Storm Gust counter was dropped in renewal
 			sc_start(src,bl,SC_FREEZE,65 - (5 * skill_lv),skill_lv,skill_get_time2(skill_id,skill_lv));
@@ -1024,63 +1016,50 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				tsc->sg_counter = 0;
 #endif
 			break;
-
 		case WZ_METEOR:
 			sc_start(src,bl,SC_STUN,3 * skill_lv,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case WZ_VERMILION:
 			sc_start(src,bl,SC_BLIND,4 * skill_lv,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case HT_FREEZINGTRAP:
 		case MA_FREEZINGTRAP:
 			sc_start(src,bl,SC_FREEZE,(3 * skill_lv + 35),skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case HT_FLASHER:
 			sc_start(src,bl,SC_BLIND,(10 * skill_lv + 30),skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case HT_LANDMINE:
 		case MA_LANDMINE:
 			sc_start(src,bl,SC_STUN,(5 * skill_lv + 30),skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case HT_SHOCKWAVE:
 			status_percent_damage(src,bl,0,15 * skill_lv + 5,false);
 			break;
-
 		case HT_SANDMAN:
 		case MA_SANDMAN:
 			sc_start(src,bl,SC_SLEEP,(10 * skill_lv + 40),skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case TF_SPRINKLESAND:
 			sc_start(src,bl,SC_BLIND,20,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case TF_THROWSTONE:
 			if( !sc_start(src,bl,SC_STUN,3,skill_lv,skill_get_time(skill_id,skill_lv)) ) //Only blind if success
 				sc_start(src,bl,SC_BLIND,3,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case NPC_DARKCROSS:
 		case CR_HOLYCROSS:
 			sc_start(src,bl,SC_BLIND,3 * skill_lv,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case CR_GRANDCROSS:
 		case NPC_GRANDDARKNESS:
 			//Chance to cause blind status vs demon and undead element, but not against players
 			if( !dstsd && (battle_check_undead(tstatus->race,tstatus->def_ele) || tstatus->race == RC_DEMON) )
 				sc_start(src,bl,SC_BLIND,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case AM_DEMONSTRATION:
 			skill_break_equip(src,bl,EQP_WEAPON,100 * skill_lv,BCT_ENEMY);
 			break;
-
 		case AM_ACIDTERROR:
 			sc_start2(src,bl,SC_BLEEDING,(skill_lv * 3),skill_lv,src->id,skill_get_time2(skill_id,skill_lv));
 			if( bl->type == BL_PC && rnd()%1000 < 10 * skill_get_time(skill_id,skill_lv) ) {
@@ -1088,11 +1067,9 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				clif_emotion(bl,E_OMG); //Emote icon still shows even there is no armor equip
 			}
 			break;
-
 		case CR_SHIELDCHARGE:
 			sc_start(src,bl,SC_STUN,(15 + skill_lv * 5),skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case PA_PRESSURE:
 			status_percent_damage(src,bl,0,15 + 5 * skill_lv,false);
 		//Fall through
@@ -1100,44 +1077,35 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			//Pressure and Gravitation can trigger autospells
 			attack_type |= BF_WEAPON|BF_LONG|BF_NORMAL;
 			break;
-
 		case RG_RAID:
 			sc_start(src,bl,SC_STUN,(10 + 3 * skill_lv),skill_lv,skill_get_time(skill_id,skill_lv));
 			sc_start(src,bl,SC_BLIND,(10 + 3 * skill_lv),skill_lv,skill_get_time2(skill_id,skill_lv));
 #ifdef RENEWAL
 			sc_start(src,bl,SC_RAID,100,7,5000);
 			break;
-
 		 case RG_BACKSTAP:
 			sc_start(src,bl,SC_STUN,(5 + 2 * skill_lv),skill_lv,skill_get_time(skill_id,skill_lv));
 #endif
 			break;
-
 		case BA_FROSTJOKER:
 			sc_start(src,bl,SC_FREEZE,(15 + 5 * skill_lv),skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case DC_SCREAM:
 			sc_start(src,bl,SC_STUN,(25 + 5 * skill_lv),skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
-		case BD_LULLABY:
-			//(Custom chance) "Chance is increased with INT" [iRO Wiki]
+		case BD_LULLABY: //(Custom chance) "Chance is increased with INT" [iRO Wiki]
 			sc_start(src,bl,SC_SLEEP,15 + sstatus->int_ / 3,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case DC_UGLYDANCE:
 			rate = 5 + 5 * skill_lv;
 			if( sd && (skill = pc_checkskill(sd,DC_DANCINGLESSON) > 0) )
 				rate += 5 + skill;
 			status_zap(bl,0,rate);
 			break;
-
 		case SL_STUN:
 			if( tstatus->size == SZ_MEDIUM ) //Only stuns mid-sized mobs.
 				sc_start(src,bl,SC_STUN,(30 + 10 * skill_lv),skill_lv,skill_get_time(skill_id,skill_lv));
 			break;
-
 		case NPC_PETRIFYATTACK:
 			sc_start4(src,bl,status_skill2sc(skill_id),50 + 10 * skill_lv,
 				skill_lv,0,0,skill_get_time(skill_id,skill_lv),
@@ -1178,31 +1146,25 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 		case NPC_SHIELDBRAKE:
 			skill_break_equip(src,bl,EQP_SHIELD,150 * skill_lv,BCT_ENEMY);
 			break;
-
 		case CH_TIGERFIST:
 			sc_start(src,bl,SC_STOP,(10 + skill_lv * 10),skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case LK_SPIRALPIERCE:
 		case ML_SPIRALPIERCE:
 			if( dstsd || dstmd )
 				sc_start(src,bl,SC_STOP,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case ST_REJECTSWORD:
 			sc_start(src,bl,SC_AUTOCOUNTER,(skill_lv * 15),skill_lv,skill_get_time(skill_id,skill_lv));
 			break;
-
 		case PF_FOGWALL:
 			if( bl->id != src->id && !tsc->data[SC_DELUGE] )
 				sc_start(src,bl,SC_BLIND,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case LK_HEADCRUSH: //Headcrush has chance of causing Bleeding status, except on demon and undead element
 			if( !(battle_check_undead(tstatus->race,tstatus->def_ele) || tstatus->race == RC_DEMON) )
 				sc_start2(src,bl,SC_BLEEDING,50,skill_lv,src->id,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case LK_JOINTBEAT:
 			status = status_skill2sc(skill_id);
 			if( tsc->jb_flag ) {
@@ -1223,23 +1185,18 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 					sc_start2(src,bl,SC_BLEEDING,(5 + skill_lv * 5),skill_lv,src->id,skill_get_time2(skill_id,3));
 			}
 			break;
-
 		case HW_NAPALMVULCAN:
 			sc_start(src,bl,SC_CURSE,5 * skill_lv,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case WS_CARTTERMINATION: //Cart termination
 			sc_start(src,bl,SC_STUN,5 * skill_lv,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case CR_ACIDDEMONSTRATION:
 			skill_break_equip(src,bl,EQP_WEAPON|EQP_ARMOR,100 * skill_lv,BCT_ENEMY);
 			break;
-
 		case TK_DOWNKICK:
 			sc_start(src,bl,SC_STUN,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-
 		case TK_JUMPKICK:
 			if( dstsd && dstsd->class_ != MAPID_SOUL_LINKER && !tsc->data[SC_PRESERVE] ) { //Debuff the following statuses
 				status_change_end(bl,SC_SPIRIT,INVALID_TIMER);

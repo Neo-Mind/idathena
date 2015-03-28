@@ -316,7 +316,7 @@
 5401:5653,{ bonus bInt,1; bonus bMatkRate,2; }
 5403:18529,{ bonus3 bAutoSpell,"BS_GREED",1,50; }
 //5470:5653,{ bonus bDex,1; bonus bLongAtkRate,3; }
-5475:18656,{ bonus bBaseAtk,30; bonus bMatk,30; bonus2 bAddMonsterDropItem,529,400; bonus2 bAddMonsterDropItem,530,400; bonus2 bAddMonsterDropItem,538,400; bonus2 bAddMonsterDropItem,12192,400;}
+5475:18656,{ bonus bBaseAtk,30; bonus bMatk,30; bonus2 bAddMonsterDropItem,529,400; bonus2 bAddMonsterDropItem,530,400; bonus2 bAddMonsterDropItem,538,400; bonus2 bAddMonsterDropItem,12192,400; }
 5670:18874,{ bonus3 bAutoSpell,"TF_STEAL",1,10; }
 //9024:18832,{ bonus3 bAutoSpell,"BS_ADRENALINE",2,(GetPetRelationship >= 3) ? 15 : 10; }
 13027:15044,{ set .@i,getequiprefinerycnt(EQI_ARMOR)?getequiprefinerycnt(EQI_ARMOR):1; bonus3 bAddMonsterDropItem,929,RC_DemiHuman,70*.@i; bonus3 bAddMonsterDropItem,970,RC_DemiHuman,50*.@i; bonus3 bAddMonsterDropItem,929,RC_Brute,70*.@i; bonus3 bAddMonsterDropItem,970,RC_Brute,50*.@i; }

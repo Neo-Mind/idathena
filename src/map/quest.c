@@ -101,7 +101,7 @@ int quest_add(TBL_PC *sd, int quest_id) {
 
 	//The character has some completed quests, make room before them so that they will stay at the end of the array
 	if( sd->avail_quests != sd->num_quests )
-		memmove(&sd->quest_log[n + 1], &sd->quest_log[n], sizeof(struct quest) * (sd->num_quests-sd->avail_quests));
+		memmove(&sd->quest_log[n + 1], &sd->quest_log[n], sizeof(struct quest) * (sd->num_quests - sd->avail_quests));
 
 	memset(&sd->quest_log[n], 0, sizeof(struct quest));
 

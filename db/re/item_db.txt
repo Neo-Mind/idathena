@@ -10156,9 +10156,9 @@
 22015,Impr_Angel's_Arrival,Advanced Angel's Reincarnation,4,10000,,300,,8,,1,0x00000001,63,2,64,,99,1,0,{ bonus bMaxHP,500; bonus bMaxSP,100; },{},{}
 22018,Shoes_Of_Wise_Man,Shoes Of Wise Man,4,20,,300,,15,,0,0xFFFFFFFF,63,2,64,,50,1,,{ if(getrefine()>5){ bonus bInt,getrefine()-5; bonus bMaxHPrate,-(getrefine()-5); } },{},{}
 22033,Black_As_Night_Shoes,Black As Night Shoes,4,20,,400,,25,,1,0xFFFFFFFF,63,2,64,,120,1,,{ bonus2 bSubEle,Ele_Holy,2+getrefine()/3; },{},{}
-22035,Heoric_Nepenthes_Shoes,Heoric Nepenthes Shoes,4,20,,300,,10,,1,0xFFFFFFFF,63,2,64,,160,1,,{ if (getrefine()>=8) bonus bVariableCastrate,-5-((getrefine()>=9) ? getrefine() : 0); },{},{}
-22036,Heroic_Silver_Fox_Leather_Boots,Heroic Silver Fox Leather Boots,4,20,,300,,15,,1,0xFFFFFFFF,63,2,16,,160,1,,{ bonus bLongAtkRate,5+((getrefine() >= 8) ? getrefine() : 0); },{},{}
-22037,Heroic_Ungoliant_Upgrade_Boots,Heroic Ungoliant Upgrade Boots,4,20,,300,,10,,1,0xFFFFFFFF,63,2,16,,160,1,,{ bonus bUseSPrate,-5-((getrefine() >= 8) ? getrefine() : 0); },{},{}
+22035,Heoric_Nepenthes_Shoes,Heoric Nepenthes Shoes,4,20,,300,,10,,1,0xFFFFFFFF,63,2,64,,160,1,,{ bonus bVariableCastrate,-10-((getrefine()>=8)?5:0); bonus bVariableCastrate,-((getrefine()>13)?5:((getrefine()>=9)?(getrefine()-8):0)); bonus bVariableCastrate,-((getrefine()>=11)?3:0); bonus bVariableCastrate,-((getrefine()>13)?6:((getrefine()>=12)?((getrefine()-11)*3):0)); },{},{}
+22036,Heroic_Silver_Fox_Leather_Boots,Heroic Silver Fox Leather Boots,4,20,,300,,15,,1,0xFFFFFFFF,63,2,64,,160,1,,{ bonus bLongAtkRate,5+(((getrefine()>13)?13:getrefine())-7); },{},{}
+22037,Heroic_Ungoliant_Upgrade_Boots,Heroic Ungoliant Upgrade Boots,4,20,,300,,10,,1,0xFFFFFFFF,63,2,64,,160,1,,{ bonus bUseSPrate,-5-(((getrefine()>13)?13:getrefine())-7); },{},{}
 22042,Talaria_Shoes,Talaria Shoes,4,20,,300,,15,,0,0xFFFFFFFF,63,2,64,,50,1,,{ bonus bAgi,2; bonus bAspd,1; bonus bUnbreakableShoes,1; },{},{}
 22043,AGI_Complement,AGI Complement,4,20,,350,,25,,1,0x00000400,56,2,64,,100,1,,{ bonus bAspdRate,5+(getrefine()/4); },{},{}
 22044,Reinforced_Parts_Booster,Reinforced Parts - Booster,4,20,,1000,,23,,1,0x00000400,56,2,64,,100,1,,{ bonus2 bSkillUseSP,"NC_HOVERING",-15; if(getrefine()>=7){ bonus2 bSkillUseSP,"NC_HOVERING",-20; } },{},{}
