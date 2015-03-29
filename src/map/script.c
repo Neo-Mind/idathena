@@ -16267,8 +16267,8 @@ BUILDIN_FUNC(setunitdata)
 				case 3: status_set_maxhp(bl, (unsigned int)value, 0); break;
 				case 4: md->master_id = value; break;
 				case 5: if( mapname ) value = map_mapname2mapid(mapname); unit_warp(bl, (short)value, 0, 0, 3); break;
-				case 6: if( !unit_walktoxy(bl, (short)value, md->bl.y, 2) ) unit_movepos(bl, (short)value, md->bl.y, 0, 0); break;
-				case 7: if( !unit_walktoxy(bl, md->bl.x, (short)value, 2) ) unit_movepos(bl, md->bl.x, (short)value, 0, 0); break;
+				case 6: if( !unit_walktoxy(bl, (short)value, md->bl.y, 2) ) unit_movepos(bl, (short)value, md->bl.y, 0, false); break;
+				case 7: if( !unit_walktoxy(bl, md->bl.x, (short)value, 2) ) unit_movepos(bl, md->bl.x, (short)value, 0, false); break;
 				case 8: md->status.speed = (unsigned short)value; status_calc_bl(bl, SCB_ALL); break;
 				case 9: md->status.mode = (enum e_mode)value; status_calc_bl(bl, SCB_MODE); break;
 				case 10: md->special_state.ai = (enum mob_ai)value; break;
@@ -16311,8 +16311,8 @@ BUILDIN_FUNC(setunitdata)
 				case 5: status_set_maxsp(bl, (unsigned int)value, 0); break;
 				case 6: hd->homunculus.char_id = (uint32)value; break;
 				case 7: if( mapname ) value = map_mapname2mapid(mapname); unit_warp(bl, (short)value, 0, 0, 3); break;
-				case 8: if( !unit_walktoxy(bl, (short)value, hd->bl.y, 2) ) unit_movepos(bl, (short)value, hd->bl.y, 0, 0); break;
-				case 9: if( !unit_walktoxy(bl, hd->bl.x, (short)value, 2) ) unit_movepos(bl, hd->bl.x, (short)value, 0, 0); break;
+				case 8: if( !unit_walktoxy(bl, (short)value, hd->bl.y, 2) ) unit_movepos(bl, (short)value, hd->bl.y, 0, false); break;
+				case 9: if( !unit_walktoxy(bl, hd->bl.x, (short)value, 2) ) unit_movepos(bl, hd->bl.x, (short)value, 0, false); break;
 				case 10: hd->homunculus.hunger = (short)value; clif_send_homdata(map_charid2sd(hd->homunculus.char_id), SP_HUNGRY, hd->homunculus.hunger); break;
 				case 11: hom_increase_intimacy(hd, (unsigned int)value); clif_send_homdata(map_charid2sd(hd->homunculus.char_id), SP_INTIMATE, hd->homunculus.intimacy / 100); break;
 				case 12: hd->base_status.speed = (unsigned short)value; status_calc_bl(bl, SCB_ALL); break;
@@ -16342,8 +16342,8 @@ BUILDIN_FUNC(setunitdata)
 				case 3: status_set_maxhp(bl, (unsigned int)value, 0); break;
 				case 4: pd->pet.account_id = (unsigned int)value; break;
 				case 5: if( mapname ) value = map_mapname2mapid(mapname); unit_warp(bl, (short)value, 0, 0, 3); break;
-				case 6: if( !unit_walktoxy(bl, (short)value, pd->bl.y, 2) ) unit_movepos(bl, (short)value, md->bl.y, 0, 0); break;
-				case 7: if( !unit_walktoxy(bl, pd->bl.x, (short)value, 2) ) unit_movepos(bl, pd->bl.x, (short)value, 0, 0); break;
+				case 6: if( !unit_walktoxy(bl, (short)value, pd->bl.y, 2) ) unit_movepos(bl, (short)value, md->bl.y, 0, false); break;
+				case 7: if( !unit_walktoxy(bl, pd->bl.x, (short)value, 2) ) unit_movepos(bl, pd->bl.x, (short)value, 0, false); break;
 				case 8: pd->pet.hungry = (short)value; clif_send_petdata(map_id2sd(pd->pet.account_id), pd, 2, pd->pet.hungry); break;
 				case 9: pet_set_intimate(pd, (unsigned int)value); clif_send_petdata(map_id2sd(pd->pet.account_id), pd, 1, pd->pet.intimate); break;
 				case 10: pd->status.speed = (unsigned short)value; status_calc_bl(bl, SCB_ALL); break;
@@ -16372,8 +16372,8 @@ BUILDIN_FUNC(setunitdata)
 				case 2: status_set_maxhp(bl, (unsigned int)value, 0); break;
 				case 3: mc->mercenary.char_id = (uint32)value; break;
 				case 4: if( mapname ) value = map_mapname2mapid(mapname); unit_warp(bl, (short)value, 0, 0, 3); break;
-				case 5: if( !unit_walktoxy(bl, (short)value, mc->bl.y, 2) ) unit_movepos(bl, (short)value, mc->bl.y, 0, 0); break;
-				case 6: if( !unit_walktoxy(bl, mc->bl.x, (short)value, 2) ) unit_movepos(bl, mc->bl.x, (short)value, 0, 0); break;
+				case 5: if( !unit_walktoxy(bl, (short)value, mc->bl.y, 2) ) unit_movepos(bl, (short)value, mc->bl.y, 0, false); break;
+				case 6: if( !unit_walktoxy(bl, mc->bl.x, (short)value, 2) ) unit_movepos(bl, mc->bl.x, (short)value, 0, false); break;
 				case 7: mc->mercenary.kill_count = (unsigned int)value; break;
 				case 8: mc->mercenary.life_time = (unsigned int)value; break;
 				case 9: mc->base_status.speed = (unsigned short)value; status_calc_bl(bl, SCB_ALL); break;
@@ -16404,8 +16404,8 @@ BUILDIN_FUNC(setunitdata)
 				case 4: status_set_maxsp(bl, (unsigned int)value, 0); break;
 				case 5: ed->elemental.char_id = (uint32)value; break;
 				case 6: if( mapname ) value = map_mapname2mapid(mapname); unit_warp(bl, (short)value, 0, 0, 3); break;
-				case 7: if( !unit_walktoxy(bl, (short)value, ed->bl.y, 2) ) unit_movepos(bl, (short)value, ed->bl.y, 0, 0); break;
-				case 8: if( !unit_walktoxy(bl, ed->bl.x, (short)value, 2) ) unit_movepos(bl, ed->bl.x, (short)value, 0, 0); break;
+				case 7: if( !unit_walktoxy(bl, (short)value, ed->bl.y, 2) ) unit_movepos(bl, (short)value, ed->bl.y, 0, false); break;
+				case 8: if( !unit_walktoxy(bl, ed->bl.x, (short)value, 2) ) unit_movepos(bl, ed->bl.x, (short)value, 0, false); break;
 				case 9: ed->elemental.life_time = (unsigned int)value; break;
 				case 10: ed->elemental.mode = (unsigned int)value; status_calc_bl(bl, SCB_MODE); break;
 				case 11: ed->base_status.speed = (unsigned short)value; status_calc_bl(bl, SCB_ALL); break;
@@ -16434,8 +16434,8 @@ BUILDIN_FUNC(setunitdata)
 				case 2: status_set_hp(bl, (unsigned int)value, 0); break;
 				case 3: status_set_maxhp(bl, (unsigned int)value, 0); break;
 				case 4: if( mapname ) value = map_mapname2mapid(mapname); unit_warp(bl, (short)value, 0, 0, 3); break;
-				case 5: if( !unit_walktoxy(bl, (short)value, nd->bl.y, 2) ) unit_movepos(bl, (short)value, nd->bl.x, 0, 0); break;
-				case 6: if( !unit_walktoxy(bl, nd->bl.x, (short)value, 2) ) unit_movepos(bl, nd->bl.x, (short)value, 0, 0); break;
+				case 5: if( !unit_walktoxy(bl, (short)value, nd->bl.y, 2) ) unit_movepos(bl, (short)value, nd->bl.x, 0, false); break;
+				case 6: if( !unit_walktoxy(bl, nd->bl.x, (short)value, 2) ) unit_movepos(bl, nd->bl.x, (short)value, 0, false); break;
 				case 7: unit_setdir(bl, (uint8)value); break;
 				case 8: nd->status.str = (unsigned short)value; status_calc_bl(bl, SCB_ALL); break;
 				case 9: nd->status.agi = (unsigned short)value; status_calc_bl(bl, SCB_ALL); break;

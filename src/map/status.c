@@ -6159,8 +6159,8 @@ static short status_calc_aspd(struct block_list *bl, struct status_change *sc, s
 		skills2 -= sc->data[SC_DEFENDER]->val4 / 10;
 	if(sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_ENEMY) //Needs more info
 		skills2 -= 25;
-	if(sc->data[SC_GRAVITATION])
-		skills2 -= sc->data[SC_GRAVITATION]->val2 / 10; //Needs more info
+	if(sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 != BCT_SELF)
+		skills2 -= sc->data[SC_GRAVITATION]->val2 / 10;
 	if(sc->data[SC_JOINTBEAT]) { //Needs more info
 		if( sc->data[SC_JOINTBEAT]->val2&BREAK_WRIST )
 			skills2 -= 25;
@@ -6326,7 +6326,7 @@ static short status_calc_aspd_rate(struct block_list *bl, struct status_change *
 		aspd_rate += sc->data[SC_DEFENDER]->val4;
 	if(sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_ENEMY)
 		aspd_rate += 250;
-	if(sc->data[SC_GRAVITATION])
+	if(sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 != BCT_SELF)
 		aspd_rate += sc->data[SC_GRAVITATION]->val2;
 	if(sc->data[SC_JOINTBEAT]) {
 		if(sc->data[SC_JOINTBEAT]->val2&BREAK_WRIST)
@@ -9538,7 +9538,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_GT_ENERGYGAIN:
 				val3 = 10 + 5 * val1; //Sphere gain chance.
 				break;
-			case SC_GT_CHANGE: { //Take note there is no def increase as skill desc says. [malufett]
+			case SC_GT_CHANGE: { //Take note there is no def increase as skill desc says [malufett]
 					struct block_list *src;
 
 					val3 = status->agi * val1 / 60; //ASPD increase: [(Target AGI x Skill Level) / 60] %

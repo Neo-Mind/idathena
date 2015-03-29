@@ -1232,7 +1232,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			int dy[8] = { 1,1,0,-1,-1,-1,0,1 };
 			uint8 dir = map_calc_dir(bl,src->x,src->y);
 
-			if( unit_movepos(bl,src->x - dx[dir],src->y - dy[dir],1,1) ) {
+			if( unit_movepos(bl,src->x - dx[dir],src->y - dy[dir],1,true) ) {
 				clif_blown(bl,src);
 				unit_setdir(bl,dir);
 			}

@@ -948,7 +948,7 @@ int unit_movepos(struct block_list *bl, short dst_x, short dst_y, int easy, bool
 			else if( !check_distance_bl(&sd->bl, bl, AREA_SIZE) ) //Too far, teleport
 				flag = 2;
 			if( flag ) {
-				unit_movepos(bl, sd->bl.x, sd->bl.y, 0, 0);
+				unit_movepos(bl, sd->bl.x, sd->bl.y, 0, false);
 				clif_blown(bl, bl);
 			}
 		}
