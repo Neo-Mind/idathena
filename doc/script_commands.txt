@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Last Updated: ========================================
-//= 20150327
+//= 20150330
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -8394,7 +8394,7 @@ This command will make the pet give a bonus_type to the owner's stat in certain
 duration in seconds and will be repeated for certain delay in seconds.
 
 For a full bonus list, see 'doc/item_bonus.txt'
-NOTE: Currently ONLY supported for bonuses that used by 'bonus' script.
+NOTE: Currently ONLY supported for bonuses that used by 'bonus' and 'bonus2' script.
 
 ---------------------------------------
 
