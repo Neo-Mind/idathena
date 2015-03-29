@@ -1093,7 +1093,7 @@ int pet_skill_bonus_timer(int tid, unsigned int tick, int id, intptr_t data)
 	} else if (pd->pet.intimate) {
 		bonus = 1;
 		timer = pd->bonus->duration * 1000; //The duration for pet bonuses to be in effect
-	} else { //Lost pet...
+	} else { //Lost pet
 		pd->bonus->timer = INVALID_TIMER;
 		return 0;
 	}
@@ -1231,7 +1231,7 @@ void read_petdb()
 	unsigned short nameid;
 	int i, j;
 
-	// Remove any previous scripts in case reloaddb was invoked.
+	// Remove any previous scripts in case reloaddb was invoked
 	for( j = 0; j < MAX_PET_DB; j++ ) {
 		if( pet_db[j].pet_script ) {
 			script_free_code(pet_db[j].pet_script);

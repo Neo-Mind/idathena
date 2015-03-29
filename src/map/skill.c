@@ -2930,7 +2930,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 	//Combo handling
 	skill_combo(src, dsrc, bl, skill_id, skill_lv, tick);
 
-	//Display damage.
+	//Display damage
 	switch (skill_id) {
 		case PA_GOSPEL: //Should look like Holy Cross [Skotlex]
 			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, CR_HOLYCROSS, -1, DMG_SPLASH);
@@ -12673,6 +12673,8 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 			}
 			break;
 		case GC_POISONSMOKE:
+			if( !(sc && sc->data[SC_POISONINGWEAPON]) )
+				return NULL;
 			val2 = sc->data[SC_POISONINGWEAPON]->val2; //Type of Poison
 			val3 = sc->data[SC_POISONINGWEAPON]->val1;
 			limit = skill_get_time(skill_id,skill_lv);

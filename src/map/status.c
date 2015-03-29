@@ -3022,7 +3022,7 @@ static unsigned int status_calc_maxhpsp_pc(struct map_session_data* sd, bool isH
 //Should be invoked whenever players raise stats, learn passive skills or change equipment.
 int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 {
-	static int calculating = 0; //Check for recursive call preemption. [Skotlex]
+	static int calculating = 0; //Check for recursive call preemption [Skotlex]
 	struct status_data *status; //Pointer to the player's base status
 	const struct status_change *sc = &sd->sc;
 	struct s_skill b_skill[MAX_SKILL]; //Previous skill tree
@@ -3399,10 +3399,17 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 	if(sd->pd) { //Pet Bonus
 		struct pet_data *pd = sd->pd;
 
-		if(pd && pd->petDB && pd->petDB->pet_loyal_script && pd->pet.intimate >= battle_config.pet_equip_min_friendly)
+		if(pd && pd->petDB && pd->petDB->pet_loyal_script && pd->pet.intimate >= battle_config.pet_equip_min_friendly) {
 			run_script(pd->petDB->pet_loyal_script,0,sd->bl.id,0);
-		if(pd && pd->pet.intimate > 0 && (!battle_config.pet_equip_required || pd->pet.equip > 0) && pd->state.skillbonus == 1 && pd->bonus)
-			pc_bonus(sd,pd->bonus->type,pd->bonus->val);
+			if(!calculating)
+				return 1;
+		}
+		if(pd && pd->pet.intimate > 0 && (!battle_config.pet_equip_required || pd->pet.equip > 0) && pd->state.skillbonus == 1 && pd->bonus) {
+			if(pd->bonus->val2)
+				pc_bonus2(sd,pd->bonus->type,pd->bonus->val1,pd->bonus->val2);
+			else
+				pc_bonus(sd,pd->bonus->type,pd->bonus->val1);
+		}
 	}
 
 	//Param_bonus now holds card bonuses

@@ -35,17 +35,22 @@ struct s_pet_db {
 };
 extern struct s_pet_db pet_db[MAX_PET_DB];
 
-enum { PET_CLASS,PET_CATCH,PET_EGG,PET_EQUIP,PET_FOOD };
+enum {
+	PET_CLASS,
+	PET_CATCH,
+	PET_EGG,PET_EQUIP,
+	PET_FOOD
+};
 
 struct pet_recovery { //Stat recovery
 	enum sc_type type;	//Status Change id
-	unsigned short delay; //How long before curing (secs).
+	unsigned short delay; //How long before curing (secs)
 	int timer;
 };
 
 struct pet_bonus {
-	unsigned short type; //bStr, bVit?
-	unsigned short val; //Value
+	unsigned short type; //Bonus type
+	unsigned short val1, val2; //Value
 	unsigned short duration; //In seconds
 	unsigned short delay; //Time before re-effect the bonus in seconds
 	int timer;

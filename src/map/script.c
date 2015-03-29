@@ -7999,7 +7999,7 @@ BUILDIN_FUNC(bonus)
 	int val3 = 0;
 	int val4 = 0;
 	int val5 = 0;
-	TBL_PC* sd;
+	TBL_PC *sd;
 	struct script_data *data;
 
 	sd = script_rid2sd(st);
@@ -10037,12 +10037,12 @@ BUILDIN_FUNC(hideonnpc)
  */
 BUILDIN_FUNC(sc_start)
 {
-	TBL_NPC * nd = map_id2nd(st->oid);
-	struct block_list* bl;
+	TBL_NPC *nd = map_id2nd(st->oid);
+	struct block_list *bl;
 	enum sc_type type;
 	int tick, val1, val2, val3, val4 = 0, rate, flag;
 	char start_type;
-	const char* command = script_getfuncname(st);
+	const char *command = script_getfuncname(st);
 
 	if(strstr(command, "4"))
 		start_type = 4;
@@ -12393,6 +12393,8 @@ BUILDIN_FUNC(petskillbonus)
 {
 	struct pet_data *pd;
 	TBL_PC *sd = script_rid2sd(st);
+	char bonus_type;
+	const char *command = script_getfuncname(st);
 
 	if (sd == NULL || sd->pd == NULL)
 		return 1;
@@ -12404,15 +12406,30 @@ BUILDIN_FUNC(petskillbonus)
 	} else //Init
 		pd->bonus = (struct pet_bonus *) aMalloc(sizeof(struct pet_bonus));
 
+	if(strstr(command, "2"))
+		bonus_type = 2;
+	else
+		bonus_type = 1;
+
 	pd->bonus->type = script_getnum(st,2);
-	pd->bonus->val = script_getnum(st,3);
-	pd->bonus->duration = script_getnum(st,4);
-	pd->bonus->delay = script_getnum(st,5);
+	pd->bonus->val1 = script_getnum(st,3);
+	switch(bonus_type) {
+		case 1:
+			pd->bonus->val2 = 0;
+			pd->bonus->duration = script_getnum(st,4);
+			pd->bonus->delay = script_getnum(st,5);
+			break;
+		case 2:
+			pd->bonus->val2 = script_getnum(st,4);
+			pd->bonus->duration = script_getnum(st,5);
+			pd->bonus->delay = script_getnum(st,6);
+			break;
+	}
 
 	if (pd->state.skillbonus == 1)
-		pd->state.skillbonus = 0; // Waiting state
+		pd->state.skillbonus = 0; //Waiting state
 
-	// Wait for timer to start
+	//Wait for timer to start
 	if (battle_config.pet_equip_required && pd->pet.equip == 0)
 		pd->bonus->timer = INVALID_TIMER;
 	else
@@ -19946,6 +19963,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(guardian,"siisi??"),	// summon guardians
 	BUILDIN_DEF(guardianinfo,"sii"),	// display guardian data [Valaris]
 	BUILDIN_DEF(petskillbonus,"iiii"), // [Valaris]
+	BUILDIN_DEF2(petskillbonus,"petskillbonus2","iiiii"),
 	BUILDIN_DEF(petrecovery,"ii"), // [Valaris]
 	BUILDIN_DEF(petloot,"i"), // [Valaris]
 	BUILDIN_DEF(petheal,"iiii"), // [Valaris]
