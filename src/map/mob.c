@@ -1057,7 +1057,7 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 	nullpo_ret(bl);
 
 	md = va_arg(ap,struct mob_data *);
-	target = va_arg(ap,struct block_list**);
+	target = va_arg(ap,struct block_list **);
 	mode = va_arg(ap,int);
 
 	//If can't seek yet, not an enemy, or you can't attack it, skip
@@ -1113,7 +1113,7 @@ static int mob_ai_sub_hard_changechase(struct block_list *bl,va_list ap)
 
 	nullpo_ret(bl);
 	md = va_arg(ap,struct mob_data *);
-	target = va_arg(ap,struct block_list**);
+	target = va_arg(ap,struct block_list **);
 
 	//If can't seek yet, not an enemy, or you can't attack it, skip.
 	if(md->bl.id == bl->id || (*target) == bl ||
@@ -1138,11 +1138,10 @@ static int mob_ai_sub_hard_bg_ally(struct block_list *bl,va_list ap) {
 	
 	nullpo_ret(bl);
 	md = va_arg(ap,struct mob_data *);
-	target = va_arg(ap,struct block_list**);
+	target = va_arg(ap,struct block_list **);
 
-	if(status_check_skilluse(&md->bl,bl,0,0) && battle_check_target(&md->bl,bl,BCT_ENEMY) <= 0) {
+	if(status_check_skilluse(&md->bl,bl,0,0) && battle_check_target(&md->bl,bl,BCT_ENEMY) <= 0)
 		(*target) = bl;
-	}
 	return 1;
 }
 
@@ -1156,14 +1155,18 @@ static int mob_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 	int dist;
 
 	md = va_arg(ap,struct mob_data *);
-	target = va_arg(ap,struct block_list**);
+	target = va_arg(ap,struct block_list **);
 
 	dist = distance_bl(&md->bl,bl);
-	if(mob_can_reach(md,bl,dist + 1,MSS_LOOT) && ((*target) == NULL || md->target_id > bl->id)) {
+	if(mob_can_reach(md,bl,dist + 1,MSS_LOOT) && ((*target) == NULL ||
+		(battle_config.monster_loot_search_type && md->target_id > bl->id) ||
+		(!battle_config.monster_loot_search_type && !check_distance_bl(&md->bl,*target,dist)))) //New target closer than previous one
+	{
 		(*target) = bl;
 		md->target_id = bl->id;
 		md->min_chase = md->db->range3;
-	}
+	} else if(!battle_config.monster_loot_search_type)
+		mob_stop_walking(md,1); //Stop walking immediately if item is no longer on the ground
 	return 0;
 }
 
@@ -1174,11 +1177,11 @@ static int mob_warpchase_sub(struct block_list *bl,va_list ap) {
 	int *min_distance;
 	int cur_distance;
 
-	target = va_arg(ap, struct block_list*);
-	target_nd = va_arg(ap, struct npc_data**);
+	target = va_arg(ap, struct block_list *);
+	target_nd = va_arg(ap, struct npc_data **);
 	min_distance = va_arg(ap, int*);
 
-	nd = (TBL_NPC*) bl;
+	nd = (TBL_NPC *)bl;
 	if(nd->subtype != NPCTYPE_WARP)
 		return 0; //Not a warp
 
