@@ -15614,8 +15614,7 @@ BUILDIN_FUNC(npcshopdelitem)
 	amount = script_lastdata(st) - 2;
 	size = nd->u.shop.count;
 
-	//Remove specified items from the shop item list
-	for( i = 3; i < 3 + amount; i++ ) {
+	for( i = 3; i < 3 + amount; i++ ) { //Remove specified items from the shop item list
 		nameid = script_getnum(st,i);
 		ARR_FIND(0,size,n,nd->u.shop.shop_item[n].nameid == nameid);
 		if( n < size ) {

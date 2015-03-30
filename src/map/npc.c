@@ -2572,7 +2572,7 @@ static const char *npc_parse_shop(char *w1, char *w2, char *w3, char *w4, const 
 
 		if( type == NPCTYPE_MARKETSHOP && (!qty || qty > UINT16_MAX) ) {
 			ShowWarning("npc_parse_shop: Item %s [%hu] is stocked with invalid value %d, changed to 1. File '%s', line '%d'.\n",
-				id->name, nameid, filepath, strline(buffer, start - buffer));
+				id->name, nameid, qty, filepath, strline(buffer, start - buffer));
 			qty = 1;
 		}
 
@@ -3228,7 +3228,7 @@ static int npc_market_free(DBKey key, DBData *data, va_list ap) {
 }
 
 /**
- * Check all existing  NPC Market Shop after first loading map-server or after reloading scripts.
+ * Check all existing NPC Market Shop after first loading map-server or after reloading scripts.
  * Overwrite stocks from NPC by using stock entries from `market` table.
  */
 static void npc_market_checkall(void) {
