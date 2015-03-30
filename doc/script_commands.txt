@@ -298,7 +298,7 @@ prices for items in different shops.
 
 Since trunk r12264 you can alternatively use "cashshop" in place of "shop"
 to use the Cash Shop interface, allowing you to buy items with special points
-(Currently stored as account vars in global_reg #CASHPOINTS and #KAFRAPOINTS.)
+(Currently stored as account variables in global_reg #CASHPOINTS and #KAFRAPOINTS.)
 This type of shop will not allow you to sell items at it, you may only
 purchase items here. The layout used to define sale items still count, and
 "<price>" refers to how many points will be spent purchasing the them.
@@ -4779,7 +4779,7 @@ Gives item(s) to the attached player based on item group contents.
 This is not working like 'getrandgroupitem' which only give 1 item for specified
 item group.
 
-For contants, see the "Item Group ID" section in 'db/const.txt'.
+For constants, see the "Item Group ID" section in 'db/const.txt'.
 
 ---------------------------------------
 
@@ -5500,7 +5500,7 @@ Example:
 
 bonus_script_clear {<flag>,{<char_id>}};
 
-Removes atatched bonus_script from player. If no 'char_id' given, it will removes
+Removes attached bonus_script from player. If no 'char_id' given, it will removes
 from the invoker.
 
 If 'flag' is 1, means will clears all scripts even it's Permanent effect. By default,
