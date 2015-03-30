@@ -440,7 +440,7 @@ int guild_npc_request_info(int guild_id,const char *event)
 /**
  * Close trade window if party member is kicked when trade a party bound item
  * @param sd
- **/
+ */
 static void guild_trade_bound_cancel(struct map_session_data *sd)
 {
 #ifdef BOUND_ITEMS
@@ -836,7 +836,7 @@ int guild_expulsion(struct map_session_data* sd, int guild_id, int account_id, i
  * @param flag
  * @param name
  * @param mes
- **/
+ */
 int guild_member_withdraw(int guild_id, int account_id, int char_id, int flag, const char* name, const char* mes)
 {
 	int i;
@@ -895,7 +895,7 @@ int guild_member_withdraw(int guild_id, int account_id, int char_id, int flag, c
  * @param char_id
  * @param account_id
  * @param guild_id
- **/
+ */
 void guild_retrieveitembound(uint32 char_id, uint32 account_id, int guild_id)
 {
 	TBL_PC *sd = map_charid2sd(char_id);
@@ -1783,7 +1783,7 @@ int guild_broken(int guild_id,int flag)
 /** Changes the Guild Master to the specified player. [Skotlex]
  * @param guild_id
  * @param sd New guild master
- **/
+ */
 int guild_gm_change(int guild_id, struct map_session_data *sd)
 {
 	struct guild *g;
@@ -1808,7 +1808,7 @@ int guild_gm_change(int guild_id, struct map_session_data *sd)
  * @param guild_id
  * @param account_id
  * @param char_id
- **/
+ */
 int guild_gm_changed(int guild_id, int account_id, int char_id)
 {
 	struct guild *g;
@@ -1863,7 +1863,7 @@ int guild_gm_changed(int guild_id, int account_id, int char_id)
 /** Disband a guild
  * @param sd Player who breaks the guild
  * @param name Guild name
- **/
+ */
 int guild_break(struct map_session_data *sd,char *name)
 {
 	struct guild *g;
@@ -1933,7 +1933,7 @@ int guild_break(struct map_session_data *sd,char *name)
 /**
  * Creates a list of guild castle IDs to be requested
  * from char-server.
- **/
+ */
 void guild_castle_map_init(void)
 {
 	int num = db_size(castle_db);
@@ -1962,7 +1962,7 @@ void guild_castle_map_init(void)
  * @param castle_id Castle ID
  * @param index Type of data to change
  * @param value New value
- **/
+ */
 int guild_castledatasave(int castle_id, int index, int value)
 {
 	struct guild_castle *gc = guild_castle_search(castle_id);
@@ -2043,7 +2043,7 @@ int guild_castle_reconnect_sub(void *key, void *data, va_list ap)
  * @param castle_id
  * @param index
  * @param value
- **/
+ */
 void guild_castle_reconnect(int castle_id, int index, int value)
 {
 	static struct linkdb_node *gc_save_pending = NULL;
@@ -2062,7 +2062,7 @@ void guild_castle_reconnect(int castle_id, int index, int value)
 /** Load castle data then invoke OnAgitInit* on last
  * @param len
  * @param gc Guild Castle data
- **/
+ */
 int guild_castledataloadack(int len, struct guild_castle *gc)
 {
 	int i;
@@ -2211,7 +2211,7 @@ void guild_flag_remove(struct npc_data *nd) {
 
 /**
  * @see DBApply
- **/
+ */
 static int eventlist_db_final(DBKey key, DBData *data, va_list ap) {
 	struct eventlist *next = NULL;
 	struct eventlist *current = db_data2ptr(data);
@@ -2225,7 +2225,7 @@ static int eventlist_db_final(DBKey key, DBData *data, va_list ap) {
 
 /**
  * @see DBApply
- **/
+ */
 static int guild_expcache_db_final(DBKey key, DBData *data, va_list ap) {
 	ers_free(expcache_ers, db_data2ptr(data));
 	return 0;
@@ -2233,7 +2233,7 @@ static int guild_expcache_db_final(DBKey key, DBData *data, va_list ap) {
 
 /**
  * @see DBApply
- **/
+ */
 static int guild_castle_db_final(DBKey key, DBData *data, va_list ap) {
 	struct guild_castle* gc = db_data2ptr(data);
 	if( gc->temp_guardians )

@@ -11048,7 +11048,7 @@ void pc_crimson_marker_clear(struct map_session_data *sd) {
  * Run bonus_script on player
  * @param sd
  * @author [Cydh]
- **/
+ */
 void pc_bonus_script(struct map_session_data *sd) {
 	int now = gettick();
 	struct linkdb_node *node = NULL, *next = NULL;
@@ -11085,7 +11085,7 @@ void pc_bonus_script(struct map_session_data *sd) {
  * @param type 0 - None, 1 - Buff, 2 - Debuff
  * @return New created entry pointer or NULL if failed or NULL if duplicate fail
  * @author [Cydh]
- **/
+ */
 struct s_bonus_script_entry *pc_bonus_script_add(struct map_session_data *sd, const char *script_str, uint32 dur, enum si_type icon, uint16 flag, uint8 type) {
 	struct script_code *script = NULL;
 	struct linkdb_node *node = NULL;
@@ -11135,7 +11135,7 @@ struct s_bonus_script_entry *pc_bonus_script_add(struct map_session_data *sd, co
  * @param sd: Target player
  * @param list: Bonus script entry from player
  * @author [Cydh]
- **/
+ */
 void pc_bonus_script_free_entry(struct map_session_data *sd, struct s_bonus_script_entry *entry) {
 	if (entry->tid != INVALID_TIMER)
 		delete_timer(entry->tid,pc_bonus_script_timer);
@@ -11155,7 +11155,7 @@ void pc_bonus_script_free_entry(struct map_session_data *sd, struct s_bonus_scri
 /**
  * Do final process if no entry left
  * @param sd
- **/
+ */
 static void inline pc_bonus_script_check_final(struct map_session_data *sd) {
 	if (sd->bonus_script.count == 0) {
 		if (sd->bonus_script.head && sd->bonus_script.head->data)
@@ -11171,7 +11171,7 @@ static void inline pc_bonus_script_check_final(struct map_session_data *sd) {
  * @param id
  * @param data
  * @author [Cydh]
- **/
+ */
 int pc_bonus_script_timer(int tid, unsigned int tick, int id, intptr_t data) {
 	struct map_session_data *sd;
 	struct s_bonus_script_entry *entry = (struct s_bonus_script_entry *)data;
@@ -11199,7 +11199,7 @@ int pc_bonus_script_timer(int tid, unsigned int tick, int id, intptr_t data) {
  * @param sd: Target player
  * @param flag: Reason to remove the bonus_script. e_bonus_script_flags or e_bonus_script_types
  * @author [Cydh]
- **/
+ */
 void pc_bonus_script_clear(struct map_session_data *sd, uint16 flag) {
 	struct linkdb_node *node = NULL;
 	uint16 count = 0;
@@ -11231,7 +11231,7 @@ void pc_bonus_script_clear(struct map_session_data *sd, uint16 flag) {
 /** [Cydh]
  * Gives/removes SC_BASILICA when player steps in/out the cell with 'cell_basilica'
  * @param sd: Target player
- **/
+ */
 void pc_cell_basilica(struct map_session_data *sd) {
 	nullpo_retv(sd);
 
@@ -11248,7 +11248,7 @@ void pc_cell_basilica(struct map_session_data *sd) {
  * @param sex: sd->status.sex
  * @param flag: parameter will be checked
  * @return max_param
- **/
+ */
 short pc_maxparameter(struct map_session_data *sd, enum e_params param) {
 	int idx = -1, class_ = sd->class_;
 
@@ -11277,7 +11277,7 @@ short pc_maxparameter(struct map_session_data *sd, enum e_params param) {
  * Get max ASPD for player based on Class
  * @param sd Player
  * @return ASPD
- **/
+ */
 short pc_maxaspd(struct map_session_data *sd) {
 	nullpo_ret(sd);
 
@@ -11291,7 +11291,7 @@ short pc_maxaspd(struct map_session_data *sd) {
  * @param sd Player
  * @param nameid Item ID
  * @return Heal rate
- **/
+ */
 short pc_get_itemgroup_bonus(struct map_session_data* sd, unsigned short nameid) {
 	short bonus = 0;
 	uint8 i;
@@ -11321,7 +11321,7 @@ short pc_get_itemgroup_bonus(struct map_session_data* sd, unsigned short nameid)
  * @param sd Player
  * @param group_id Item Group ID
  * @return Heal rate
- **/
+ */
 short pc_get_itemgroup_bonus_group(struct map_session_data* sd, uint16 group_id) {
 	short bonus = 0;
 	uint8 i;
@@ -11342,7 +11342,7 @@ short pc_get_itemgroup_bonus_group(struct map_session_data* sd, uint16 group_id)
  * @param *equip_index Player's equip_index[]
  * @param index Known index item in inventory from sd->equip_index[] to compare with specified EQI in *equip_index
  * @return True if item in same inventory index, False if doesn't
- **/
+ */
 bool pc_is_same_equip_index(enum equip_index eqi, short *equip_index, short index) {
 	if (index < 0 || index >= MAX_INVENTORY)
 		return true;
@@ -11365,7 +11365,7 @@ bool pc_is_same_equip_index(enum equip_index eqi, short *equip_index, short inde
  * Generate Unique item ID for player
  * @param sd : Player
  * @return A generated Unique item ID
- **/
+ */
 uint64 pc_generate_unique_id(struct map_session_data *sd) {
 	nullpo_ret(sd);
 

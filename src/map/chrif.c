@@ -578,7 +578,7 @@ void chrif_on_ready(void) {
  * - Server name
  * - Default map
  * HZ 0x2afb
- **/
+ */
 int chrif_sendmapack(int fd) {
 	uint16 offs = 5;
 
@@ -1601,7 +1601,7 @@ void chrif_parse_ack_vipActive(int fd) {
  * Requets bonus_script datas
  * @param char_id
  * @author [Cydh]
- **/
+ */
 int chrif_bsdata_request(uint32 char_id) {
 	chrif_check(-1);
 	WFIFOHEAD(char_fd,6);
@@ -1617,7 +1617,7 @@ int chrif_bsdata_request(uint32 char_id) {
  * Stores bonus_script data(s) to the table
  * @param sd
  * @author [Cydh]
- **/
+ */
 int chrif_bsdata_save(struct map_session_data *sd, bool quit) {
 	uint8 i = 0;
 
@@ -1681,7 +1681,7 @@ int chrif_bsdata_save(struct map_session_data *sd, bool quit) {
  * Bonus script received, set to player
  * @param fd
  * @author [Cydh]
- **/
+ */
 int chrif_bsdata_received(int fd) {
 	struct map_session_data *sd;
 	uint32 cid = RFIFOL(fd,4);

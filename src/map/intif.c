@@ -2955,7 +2955,7 @@ void intif_parse_MessageToFD(int fd)
  * @param char_id : Char to delete item ID
  * @param account_id : Account to delete item ID
  * @param guild_id : Guild of char
- **/
+ */
 void intif_itembound_guild_retrieve(uint32 char_id, uint32 account_id, int guild_id)
 {
 	struct guild_storage *gstor = gstorage_get_storage(guild_id);
@@ -2994,7 +2994,7 @@ void intif_parse_itembound_ack(int fd)
  * Received the retrieved guild bound items from inter-server, store them to guild storage.
  * @param fd
  * @author [Cydh]
- **/
+ */
 void intif_parse_itembound_store2gstorage(int fd)
 {
 	unsigned short i, failed = 0;

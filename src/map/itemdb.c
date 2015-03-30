@@ -29,7 +29,7 @@ struct item_data *dummy_item; //This is the default dummy item used for non-exis
  * Check if combo exists
  * @param combo_id
  * @return NULL if not exist, or struct item_combo*
- **/
+ */
 struct item_combo *itemdb_combo_exists(unsigned short combo_id) {
 	return (struct item_combo *)uidb_get(itemdb_combo, combo_id);
 }
@@ -38,7 +38,7 @@ struct item_combo *itemdb_combo_exists(unsigned short combo_id) {
  * Check if item group exists
  * @param group_id
  * @return NULL if not exist, or s_item_group_db *
- **/
+ */
 struct s_item_group_db *itemdb_group_exists(unsigned short group_id) {
 	return (struct s_item_group_db *)uidb_get(itemdb_group, group_id);
 }
@@ -47,7 +47,7 @@ struct s_item_group_db *itemdb_group_exists(unsigned short group_id) {
  * Search for item name
  * name = item alias, so we should find items aliases first. if not found then look for "jname" (full name)
  * @see DBApply
- **/
+ */
 static int itemdb_searchname_sub(DBKey key, DBData *data, va_list ap)
 {
 	struct item_data *item = db_data2ptr(data), **dst, **dst2;
@@ -71,7 +71,7 @@ static int itemdb_searchname_sub(DBKey key, DBData *data, va_list ap)
  * Return item data from item name. (lookup)
  * @param str Item Name
  * @return item data
- **/
+ */
 struct item_data* itemdb_searchname(const char *str)
 {
 	struct item_data *item = NULL, *item2 = NULL;
@@ -82,7 +82,7 @@ struct item_data* itemdb_searchname(const char *str)
 
 /**
  * @see DBMatcher
- **/
+ */
 static int itemdb_searchname_array_sub(DBKey key, DBData data, va_list ap)
 {
 	struct item_data *item = (struct item_data *)db_data2ptr(&data);
@@ -101,7 +101,7 @@ static int itemdb_searchname_array_sub(DBKey key, DBData data, va_list ap)
  * @param size
  * @param str
  * @return Number of matches item
- **/
+ */
 int itemdb_searchname_array(struct item_data** data, int size, const char *str)
 {
 	DBData *db_data[MAX_SEARCH];
@@ -119,7 +119,7 @@ int itemdb_searchname_array(struct item_data** data, int size, const char *str)
  * @param group_id
  * @param sub_group: Default is 1
  * @return nameid
- **/
+ */
 unsigned short itemdb_searchrandomid(uint16 group_id, uint8 sub_group) {
 	struct s_item_group_db *group = (struct s_item_group_db *)uidb_get(itemdb_group, group_id);
 
@@ -147,7 +147,7 @@ unsigned short itemdb_searchrandomid(uint16 group_id, uint8 sub_group) {
  * @param sub_group
  * @param nameid: The target item will be found
  * @return amount
- **/
+ */
 uint16 itemdb_get_randgroupitem_count(uint16 group_id, uint8 sub_group, unsigned short nameid) {
 	uint16 i, amt = 1;
 	struct s_item_group_db *group = (struct s_item_group_db *)uidb_get(itemdb_group, group_id);
@@ -222,7 +222,7 @@ static void itemdb_pc_get_itemgroup_sub(struct map_session_data *sd, struct s_it
  * @param group_id: The group ID that will be gained by player
  * @param nameid: The item that trigger this item group
  * @return val: 0: success, 1: no sd, 2: invalid item group
- **/
+ */
 char itemdb_pc_get_itemgroup(uint16 group_id, struct map_session_data *sd) {
 	uint16 i = 0;
 	struct s_item_group_db *group;
@@ -259,7 +259,7 @@ char itemdb_pc_get_itemgroup(uint16 group_id, struct map_session_data *sd) {
 /** Searches for the item_data. Use this to check if item exists or not.
  * @param nameid
  * @return *item_data if item is exist, or NULL if not
- **/
+ */
 struct item_data* itemdb_exists(unsigned short nameid) {
 	return ((struct item_data*)uidb_get(itemdb,nameid));
 }
@@ -377,7 +377,7 @@ static void itemdb_jobid2mapid(unsigned int *bclass, unsigned int jobmask)
 
 /**
  * Create dummy item data
- **/
+ */
 static void itemdb_create_dummy(void) {
 	CREATE(dummy_item, struct item_data, 1);
 
@@ -394,7 +394,7 @@ static void itemdb_create_dummy(void) {
 /**
  * Create new item data
  * @param nameid
- **/
+ */
 static struct item_data *itemdb_create_item(unsigned short nameid) {
 	struct item_data *id;
 
@@ -410,7 +410,7 @@ static struct item_data *itemdb_create_item(unsigned short nameid) {
  * Loads an item from the db. If not found, it will return the dummy item.
  * @param nameid
  * @return *item_data or *dummy_item if item not found
- **/
+ */
 struct item_data* itemdb_search(unsigned short nameid) {
 	struct item_data* id = NULL;
 
@@ -426,7 +426,7 @@ struct item_data* itemdb_search(unsigned short nameid) {
 /** Checks if item is equip type or not
  * @param id Item data
  * @return True if item is equip, false otherwise
- **/
+ */
 bool itemdb_isequip2(struct item_data *id)
 {
 	nullpo_retr(false,id);
@@ -445,7 +445,7 @@ bool itemdb_isequip2(struct item_data *id)
 /** Checks if item is stackable or not
  * @param id Item data
  * @return True if item is stackable, false otherwise
- **/
+ */
 bool itemdb_isstackable2(struct item_data *id)
 {
 	nullpo_retr(false,id);
@@ -524,7 +524,7 @@ bool itemdb_isrestricted(struct item* item, int gmlv, int gmlv2, bool (*func)(st
 
 /** Specifies if item-type should drop unidentified.
  * @param nameid ID of item
- **/
+ */
 char itemdb_isidentified(unsigned short nameid)
 {
 	uint8 type = itemdb_type(nameid);
@@ -541,7 +541,7 @@ char itemdb_isidentified(unsigned short nameid)
 
 /** Search by name for the override flags available items (Give item another sprite)
  * Structure: <nameid>,<sprite>
- **/
+ */
 static bool itemdb_read_itemavail(char* str[], int columns, int current)
 {
 	unsigned short nameid;
@@ -570,7 +570,7 @@ static int itemdb_group_free(DBKey key, DBData *data, va_list ap);
 
 /** Read item group data
  * Structure: GroupID,ItemID,Rate{,Amount,isMust,isAnnounced,Duration,GUID,isBound,isNamed}
- **/
+ */
 static void itemdb_read_itemgroup_sub(const char* filename)
 {
 	FILE *fp;
@@ -735,7 +735,7 @@ static void itemdb_read_itemgroup(void)
 
 /** Read item forbidden by mapflag (can't equip item)
  * Structure: <nameid>,<mode>
- **/
+ */
 static bool itemdb_read_noequip(char* str[], int columns, int current)
 {
 	unsigned short nameid;
@@ -755,7 +755,7 @@ static bool itemdb_read_noequip(char* str[], int columns, int current)
 
 /** Reads item trade restrictions [Skotlex]
  * Structure: <nameid>,<mask>,<gm level>
- **/
+ */
 static bool itemdb_read_itemtrade(char* str[], int columns, int current)
 {
 	unsigned short nameid;
@@ -791,7 +791,7 @@ static bool itemdb_read_itemtrade(char* str[], int columns, int current)
 
 /** Reads item delay amounts [Paradox924X]
  * Structure: <nameid>,<delay>
- **/
+ */
 static bool itemdb_read_itemdelay(char* str[], int columns, int current)
 {
 	unsigned short nameid;
@@ -819,7 +819,7 @@ static bool itemdb_read_itemdelay(char* str[], int columns, int current)
 
 /** Reads item stacking restrictions
  * Structure: <item id>,<stack limit amount>,<type>
- **/
+ */
 static bool itemdb_read_stack(char* fields[], int columns, int current)
 {
 	unsigned short nameid, amount;
@@ -855,7 +855,7 @@ static bool itemdb_read_stack(char* fields[], int columns, int current)
 
 /** Reads items allowed to be sold in buying stores
  * Structure: <nameid>
- **/
+ */
 static bool itemdb_read_buyingstore(char* fields[], int columns, int current)
 {
 	unsigned short nameid;
@@ -880,7 +880,7 @@ static bool itemdb_read_buyingstore(char* fields[], int columns, int current)
 
 /** Item usage restriction (item_nouse.txt)
  * Structure: <nameid>,<flag>,<override>
- **/
+ */
 static bool itemdb_read_nouse(char* fields[], int columns, int current)
 {
 	unsigned short nameid;
@@ -908,7 +908,7 @@ static bool itemdb_read_nouse(char* fields[], int columns, int current)
  * &1 - As dead branch item
  * &2 - As item container
  * &4 - GUID item, cannot be stacked even same or stackable item
- **/
+ */
 static bool itemdb_read_flag(char* fields[], int columns, int current) {
 	unsigned short nameid = atoi(fields[0]);
 	uint8 flag;
@@ -942,7 +942,7 @@ static bool itemdb_read_flag(char* fields[], int columns, int current) {
 
 /**
  * @return: amount of retrieved entries.
- **/
+ */
 static int itemdb_combo_split_atoi(char *str, int *val) {
 	int i;
 
@@ -964,7 +964,7 @@ static int itemdb_combo_split_atoi(char *str, int *val) {
 }
 /**
  * <combo{:combo{:combo:{..}}}>,<{ script }>
- **/
+ */
 static void itemdb_read_combos() {
 	uint32 lines = 0, count = 0;
 	char line[1024];
@@ -1121,7 +1121,7 @@ static char itemdb_gendercheck(struct item_data *id)
  * [RRInd]
  * For backwards compatibility, in Renewal mode, MATK from weapons comes from the atk slot
  * We use a ':' delimiter which, if not found, assumes the weapon does not provide any matk.
- **/
+ */
 static void itemdb_re_split_atoi(char *str, int *atk, int *matk) {
 	int i, val[2];
 
@@ -1149,7 +1149,7 @@ static void itemdb_re_split_atoi(char *str, int *atk, int *matk) {
 
 /**
  * Processes one itemdb entry
- **/
+ */
 static bool itemdb_parse_dbrow(char** str, const char* source, int line, int scriptopt) {
 	/*
 		+----+--------------+---------------+------+-----------+------------+--------+--------+---------+-------+-------+------------+-------------+---------------+-----------------+--------------+-------------+------------+------+--------+--------------+----------------+
@@ -1281,7 +1281,7 @@ static bool itemdb_parse_dbrow(char** str, const char* source, int line, int scr
 /**
  * Read item from item db
  * item_db2 overwriting item_db
- **/
+ */
 static int itemdb_readdb(void)
 {
 	const char* filename[] = {
@@ -1418,7 +1418,7 @@ static int itemdb_readdb(void)
 
 /**
  * Read item_db table
- **/
+ */
 static int itemdb_read_sqldb(void) {
 
 	const char* item_db_name[] = {
@@ -1470,7 +1470,7 @@ static int itemdb_read_sqldb(void) {
  * @param id Item that will be checked
  * @param m Map ID
  * @return true: can't be used; false: can be used
- **/
+ */
 bool itemdb_isNoEquip(struct item_data *id, uint16 m) {
 	if (!id->flag.no_equip)
 		return false;
@@ -1488,7 +1488,7 @@ bool itemdb_isNoEquip(struct item_data *id, uint16 m) {
  * Check if item is available in spellbook_db or not
  * @param nameid
  * @return True if item is spellbook; False if not
- **/
+ */
 bool itemdb_is_spellbook2(unsigned short nameid) {
 	unsigned char i;
 
@@ -1502,14 +1502,14 @@ bool itemdb_is_spellbook2(unsigned short nameid) {
 
 /**
  * Check is item have usable type
- **/
+ */
 bool itemdb_is_item_usable(struct item_data *item) {
 	return (item->type == IT_HEALING || item->type == IT_USABLE || item->type == IT_CASH);
 }
 
 /**
  * Read all item-related databases
- **/
+ */
 static void itemdb_read(void) {
 
 	if (db_use_sqldbs)
@@ -1535,7 +1535,7 @@ static void itemdb_read(void) {
 
 /**
  * Destroys the item_data.
- **/
+ */
 static void destroy_item_data(struct item_data* self)
 {
 	if( self == NULL )
@@ -1568,7 +1568,7 @@ static void destroy_item_data(struct item_data* self)
 
 /**
  * @see DBApply
- **/
+ */
 static int itemdb_final_sub(DBKey key, DBData *data, va_list ap)
 {
 	struct item_data *id = db_data2ptr(data);
@@ -1599,7 +1599,7 @@ static int itemdb_group_free(DBKey key, DBData *data, va_list ap) {
 
 /**
  * Reload Item DB
- **/
+ */
 void itemdb_reload(void)
 {
 	struct s_mapiterator* iter;
@@ -1668,7 +1668,7 @@ void itemdb_reload(void)
 
 /**
  * Finalizing Item DB
- **/
+ */
 void do_final_itemdb(void) {
 	db_destroy(itemdb_combo);
 	itemdb_group->destroy(itemdb_group, itemdb_group_free);
@@ -1678,7 +1678,7 @@ void do_final_itemdb(void) {
 
 /**
  * Initializing Item DB
- **/
+ */
 void do_init_itemdb(void) {
 	itemdb = uidb_alloc(DB_OPT_BASE);
 	itemdb_combo = uidb_alloc(DB_OPT_BASE);

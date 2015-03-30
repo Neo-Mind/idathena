@@ -250,10 +250,11 @@ enum npc_subtype {
 	NPCTYPE_WARP, //Warp
 	NPCTYPE_SHOP, //Shop
 	NPCTYPE_SCRIPT, //Script
-	NPCTYPE_CASHSHOP, //Cashshop
-	NPCTYPE_ITEMSHOP, //Itemshop
-	NPCTYPE_POINTSHOP, //Pointshop
-	NPCTYPE_TOMB //Monster tomb
+	NPCTYPE_CASHSHOP, //Cash Shop
+	NPCTYPE_ITEMSHOP, //Item Shop
+	NPCTYPE_POINTSHOP, //Point Shop
+	NPCTYPE_TOMB, //Monster Tomb
+	NPCTYPE_MARKETSHOP, //Market Shop
 };
 
 enum e_race {
@@ -927,6 +928,7 @@ extern char buyingstore_items_db[32];
 extern char item_db_db[32];
 extern char item_db2_db[32];
 extern char item_db_re_db[32];
+extern char markets_db[32];
 extern char mob_db_db[32];
 extern char mob_db_re_db[32];
 extern char mob_db2_db[32];

@@ -78,6 +78,7 @@ char item_db2_db[32] = "item_db2";
 char item_db_re_db[32] = "item_db_re";
 char item_cash_db_db[32] = "item_cash_db";
 char item_cash_db2_db[32] = "item_cash_db2";
+char markets_db[32] = "markets";
 char mob_db_db[32] = "mob_db";
 char mob_db_re_db[32] = "mob_db_re";
 char mob_db2_db[32] = "mob_db2";
@@ -3800,6 +3801,8 @@ int inter_config_read(char *cfgName)
 			strcpy(item_db2_db, w2);
 		else if( strcmpi(w1, "item_db_re_db") == 0 )
 			strcpy(item_db_re_db, w2);
+		else if( strcmpi(w1, "markets_db") == 0 )
+			strcpy(markets_db, w2);
 		else if( strcmpi(w1, "mob_db_db") == 0 )
 			strcpy(mob_db_db, w2);
 		else if( strcmpi(w1, "mob_db_re_db") == 0 )
@@ -4017,7 +4020,7 @@ int cleanup_sub(struct block_list *bl, va_list ap)
 /**
  * Free all skill damage entries for a map
  * @param m Map data
- **/
+ */
 void map_skill_damage_free(struct map_data *m) {
 	uint8 i;
 
@@ -4040,7 +4043,7 @@ void map_skill_damage_free(struct map_data *m) {
  * @param boss Rate to Boss-monster
  * @param other Rate to Other target
  * @param caster Caster type
- **/
+ */
 void map_skill_damage_add(struct map_data *m, uint16 skill_id, int pc, int mob, int boss, int other, uint8 caster) {
 	struct s_skill_damage *entry;
 	int i = 0;

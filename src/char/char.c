@@ -2176,7 +2176,7 @@ void disconnect_player(int account_id)
  * @param account_id
  * @param value
  * @param set True: set the value by using '|= val', False: unset the value by using '&= ~val'
- **/
+ */
 void set_session_flag_(int account_id, int val, bool set)
 {
 	int i;
@@ -2950,7 +2950,7 @@ void char_update_fame_list(int type, int index, int fame)
  * - Default map
  * HZ 0x2afb <size>.W <status>.B <name>.24B <mapname>.11B <map_x>.W <map_y>.W
  * @param fd
- **/
+ */
 static void char_send_misc(int fd) {
 	uint16 offs = 5;
 	unsigned char buf[45];
@@ -2977,7 +2977,7 @@ static void char_send_misc(int fd) {
  * @param fd
  * @param map_id
  * @param count Number of map from new map-server has
- **/
+ */
 static void char_send_maps(int fd, int map_id, int count, unsigned char *mapbuf) {
 	uint16 x;
 
@@ -5242,7 +5242,7 @@ void moveCharSlotReply( int fd, struct char_session_data* sd, unsigned short ind
  * Get bonus_script data(s) from table to load then send to player
  * @param fd
  * @author [Cydh]
- **/
+ */
 void bonus_script_get(int fd) {
 	if( RFIFOREST(fd) < 6 )
 		return;
@@ -5304,7 +5304,7 @@ void bonus_script_get(int fd) {
  * Save bonus_script data(s) to the table
  * @param fd
  * @author [Cydh]
- **/
+ */
 void bonus_script_save(int fd) {
 	if( RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2) )
 		return;

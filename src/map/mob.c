@@ -4496,7 +4496,7 @@ static bool mob_readdb_itemratio(char* str[], int columns, int current)
 
 /**
  * Free drop ratio data
- **/
+ */
 static int mob_item_drop_ratio_free(DBKey key, DBData *data, va_list ap) {
 	struct s_mob_item_drop_ratio *item_ratio = db_data2ptr(data);
 
@@ -4521,7 +4521,7 @@ static bool mob_readdb_effect(char* str[], int columns, int current)
 
 /**
  * Adjust drop ratio for each monster
- **/
+ */
 static void mob_drop_ratio_adjust(void) {
 	unsigned short i;
 
@@ -4669,7 +4669,7 @@ static void mob_drop_ratio_adjust(void) {
  * Copy skill from DB to monster
  * @param mob Monster DB entry
  * @param skill Monster skill entries
- **/
+ */
 static void mob_skill_db_set_single_sub(struct mob_db *mob, struct s_mob_skill *skill) {
 	uint8 i;
 
@@ -4686,7 +4686,7 @@ static void mob_skill_db_set_single_sub(struct mob_db *mob, struct s_mob_skill *
 /**
  * Check the skill & monster id before put the skills
  * @param skill
- **/
+ */
 static void mob_skill_db_set_single(struct s_mob_skill *skill) {
 	struct mob_db *mob = NULL;
 
@@ -4718,7 +4718,7 @@ static void mob_skill_db_set_single(struct s_mob_skill *skill) {
 
 /**
  * Free drop ratio data
- **/
+ */
 static int mob_skill_db_free(DBKey key, DBData *data, va_list ap) {
 	struct s_mob_skill *skill = (struct s_mob_skill *)db_data2ptr(data);
 
@@ -4729,7 +4729,7 @@ static int mob_skill_db_free(DBKey key, DBData *data, va_list ap) {
 
 /**
  * Set monster skills
- **/
+ */
 static void mob_skill_db_set(void) {
 	DBIterator *iter = db_iterator(mob_skill_db);
 	struct s_mob_skill *skill = NULL;

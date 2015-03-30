@@ -9532,8 +9532,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_CRESCENTELBOW:
 				val2 = (sd ? sd->status.job_level / 2 : 0) + (50 + 5 * val1);
 				break;
-			case SC_LIGHTNINGWALK: //[(Job Level / 2) + (40 + 5 * Skill Level)] %
-				val2 = (sd ? sd->status.job_level / 2 : 0) + 40 + 5 * val1; //Chance
+			case SC_LIGHTNINGWALK:
+				val2 = (sd ? sd->status.job_level / 2 : 0) + 40 + 5 * val1; //Chance: [(Job Level / 2) + (40 + 5 * Skill Level)] %
 				val3 = ((val1 > 0 && val1 < 3) ? 3 : (val1 > 2 && val1 < 5) ? 2 : 1); //SP drain
 				tick_time = 1000;
 				val4 = tick / tick_time;

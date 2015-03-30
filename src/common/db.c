@@ -1386,7 +1386,7 @@ static DBIterator* db_obj_iterator(DBMap* self)
 
 	DB_COUNTSTAT(db_iterator);
 	CREATE(it, struct DBIterator_impl, 1);
-	/* Interface of the iterator **/
+	/* Interface of the iterator */
 	it->vtable.first   = dbit_obj_first;
 	it->vtable.last    = dbit_obj_last;
 	it->vtable.next    = dbit_obj_next;

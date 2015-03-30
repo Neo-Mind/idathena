@@ -234,7 +234,7 @@ int mapif_parse_SaveGuildStorage(int fd)
 /**
  * IZ 0x3856 <account_id>.L <guild_id>.W
  * Tells map-server if the process if complete, unlock the guild storage
- **/
+ */
 static void mapif_itembound_ack(int fd, int account_id, int guild_id)
 {
 	WFIFOHEAD(fd,8);
@@ -256,7 +256,7 @@ static void mapif_itembound_ack(int fd, int account_id, int guild_id)
  * @param items[]
  * @param count
  * @author [Cydh]
- **/
+ */
 static void mapif_itembound_store2gstorage(int fd, int guild_id, struct item items[], unsigned short count)
 {
 	int size = 8 + sizeof(struct item) * MAX_INVENTORY, i;
@@ -278,7 +278,7 @@ static void mapif_itembound_store2gstorage(int fd, int guild_id, struct item ite
  * ZI 0x3056 <char_id>.L <account_id>.L <guild_id>.W
  * Pulls guild bound items for offline characters
  * @author [Akinari]
- **/
+ */
 int mapif_parse_itembound_retrieve(int fd)
 {
 	StringBuf buf;

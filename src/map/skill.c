@@ -14503,7 +14503,7 @@ int skill_isammotype(struct map_session_data *sd, uint16 skill_id)
  * @param sc
  * @param skill_id
  * @return True if condition is met, False otherwise
- **/
+ */
 static bool skill_check_condition_sc_required(struct map_session_data *sd, unsigned short skill_id, struct skill_condition *require) {
 	uint8 i = 0;
 	struct status_change *sc = NULL;

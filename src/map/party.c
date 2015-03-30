@@ -206,7 +206,7 @@ int party_request_info(int party_id, int char_id)
 /**
  * Close trade window if party member is kicked when trade a party bound item
  * @param sd
- **/
+ */
 static void party_trade_bound_cancel(struct map_session_data *sd)
 {
 #ifdef BOUND_ITEMS

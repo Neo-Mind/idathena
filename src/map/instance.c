@@ -704,7 +704,7 @@ static bool instance_readdb_sub(char* str[], int columns, int current)
 /**
  * Free InstanceDB single entry
  * @param db Instance Db entry
- **/
+ */
 static bool instance_db_free_sub(struct instance_db *db)
 {
 	if(!db)
@@ -724,7 +724,7 @@ static bool instance_db_free_sub(struct instance_db *db)
 
 /**
  * Free InstanceDB entries
- **/
+ */
 static int instance_db_free(DBKey key, DBData *data, va_list ap)
 {
 	struct instance_db *db = (struct instance_db *)db_data2ptr(data);
@@ -734,7 +734,7 @@ static int instance_db_free(DBKey key, DBData *data, va_list ap)
 
 /**
  * Read instance_db.txt files
- **/
+ */
 void instance_readdb(void)
 {
 	sv_readdb(db_path, DBPATH"instance_db.txt", ',', 7, 7 + MAX_MAP_PER_INSTANCE, -1, &instance_readdb_sub);
@@ -742,7 +742,7 @@ void instance_readdb(void)
 
 /**
  * Reload Instance DB
- **/
+ */
 void instance_reload(void)
 {
 	InstanceDB->clear(InstanceDB, instance_db_free);

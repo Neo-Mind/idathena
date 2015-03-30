@@ -164,7 +164,7 @@ void mapindex_init(void) {
 /**
  * Check default map (only triggered once by char-server)
  * @param mapname
- **/
+ */
 void mapindex_check_mapdefault(const char *mapname) {
 	mapname = mapindex_getmapname(mapname, NULL);
 	if (!strdb_iget(mapindex_db, mapname))

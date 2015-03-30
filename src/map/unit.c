@@ -1933,7 +1933,7 @@ int unit_skilluse_pos2(struct block_list *src, short skill_x, short skill_y, uin
 		/**
 		 * "WHY IS IT HEREE": Ice Wall cannot be canceled past this point, the client displays the animation even,
 		 * if we cancel it from castend_pos, so it has to be here for it to not display the animation.
-		 **/
+		 */
 		if(skill_id == WZ_ICEWALL && map_getcell(src->m, skill_x, skill_y, CELL_CHKNOICEWALL))
 			return 0;
 	}
