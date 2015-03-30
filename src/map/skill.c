@@ -6127,6 +6127,9 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case LG_PRESTIGE:
 		case SR_CRESCENTELBOW:
 		case SR_LIGHTNINGWALK:
+		case SR_GENTLETOUCH_ENERGYGAIN:
+		case SR_GENTLETOUCH_CHANGE:
+		case SR_GENTLETOUCH_REVITALIZE:
 		case GN_CARTBOOST:
 		case KO_MEIKYOUSISUI:
 		case ALL_FULL_THROTTLE:
@@ -9604,13 +9607,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				}
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			}
-			break;
-
-		case SR_GENTLETOUCH_ENERGYGAIN:
-		case SR_GENTLETOUCH_CHANGE:
-		case SR_GENTLETOUCH_REVITALIZE:
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,
-				sc_start2(src,bl,type,100,skill_lv,bl->id,skill_get_time(skill_id,skill_lv)));
 			break;
 
 		case SR_FLASHCOMBO: {

@@ -1244,7 +1244,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( sd && (sce = sc->data[SC_FORCEOFVANGUARD]) && flag&BF_WEAPON && rnd()%100 < sce->val2 )
 			pc_addspiritball(sd,skill_get_time(LG_FORCEOFVANGUARD,sce->val1),sce->val3);
 
-		if( sd && (sce = sc->data[SC_GT_ENERGYGAIN]) && flag&BF_WEAPON && rnd()%100 < sce->val3 ) {
+		if( sd && (sce = sc->data[SC_GT_ENERGYGAIN]) && flag&BF_WEAPON && rnd()%100 < sce->val2 ) {
 			int spheremax = 0;
 
 			if ( sc->data[SC_RAISINGDRAGON] )
@@ -4253,15 +4253,11 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 				ATK_ADD(wd.equipAtk, wd.equipAtk2, 40 * sc->data[SC_INSPIRATION]->val1 + 3 * sc->data[SC_INSPIRATION]->val2);
 #endif
 			}
-			if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val2) {
-				struct block_list *bl = map_id2bl(sc->data[SC_GT_CHANGE]->val2);
-
-				if(bl) {
-					ATK_ADD(wd.damage, wd.damage2, (status_get_dex(bl) / 4 + status_get_str(bl) / 2) * sc->data[SC_GT_CHANGE]->val1 / 5);
+			if(sc->data[SC_GT_CHANGE]) {
+				ATK_ADD(wd.damage, wd.damage2, sc->data[SC_GT_CHANGE]->val2);
 #ifdef RENEWAL
-					ATK_ADD(wd.equipAtk, wd.equipAtk2, (status_get_dex(bl) / 4 + status_get_str(bl) / 2) * sc->data[SC_GT_CHANGE]->val1 / 5);
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_GT_CHANGE]->val2);
 #endif
-				}
 			}
 			if(sc->data[SC_WATER_BARRIER]) {
 				ATK_ADD(wd.damage, wd.damage2, -sc->data[SC_WATER_BARRIER]->val2);
@@ -7213,27 +7209,27 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 				return ATK_DEF;
 			return ATK_MISS;
 		}
-		if (sc->data[SC_GT_ENERGYGAIN] && sc->data[SC_GT_ENERGYGAIN]->val2) {
+		if (sc->data[SC_GT_ENERGYGAIN]) {
 			int spheremax = 0;
 
 			if (sc->data[SC_RAISINGDRAGON])
 				spheremax = 5 + sc->data[SC_RAISINGDRAGON]->val1;
 			else
 				spheremax = 5;
-			if (sd && rnd()%100 < sc->data[SC_GT_ENERGYGAIN]->val3)
+			if (sd && rnd()%100 < sc->data[SC_GT_ENERGYGAIN]->val2)
 				pc_addspiritball(sd,skill_get_time2(SR_GENTLETOUCH_ENERGYGAIN,sc->data[SC_GT_ENERGYGAIN]->val1),spheremax);
 		}
 	}
 
 	if (tsc) {
-		if (tsc->data[SC_GT_ENERGYGAIN] && tsc->data[SC_GT_ENERGYGAIN]->val2) {
+		if (tsc->data[SC_GT_ENERGYGAIN]) {
 			int spheremax = 0;
 
 			if (tsc->data[SC_RAISINGDRAGON])
 				spheremax = 5 + tsc->data[SC_RAISINGDRAGON]->val1;
 			else
 				spheremax = 5;
-			if (tsd && rnd()%100 < tsc->data[SC_GT_ENERGYGAIN]->val3)
+			if (tsd && rnd()%100 < tsc->data[SC_GT_ENERGYGAIN]->val2)
 				pc_addspiritball(tsd,skill_get_time2(SR_GENTLETOUCH_ENERGYGAIN,tsc->data[SC_GT_ENERGYGAIN]->val1),spheremax);
 		}
 		if (tsc->data[SC_MTF_MLEATKED] && rnd()%100 < 20)

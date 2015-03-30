@@ -5722,8 +5722,8 @@ short status_calc_def2(struct block_list *bl, struct status_change *sc, int def2
 	}
 
 	if(!viewable) {
-		if(sc->data[SC_GT_REVITALIZE] && sc->data[SC_GT_REVITALIZE]->val2)
-			def2 += sc->data[SC_GT_REVITALIZE]->val4;
+		if(sc->data[SC_GT_REVITALIZE])
+			def2 += sc->data[SC_GT_REVITALIZE]->val2;
 		if(sc->data[SC_CAMOUFLAGE])
 			def2 -= def2 * 5 * sc->data[SC_CAMOUFLAGE]->val3 / 100;
 #ifdef RENEWAL
@@ -5829,7 +5829,7 @@ defType status_calc_mdef(struct block_list *bl, struct status_change *sc, int md
 		mdef += mdef * 25 / 100;
 	if(sc->data[SC_SYMPHONYOFLOVER])
 		mdef += mdef * sc->data[SC_SYMPHONYOFLOVER]->val3 / 100;
-	if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val4) {
+	if(sc->data[SC_GT_CHANGE]) {
 		mdef -= sc->data[SC_GT_CHANGE]->val4;
 		if(mdef < 0)
 			return 0;
@@ -9543,28 +9543,21 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val3 = tick / tick_time;
 				break;
 			case SC_GT_ENERGYGAIN:
-				val3 = 10 + 5 * val1; //Sphere gain chance.
+				val2 = 10 + 5 * val1; //Sphere gain chance
 				break;
-			case SC_GT_CHANGE: { //Take note there is no def increase as skill desc says [malufett]
-					struct block_list *src;
+			case SC_GT_CHANGE: {
+					int casterint = status_get_int(src);
 
+					if( casterint <= 0 )
+						casterint = 1; //Prevents dividing by 0 since its possiable to reduce players stats to 0 [Rytech]
+					val2 = (status_get_dex(src) / 4 + status_get_str(src) / 2) * val1 / 5; //ATK increase: ATK [{(Caster DEX / 4) + (Caster STR / 2)} x Skill Level / 5]
 					val3 = status->agi * val1 / 60; //ASPD increase: [(Target AGI x Skill Level) / 60] %
-					if( (src = map_id2bl(val2)) ) {
-						int casterint = status_get_int(src);
-
-						if( casterint <= 0 )
-							casterint = 1; //Prevents dividing by 0 since its possiable to reduce players stats to 0 [Rytech]
-						val4 = (200 / casterint) * val1; //MDEF decrease: MDEF [(200 / Caster INT) x Skill Level]
-					}
+					val4 = 200 / casterint * val1; //MDEF decrease: MDEF [(200 / Caster INT) x Skill Level]
 				}
 				break;
-			case SC_GT_REVITALIZE: { //Take note there is no vit, aspd, speed increase as skill desc says. [malufett]
-					struct block_list *src;
-
-					val3 = val1 * 30 + 50; //Natural HP recovery increase: [(Skill Level x 30) + 50] %
-					if( (src = map_id2bl(val2)) ) //The stat def is not shown in the status window and it is process differently
-						val4 = (status_get_vit(src) / 4) * val1; //STAT DEF increase: [(Caster VIT / 4) x Skill Level]
-				}
+			case SC_GT_REVITALIZE: 
+				val2 = status_get_vit(src) / 4 * val1; //Stat DEF increase: [(Caster VIT / 4) x Skill Level]
+				val3 = val1 * 30 + 50; //Natural HP recovery increase: [(Skill Level x 30) + 50] %
 				break;
 			case SC_PYROTECHNIC_OPTION:
 				val2 = 60; //Bonus Eatk
