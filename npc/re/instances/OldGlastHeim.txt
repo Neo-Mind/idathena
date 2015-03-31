@@ -1687,6 +1687,7 @@ OnTimer18000:
 	end;
 OnTimer24000:
 	unittalk $@mobid[0],"Demolition... Death!...",1;
+	stopnpctimer;
 	end;
 OnMyMobDead:
 	if (mobcount(instance_mapname("2@gl_k"),instance_npcname("#ghmemorialmob10")+"::OnMyMobDead") < 1) {
