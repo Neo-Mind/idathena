@@ -14317,9 +14317,9 @@ int skill_check_condition_char_sub(struct block_list *bl, va_list ap)
 	int *p_sd; //Contains the list of characters found
 
 	nullpo_ret(bl);
-	nullpo_ret(tsd = (struct map_session_data*)bl);
+	nullpo_ret(tsd = (struct map_session_data *)bl);
 	nullpo_ret(src = va_arg(ap,struct block_list *));
-	nullpo_ret(sd = (struct map_session_data*)src);
+	nullpo_ret(sd = (struct map_session_data *)src);
 
 	c = va_arg(ap,int *);
 	p_sd = va_arg(ap, int *);
@@ -14344,14 +14344,14 @@ int skill_check_condition_char_sub(struct block_list *bl, va_list ap)
 	} else {
 		switch( skill_id ) {
 			case PR_BENEDICTIO: {
-				uint8 dir = map_calc_dir(&sd->bl,tsd->bl.x,tsd->bl.y);
+					uint8 dir = map_calc_dir(&sd->bl,tsd->bl.x,tsd->bl.y);
 
-				dir = (unit_getdir(&sd->bl) + dir)%8; //This adjusts dir to account for the direction the sd is facing
-				if( (tsd->class_&MAPID_BASEMASK) == MAPID_ACOLYTE && (dir == 2 || dir == 6) && //Must be standing to the left/right of Priest
-					sd->status.sp >= 10 )
-					p_sd[(*c)++] = tsd->bl.id;
+					dir = (unit_getdir(&sd->bl) + dir)%8; //This adjusts dir to account for the direction the sd is facing
+					if( (tsd->class_&MAPID_BASEMASK) == MAPID_ACOLYTE && (dir == 2 || dir == 6) && //Must be standing to the left/right of Priest
+						sd->status.sp >= 10 )
+						p_sd[(*c)++] = tsd->bl.id;
+				}
 				return 1;
-			}
 			case AB_ADORAMUS: //Doesn't consume Blue Gemstone when there is at least 1 Priest class next to the caster
 				if( (tsd->class_&MAPID_UPPERMASK) == MAPID_PRIEST )
 					p_sd[(*c)++] = tsd->bl.id;

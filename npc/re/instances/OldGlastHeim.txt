@@ -572,42 +572,33 @@ OnTimer92000:
 	monster .@map$,145,99,"Abysmal Knight",2470,1,.@label$;
 	monster .@map$,154,99,"Abysmal Knight",2470,1,.@label$;
 
-	for (set .@i,1; .@i<=12; set .@i,.@i+1)
-		hideoffnpc instance_npcname("talk#ghinstance"+.@i);
-
-	donpcevent instance_npcname("talk#ghinstance12")+"::OnTalkK";
-	donpcevent instance_npcname("talk#ghinstance11")+"::OnTalkK";
-	donpcevent instance_npcname("talk#ghinstance10")+"::OnTalkK";
-	donpcevent instance_npcname("talk#ghinstance9")+"::OnTalkK";
-	donpcevent instance_npcname("talk#ghinstance8")+"::OnTalkK";
-	donpcevent instance_npcname("talk#ghinstance7")+"::OnTalkK";
-	donpcevent instance_npcname("talk#ghinstance6")+"::OnTalkK";
-	donpcevent instance_npcname("talk#ghinstance5")+"::OnTalkK";
-	donpcevent instance_npcname("talk#ghinstance4")+"::OnTalkK";
-	donpcevent instance_npcname("talk#ghinstance3")+"::OnTalkK";
-	donpcevent instance_npcname("talk#ghinstance2")+"::OnTalkK";
-	donpcevent instance_npcname("talk#ghinstance1")+"::OnTalkK";
+	monster .@map$,145,54,"Khalitzburg",2471,1,.@label$;
+	unittalk $@mobid[0],"Water... Someone give me water...",1;
+	monster .@map$,154,54,"Khalitzburg",2471,1,.@label$;
+	unittalk $@mobid[0],"Kkkrrrruughgh...",1;
+	monster .@map$,145,64,"Khalitzburg",2471,1,.@label$;
+	unittalk $@mobid[0],"Sir. Heinrich. Save me...",1;
+	monster .@map$,154,64,"Khalitzburg",2471,1,.@label$;
+	unittalk $@mobid[0],"I miss my sister...",1;
+	monster .@map$,145,74,"Khalitzburg",2471,1,.@label$;
+	unittalk $@mobid[0],"Don't leave me alone, help me.",1;
+	monster .@map$,154,74,"Khalitzburg",2471,1,.@label$;
+	unittalk $@mobid[0],"Aaarrrrrhhhh",1;
+	monster .@map$,145,84,"Khalitzburg",2471,1,.@label$;
+	unittalk $@mobid[0],"I am so thirsty.",1;
+	monster .@map$,154,84,"Khalitzburg",2471,1,.@label$;
+	unittalk $@mobid[0],"Oh...No...I can't die yet...",1;
+	monster .@map$,145,94,"Khalitzburg",2471,1,.@label$;
+	unittalk $@mobid[0],"I feel sick to my stomach urrgg",1;
+	monster .@map$,154,94,"Khalitzburg",2471,1,.@label$;
+	unittalk $@mobid[0],"Can someone...",1;
+	monster .@map$,145,104,"Khalitzburg",2471,1,.@label$;
+	unittalk $@mobid[0],"Arrgg... My body",1;
+	monster .@map$,154,104,"Khalitzburg",2471,1,.@label$;
+	unittalk $@mobid[0],"My throat is burning!",1;
 	end;
 OnTimer94000:
 	donpcevent instance_npcname("Heinrich#ghinstance2")+"::OnTalk8";
-
-	for (set .@i,1; .@i<=12; set .@i,.@i+1)
-		disablenpc instance_npcname("talk#ghinstance"+.@i);
-
-	set .@map$,instance_mapname("1@gl_k");
-	set .@label$,instance_npcname("#talkinstance1")+"::OnMyMobDead"; 
-	monster .@map$,145,54,"Khalitzburg",2471,1,.@label$;
-	monster .@map$,154,54,"Khalitzburg",2471,1,.@label$;
-	monster .@map$,145,64,"Khalitzburg",2471,1,.@label$;
-	monster .@map$,154,64,"Khalitzburg",2471,1,.@label$;
-	monster .@map$,145,74,"Khalitzburg",2471,1,.@label$;
-	monster .@map$,154,74,"Khalitzburg",2471,1,.@label$;
-	monster .@map$,145,84,"Khalitzburg",2471,1,.@label$;
-	monster .@map$,154,84,"Khalitzburg",2471,1,.@label$;
-	monster .@map$,145,94,"Khalitzburg",2471,1,.@label$;
-	monster .@map$,154,94,"Khalitzburg",2471,1,.@label$;
-	monster .@map$,145,104,"Khalitzburg",2471,1,.@label$;
-	monster .@map$,154,104,"Khalitzburg",2471,1,.@label$;
 	end;
 OnTimer96500:
 	donpcevent instance_npcname("Varmundt#ghinstance2")+"::OnTalk4";
@@ -732,44 +723,6 @@ OnTimer148500:
 OnMyMobDead:
 	end;
 }
-
-1@gl_k,145,54,6	script	talk#ghinstance1	2471,{
-	end;
-OnInstanceInit:
-OnDisable:
-	hideonnpc instance_npcname(strnpcinfo(0));
-	end;
-OnEnable:
-	hideoffnpc instance_npcname(strnpcinfo(0));
-	end;
-OnTalkK:
-	switch(atoi(replacestr(strnpcinfo(2),"ghinstance",""))) {
-		case 1: npctalk "Water... Someone give me water...",1; break;
-		case 2: npctalk "Kkkrrrruughgh...",1; break;
-		case 3: npctalk "Sir. Heinrich. Save me...",1; break;
-		case 4: npctalk "I miss my sister...",1; break;
-		case 5: npctalk "Don't leave me alone, help me.",1; break;
-		case 6: npctalk "Aaarrrrrhhhh",1; break;
-		case 7: npctalk "I am so thirsty.",1; break;
-		case 8: npctalk "Oh...No...I can't die yet...",1; break;
-		case 9: npctalk "I feel sick to my stomach urrgg",1; break;
-		case 10: npctalk "Can someone...",1; break;
-		case 11: npctalk "Arrgg... My body",1; break;
-		case 12: npctalk "My throat is burning!",1; break;
-	}
-	end;
-}
-1@gl_k,154,54,3	duplicate(talk#ghinstance1)	talk#ghinstance2	2471
-1@gl_k,145,64,6	duplicate(talk#ghinstance1)	talk#ghinstance3	2471
-1@gl_k,154,64,3	duplicate(talk#ghinstance1)	talk#ghinstance4	2471
-1@gl_k,145,74,6	duplicate(talk#ghinstance1)	talk#ghinstance5	2471
-1@gl_k,154,74,3	duplicate(talk#ghinstance1)	talk#ghinstance6	2471
-1@gl_k,145,84,6	duplicate(talk#ghinstance1)	talk#ghinstance7	2471
-1@gl_k,154,84,3	duplicate(talk#ghinstance1)	talk#ghinstance8	2471
-1@gl_k,145,94,6	duplicate(talk#ghinstance1)	talk#ghinstance9	2471
-1@gl_k,154,94,3	duplicate(talk#ghinstance1)	talk#ghinstance10	2471
-1@gl_k,145,104,6	duplicate(talk#ghinstance1)	talk#ghinstance11	2471
-1@gl_k,154,104,3	duplicate(talk#ghinstance1)	talk#ghinstance12	2471
 
 1@gl_k,145,54,6	script	.#ghinstance1	111,{
 	end;
@@ -1053,10 +1006,10 @@ OnDisable:
 1@gl_k,223,17,2	duplicate(A dead man#GHtramp1)	A dead man#GHtramp6	849,4,4
 1@gl_k,235,16,4	duplicate(A dead man#GHtramp1)	A dead man#GHtramp7	849,4,4
 1@gl_k,251,20,5	duplicate(A dead man#GHtramp1)	A dead man#GHtramp8	849,4,4
-1@gl_k,240,43,5	duplicate(A dead man#GHtramp1)	A dead man#GHtramp9	849,4,4
+1@gl_k,240,43,7	duplicate(A dead man#GHtramp1)	A dead man#GHtramp9	849,4,4
 1@gl_k,271,19,1	duplicate(A dead man#GHtramp1)	A dead man#GHtramp10	849,4,4
 1@gl_k,246,62,7	duplicate(A dead man#GHtramp1)	A dead man#GHtramp11	849,4,4
-1@gl_k,282,48,7	duplicate(A dead man#GHtramp1)	A dead man#GHtramp12	849,4,4
+1@gl_k,282,48,5	duplicate(A dead man#GHtramp1)	A dead man#GHtramp12	849,4,4
 1@gl_k,285,81,7	duplicate(A dead man#GHtramp1)	A dead man#GHtramp13	849,4,4
 1@gl_k,241,86,5	duplicate(A dead man#GHtramp1)	A dead man#GHtramp14	849,4,4
 1@gl_k,249,101,3	duplicate(A dead man#GHtramp1)	A dead man#GHtramp15	849,4,4
@@ -1072,11 +1025,17 @@ OnDisable:
 1@gl_k,222,119,5	duplicate(A dead man#GHtramp1)	A dead man#GHtramp25	849,4,4
 1@gl_k,233,123,3	duplicate(A dead man#GHtramp1)	A dead man#GHtramp26	849,4,4
 2@gl_k,147,203,5	duplicate(A dead man#GHtramp1)	A dead man#GHtramp27	849,4,4
-2@gl_k,141,222,1	duplicate(A dead man#GHtramp1)	A dead man#GHtramp28	849,4,4
-2@gl_k,167,225,3	duplicate(A dead man#GHtramp1)	A dead man#GHtramp29	849,4,4
-2@gl_k,145,236,3	duplicate(A dead man#GHtramp1)	A dead man#GHtramp30	849,4,4
+2@gl_k,141,222,3	duplicate(A dead man#GHtramp1)	A dead man#GHtramp28	849,4,4
+2@gl_k,167,225,5	duplicate(A dead man#GHtramp1)	A dead man#GHtramp29	849,4,4
+2@gl_k,145,236,5	duplicate(A dead man#GHtramp1)	A dead man#GHtramp30	849,4,4
 2@gl_k,143,260,3	duplicate(A dead man#GHtramp1)	A dead man#GHtramp31	849,4,4
-2@gl_k,173,258,3	duplicate(A dead man#GHtramp1)	A dead man#GHtramp32	849,4,4
+2@gl_k,170,259,3	duplicate(A dead man#GHtramp1)	A dead man#GHtramp32	849,4,4
+2@gl_k,143,197,5	duplicate(A dead man#GHtramp1)	A dead man#GHtramp33	849,4,4
+2@gl_k,155,195,5	duplicate(A dead man#GHtramp1)	A dead man#GHtramp34	849,4,4
+2@gl_k,154,188,3	duplicate(A dead man#GHtramp1)	A dead man#GHtramp35	849,4,4
+2@gl_k,153,214,3	duplicate(A dead man#GHtramp1)	A dead man#GHtramp36	849,4,4
+2@gl_k,172,233,3	duplicate(A dead man#GHtramp1)	A dead man#GHtramp37	849,4,4
+2@gl_k,176,245,3	duplicate(A dead man#GHtramp1)	A dead man#GHtramp38	849,4,4
 
 // Sector 3 Mobs
 //============================================================
@@ -1127,8 +1086,7 @@ OnDisable:
 OnEnable:
 	enablenpc instance_npcname("#ghmemorialmob04");
 	monster instance_mapname("1@gl_k"),150,258,"Corrupted Soul",2475,1,instance_npcname("#ghmemorialmob04")+"::OnMyMobDead";
-	donpcevent instance_npcname("Corrupted Soul#gh")+"::OnEnable";
-	donpcevent instance_npcname("Corrupted Soul#gh")+"::OnTalkK";
+	unittalk $@mobid[0],"Grrrrrrhh~~~",1;
 	end;
 OnMyMobDead:
 	set .@map$,instance_mapname("1@gl_k");
@@ -1140,23 +1098,8 @@ OnMyMobDead:
 		donpcevent instance_npcname("#effectGH01")+"::OnEnable";
 		donpcevent instance_npcname("Heinrich#ghinstance5")+"::OnEnable";
 		donpcevent instance_npcname("Varmundt#ghinstance4")+"::OnEnable";
-		donpcevent instance_npcname("Corrupted Soul#gh")+"::OnDisable";
 		donpcevent instance_npcname("#ghmemorialmob04")+"::OnDisable";
 	}
-	end;
-}
-
-1@gl_k,150,258,0	script	Corrupted Soul#gh	2337,{
-	end;
-OnInstanceInit:
-OnDisable:
-	disablenpc instance_npcname(strnpcinfo(0));
-	end;
-OnEnable:
-	enablenpc instance_npcname(strnpcinfo(0));
-	end;
-OnTalkK:
-	npctalk "Grrrrrrhh~~~",1;
 	end;
 }
 
@@ -1729,7 +1672,8 @@ OnDisable:
 OnEnable:
 	enablenpc instance_npcname("#ghmemorialmob10");
 	donpcevent instance_npcname("Gerhalt#ghinstance1")+"::OnDisable";
-	monster instance_mapname("2@gl_k"),158,255,"Amdarias",2476,1,instance_npcname("#ghmemorialmob10")+"::OnMyMobDead";
+	monster instance_mapname("2@gl_k"),158,255,"Amdarais",2476,1,instance_npcname("#ghmemorialmob10")+"::OnMyMobDead";
+	unittalk $@mobid[0],"Run away... run away from me...",1;
 	end;
 OnMyMobDead:
 	if (mobcount(instance_mapname("2@gl_k"),instance_npcname("#ghmemorialmob10")+"::OnMyMobDead") < 1) {
@@ -2014,6 +1958,18 @@ OnTimer76000:
 	end;
 OnTimer80000:
 	donpcevent instance_npcname("#ghmemorialmob10")+"::OnEnable";
+	end;
+OnTimer86000:
+	unittalk $@mobid[0],"I don't want... I don't want to kill anyone. Uhuuuuuh",1;
+	end;
+OnTimer92000:
+	unittalk $@mobid[0],"Please kill me! Please!",1;
+	end;
+OnTimer98000:
+	unittalk $@mobid[0],"Eeeeee...eee...die... die...",1;
+	end;
+OnTimer104000:
+	unittalk $@mobid[0],"Demolition... Death!...",1;
 	stopnpctimer;
 	donpcevent instance_npcname("#controlGH5")+"::OnDisable";
 	end;
