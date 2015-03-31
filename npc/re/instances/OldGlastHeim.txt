@@ -1674,6 +1674,19 @@ OnEnable:
 	donpcevent instance_npcname("Gerhalt#ghinstance1")+"::OnDisable";
 	monster instance_mapname("2@gl_k"),158,255,"Amdarais",2476,1,instance_npcname("#ghmemorialmob10")+"::OnMyMobDead";
 	unittalk $@mobid[0],"Run away... run away from me...",1;
+	initnpctimer;
+	end;
+OnTimer6000:
+	unittalk $@mobid[0],"I don't want... I don't want to kill anyone. Uhuuuuuh",1;
+	end;
+OnTimer12000:
+	unittalk $@mobid[0],"Please kill me! Please!",1;
+	end;
+OnTimer18000:
+	unittalk $@mobid[0],"Eeeeee...eee...die... die...",1;
+	end;
+OnTimer24000:
+	unittalk $@mobid[0],"Demolition... Death!...",1;
 	end;
 OnMyMobDead:
 	if (mobcount(instance_mapname("2@gl_k"),instance_npcname("#ghmemorialmob10")+"::OnMyMobDead") < 1) {
@@ -1683,6 +1696,7 @@ OnMyMobDead:
 		for (set .@i,1; .@i<=8; set .@i,.@i+1)
 			enablenpc instance_npcname("Strange crack#"+.@i);
 
+		stopnpctimer;
 		donpcevent instance_npcname("#ghmemorialmob10")+"::OnDisable";
 	}
 	end;
@@ -1958,18 +1972,6 @@ OnTimer76000:
 	end;
 OnTimer80000:
 	donpcevent instance_npcname("#ghmemorialmob10")+"::OnEnable";
-	end;
-OnTimer86000:
-	unittalk $@mobid[0],"I don't want... I don't want to kill anyone. Uhuuuuuh",1;
-	end;
-OnTimer92000:
-	unittalk $@mobid[0],"Please kill me! Please!",1;
-	end;
-OnTimer98000:
-	unittalk $@mobid[0],"Eeeeee...eee...die... die...",1;
-	end;
-OnTimer104000:
-	unittalk $@mobid[0],"Demolition... Death!...",1;
 	stopnpctimer;
 	donpcevent instance_npcname("#controlGH5")+"::OnDisable";
 	end;
