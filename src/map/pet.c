@@ -63,21 +63,22 @@ void pet_set_intimate(struct pet_data *pd, int value)
 	struct map_session_data *sd;
 
 	nullpo_retv(pd);
+
 	intimate = pd->pet.intimate;
 	sd = pd->master;
-
 	pd->pet.intimate = value;
-	if ((intimate >= battle_config.pet_equip_min_friendly && pd->pet.intimate < battle_config.pet_equip_min_friendly) ||
-		(intimate < battle_config.pet_equip_min_friendly && pd->pet.intimate >= battle_config.pet_equip_min_friendly))
+	if ((intimate < battle_config.pet_bonus_min_friendly && pd->pet.intimate >= battle_config.pet_bonus_min_friendly) ||
+		(intimate >= battle_config.pet_bonus_min_friendly && pd->pet.intimate > battle_config.pet_bonus_min_friendly) ||
+		(intimate >= battle_config.pet_bonus_min_friendly && pd->pet.intimate < battle_config.pet_bonus_min_friendly))
 		status_calc_pc(sd,SCO_NONE);
 }
 
 int pet_create_egg(struct map_session_data *sd, unsigned short item_id)
 {
-	int pet_id = search_petDB_index(item_id, PET_EGG);
+	int pet_id = search_petDB_index(item_id,PET_EGG);
 
 	if (pet_id < 0)
-		return 0; //No pet egg here.
+		return 0; //No pet egg here
 	if (!pc_inventoryblank(sd))
 		return 0; //Inventory full
 	sd->catch_target_class = pet_db[pet_id].class_;
@@ -118,14 +119,14 @@ int pet_attackskill(struct pet_data *pd, int target_id)
 
 		bl = map_id2bl(target_id);
 		if (bl == NULL || pd->bl.m != bl->m || bl->prev == NULL || status_isdead(bl) ||
-			!check_distance_bl(&pd->bl, bl, pd->db->range3))
+			!check_distance_bl(&pd->bl,bl,pd->db->range3))
 			return 0;
 
 		inf = skill_get_inf(pd->a_skill->id);
 		if (inf&INF_GROUND_SKILL)
-			unit_skilluse_pos(&pd->bl, bl->x, bl->y, pd->a_skill->id, pd->a_skill->lv);
+			unit_skilluse_pos(&pd->bl,bl->x,bl->y,pd->a_skill->id,pd->a_skill->lv);
 		else //Offensive self skill? Could be stuff like GX
-			unit_skilluse_id(&pd->bl, (inf&INF_SELF_SKILL ? pd->bl.id : bl->id), pd->a_skill->id, pd->a_skill->lv);
+			unit_skilluse_id(&pd->bl,(inf&INF_SELF_SKILL ? pd->bl.id : bl->id),pd->a_skill->id,pd->a_skill->lv);
 		return 1; //Skill invoked
 	}
 	return 0;
@@ -213,7 +214,7 @@ static int pet_hungry(int tid, unsigned int tick, int id, intptr_t data)
 	pd->pet_hungry_timer = INVALID_TIMER;
 
 	if(pd->pet.intimate <= 0)
-		return 1; //You lost the pet already, the rest is irrelevant.
+		return 1; //You lost the pet already, the rest is irrelevant
 
 	pd->pet.hungry--;
 	if(pd->pet.hungry < 0) {
@@ -230,7 +231,7 @@ static int pet_hungry(int tid, unsigned int tick, int id, intptr_t data)
 	clif_send_petdata(sd,pd,2,pd->pet.hungry);
 
 	if(battle_config.pet_hungry_delay_rate != 100)
-		interval = (pd->petDB->hungry_delay * battle_config.pet_hungry_delay_rate) / 100;
+		interval = pd->petDB->hungry_delay * battle_config.pet_hungry_delay_rate / 100;
 	else
 		interval = pd->petDB->hungry_delay;
 	if(interval <= 0)
@@ -372,7 +373,7 @@ int pet_data_init(struct map_session_data *sd, struct s_pet *pet)
 		run_script(pet_db[i].pet_script,0,sd->bl.id,0);
 
 	if(pd->petDB) {
-		if(pd->petDB->pet_loyal_script)
+		if(pd->petDB->pet_friendly_script)
 			status_calc_pc(sd,SCO_NONE);
 
 		if(battle_config.pet_hungry_delay_rate != 100)
@@ -1237,9 +1238,9 @@ void read_petdb()
 			script_free_code(pet_db[j].pet_script);
 			pet_db[j].pet_script = NULL;
 		}
-		if( pet_db[j].pet_loyal_script ) {
-			script_free_code(pet_db[j].pet_loyal_script);
-			pet_db[j].pet_loyal_script = NULL;
+		if( pet_db[j].pet_friendly_script ) {
+			script_free_code(pet_db[j].pet_friendly_script);
+			pet_db[j].pet_friendly_script = NULL;
 		}
 	}
 
@@ -1342,12 +1343,12 @@ void read_petdb()
 			pet_db[j].defence_attack_rate = atoi(str[18]);
 			pet_db[j].change_target_rate = atoi(str[19]);
 			pet_db[j].pet_script = NULL;
-			pet_db[j].pet_loyal_script = NULL;
+			pet_db[j].pet_friendly_script = NULL;
 
 			if( *str[20] )
 				pet_db[j].pet_script = parse_script(str[20], filename[i], lines, 0);
 			if( *str[21] )
-				pet_db[j].pet_loyal_script = parse_script(str[21], filename[i], lines, 0);
+				pet_db[j].pet_friendly_script = parse_script(str[21], filename[i], lines, 0);
 
 			j++;
 			entries++;
@@ -1389,9 +1390,9 @@ void do_final_pet(void)
 			script_free_code(pet_db[i].pet_script);
 			pet_db[i].pet_script = NULL;
 		}
-		if( pet_db[i].pet_loyal_script ) {
-			script_free_code(pet_db[i].pet_loyal_script);
-			pet_db[i].pet_loyal_script = NULL;
+		if( pet_db[i].pet_friendly_script ) {
+			script_free_code(pet_db[i].pet_friendly_script);
+			pet_db[i].pet_friendly_script = NULL;
 		}
 	}
 	ers_destroy(item_drop_ers);

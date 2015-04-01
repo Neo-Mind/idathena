@@ -7273,8 +7273,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					}
 					if( status_isimmune(bl) )
 						break;
-					//Remove bonus_script by Dispell
-					if( dstsd )
+					if( dstsd ) //Remove bonus_script by Dispell
 						pc_bonus_script_clear(dstsd,BSF_REM_ON_DISPELL);
 					if( !tsc || !tsc->count )
 						break;
@@ -8849,8 +8848,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					}
 					if( status_isimmune(bl) )
 						break;
-					//Remove bonus_script by Clearance
-					if( dstsd )
+					if( dstsd ) //Remove bonus_script by Clearance
 						pc_bonus_script_clear(dstsd,BSF_REM_ON_CLEARANCE);
 					if( !tsc || !tsc->count )
 						break;
@@ -10547,8 +10545,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					}
 					if( status_isimmune(bl) )
 						break;
-					//Remove bonus_script by Banishing Buster
-					if( dstsd )
+					if( dstsd ) //Remove bonus_script by Banishing Buster
 						pc_bonus_script_clear(dstsd,BSF_REM_ON_BANISHING_BUSTER);
 					if( !tsc || !tsc->count )
 						break;

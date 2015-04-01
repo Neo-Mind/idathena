@@ -31,7 +31,7 @@ struct s_pet_db {
 	int change_target_rate; //Rate of which the pet will change its attack target.
 	struct script_code
 		*pet_script, //Script since pet hatched
-		*pet_loyal_script; //Script when pet is loyal
+		*pet_friendly_script; //Script when pet is loyal
 };
 extern struct s_pet_db pet_db[MAX_PET_DB];
 

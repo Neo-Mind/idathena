@@ -2733,7 +2733,7 @@ int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt)
 	return 1;
 }
 
-//Skotlex: Calculates the stats of the given pet.
+//Skotlex: Calculates the stats of the given pet
 void status_calc_pet_(struct pet_data *pd, enum e_status_calc_opt opt)
 {
 	nullpo_retv(pd);
@@ -3399,8 +3399,8 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 	if(sd->pd) { //Pet Bonus
 		struct pet_data *pd = sd->pd;
 
-		if(pd && pd->petDB && pd->petDB->pet_loyal_script && pd->pet.intimate >= battle_config.pet_equip_min_friendly) {
-			run_script(pd->petDB->pet_loyal_script,0,sd->bl.id,0);
+		if(pd && pd->petDB && pd->petDB->pet_friendly_script && pd->pet.intimate >= battle_config.pet_bonus_min_friendly) {
+			run_script(pd->petDB->pet_friendly_script,0,sd->bl.id,0);
 			if(!calculating)
 				return 1;
 		}

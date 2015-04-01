@@ -1580,10 +1580,10 @@
 9123,0,0,0,0,0,0,0,"Lina's Curse"
 9024,0,0,0,0,0,0,0,"An errand boy from Einbroch"
 // kRO
-//9028,0,0,0,0,0,0,0,"strange Mouse"
+//9028,0,0,0,0,0,0,0,"Strange Mouse"
 //9029,86400,0,0,0,0,0,0,"Strange Mouse : present conditions"
 // iRO/cRO
-9028,0,0,0,0,0,0,0,"strange Hydra"
+9028,0,0,0,0,0,0,0,"Strange Hydra"
 9029,86400,0,0,0,0,0,0,"Strange Hydra : present conditions"
 9030,0,0,0,0,0,0,0,"Find a puppy"
 9031,0,0,0,0,0,0,0,"Find a puppy"

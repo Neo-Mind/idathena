@@ -2691,8 +2691,7 @@ ACMD_FUNC(petfriendly) {
 		return -1;
 	}
 	
-	if (friendly < 0 || friendly > 1000)
-	{
+	if (friendly < 0 || friendly > 1000) {
 		clif_displaymessage(fd, msg_txt(37)); // An invalid number was specified.
 		return -1;
 	}
