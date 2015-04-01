@@ -6368,7 +6368,7 @@ void clif_use_card(struct map_session_data *sd, int idx)
 			continue;
 		if ((sd->inventory_data[i]->equip&ep) == 0) //Not equippable on this part.
 			continue;
-		if (sd->inventory_data[i]->type == IT_WEAPON && ep == EQP_SHIELD) //Shield card won't go on left weapon.
+		if (sd->inventory_data[i]->type == IT_WEAPON && ep == EQP_SHIELD) //Shield card won't go on left weapon
 			continue;
 		ARR_FIND(0,sd->inventory_data[i]->slot,j,sd->status.inventory[i].card[j] == 0);
 		if (j == sd->inventory_data[i]->slot) //No room
@@ -14647,20 +14647,21 @@ void clif_parse_HomMenu(int fd, struct map_session_data *sd)
 /// 0292
 void clif_parse_AutoRevive(int fd, struct map_session_data *sd)
 {
-	int item_position = pc_search_inventory(sd, ITEMID_TOKEN_OF_SIEGFRIED);
-	int hpsp = 100;
+	short item_position = pc_search_inventory(sd, ITEMID_TOKEN_OF_SIEGFRIED);
+	uint8 hp = 100, sp = 100;
 
 	if (item_position == INDEX_NOT_FOUND) {
-		if (sd->sc.data[SC_LIGHT_OF_REGENE])
-			hpsp = sd->sc.data[SC_LIGHT_OF_REGENE]->val2;
-		else
+		if (sd->sc.data[SC_LIGHT_OF_REGENE]) {
+			hp = sd->sc.data[SC_LIGHT_OF_REGENE]->val2;
+			sp = 0;
+		} else
 			return;
 	}
 
-	if (sd->sc.data[SC_HELLPOWER]) //Cannot res while under the effect of SC_HELLPOWER.
-		return;
+	if (sd->sc.data[SC_HELLPOWER])
+		return; //Cannot res while under the effect of SC_HELLPOWER
 
-	if (!status_revive(&sd->bl, hpsp, hpsp))
+	if (!status_revive(&sd->bl, hp, sp))
 		return;
 
 	if (item_position == INDEX_NOT_FOUND)

@@ -46,7 +46,7 @@ bonus bFlee,n;				Flee + n
 bonus bFleeRate,n;			Flee + n%
 bonus bFlee2,n;				Perfect Dodge + n
 bonus bFlee2Rate,n;			Perfect Dodge + n%
-bonus bSpeedRate,n;			Moving speed + n% (only the highest among all is applied)
+bonus bSpeedRate,n;			Moving speed + n% (only the highest among all is applied, won't be stacked with SC_SPEEDUP0, SC_SPEEDUP1)
 bonus bSpeedAddRate,n;			Moving speed + n%
 bonus bAspd,n;				Attack speed + n
 bonus bAspdRate,n;			Attack speed + n%

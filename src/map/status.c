@@ -1104,14 +1104,14 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_WEDDING] |= SCB_SPEED;
 	StatusChangeFlagTable[SC_ALL_RIDING] |= SCB_SPEED;
 	StatusChangeFlagTable[SC_PUSH_CART] |= SCB_SPEED;
-	StatusChangeFlagTable[SC_MTF_ASPD] |= SCB_ASPD|SCB_HIT;
+	StatusChangeFlagTable[SC_MTF_ASPD] |= SCB_ASPD;
 	StatusChangeFlagTable[SC_MTF_MATK] |= SCB_MATK;
 	StatusChangeFlagTable[SC_MTF_MLEATKED] |= SCB_ALL;
 	StatusChangeFlagTable[SC_QUEST_BUFF1] |= SCB_BATK|SCB_MATK;
 	StatusChangeFlagTable[SC_QUEST_BUFF2] |= SCB_BATK|SCB_MATK;
 	StatusChangeFlagTable[SC_QUEST_BUFF3] |= SCB_BATK|SCB_MATK;
 	StatusChangeFlagTable[SC_CHASEWALK2] |= SCB_STR;
-	StatusChangeFlagTable[SC_MTF_ASPD2] |= SCB_ASPD|SCB_HIT;
+	StatusChangeFlagTable[SC_MTF_ASPD2] |= SCB_ASPD;
 	StatusChangeFlagTable[SC_MTF_MATK2] |= SCB_MATK;
 	StatusChangeFlagTable[SC_2011RWC_SCROLL] |= SCB_BATK|SCB_MATK|SCB_STR|SCB_AGI|SCB_VIT|SCB_INT|SCB_DEX|SCB_LUK;
 	StatusChangeFlagTable[SC_MTF_HITFLEE] |= SCB_HIT|SCB_FLEE;
@@ -3807,8 +3807,14 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 			sd->subele[ELE_EARTH] += i;
 			sd->subele[ELE_FIRE] -= i;
 		}
+		if(sc->data[SC_MTF_RANGEATK])
+			sd->bonus.long_attack_atk_rate += sc->data[SC_MTF_RANGEATK]->val1;
+		if(sc->data[SC_MTF_RANGEATK2])
+			sd->bonus.long_attack_atk_rate += sc->data[SC_MTF_RANGEATK2]->val1;
 		if(sc->data[SC_MTF_MLEATKED])
-			sd->subele[ELE_NEUTRAL] += 2;
+			sd->subele[ELE_NEUTRAL] += sc->data[SC_MTF_MLEATKED]->val1;
+		if(sc->data[SC_MTF_CRIDAMAGE])
+			sd->bonus.crit_atk_rate += sc->data[SC_MTF_CRIDAMAGE]->val1;
 		if(sc->data[SC_FIRE_INSIGNIA] && sc->data[SC_FIRE_INSIGNIA]->val1 == 3)
 			sd->magic_addele[ELE_FIRE] += 25;
 		if(sc->data[SC_WATER_INSIGNIA] && sc->data[SC_WATER_INSIGNIA]->val1 == 3)
@@ -5363,7 +5369,7 @@ static unsigned short status_calc_ematk(struct block_list *bl, struct status_cha
 	if(sc->data[SC_QUEST_BUFF3])
 		matk += sc->data[SC_QUEST_BUFF3]->val1;
 	if(sc->data[SC_MTF_MATK2])
-		matk += 50;
+		matk += sc->data[SC_MTF_MATK2]->val1;
 	if(sc->data[SC_2011RWC_SCROLL])
 		matk += 30;
 
@@ -5412,7 +5418,7 @@ static unsigned short status_calc_matk(struct block_list *bl, struct status_chan
 	if(sc->data[SC_QUEST_BUFF3])
 		matk += sc->data[SC_QUEST_BUFF3]->val1;
 	if(sc->data[SC_MTF_MATK2])
-		matk += 50;
+		matk += sc->data[SC_MTF_MATK2]->val1;
 	if(sc->data[SC_2011RWC_SCROLL])
 		matk += 30;
 #endif
@@ -5421,7 +5427,7 @@ static unsigned short status_calc_matk(struct block_list *bl, struct status_chan
 	if(sc->data[SC_INCMATKRATE])
 		matk += matk * sc->data[SC_INCMATKRATE]->val1 / 100;
 	if(sc->data[SC_MTF_MATK])
-		matk += matk * 25 / 100;
+		matk += matk * sc->data[SC_MTF_MATK]->val1 / 100;
 
 	return (unsigned short)cap_value(matk,0,USHRT_MAX);
 }
@@ -5956,7 +5962,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 				if( sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_ENEMY )
 					val = max( val, 75 );
 				if( sc->data[SC_SLOWDOWN] ) //Slow Potion
-					val = max( val, 100 );
+					val = max( val, sc->data[SC_SLOWDOWN]->val1 );
 				if( sc->data[SC_GATLINGFEVER] )
 					val = max( val, 100 );
 				if( sc->data[SC_SUITON] )
@@ -6009,7 +6015,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 			int val = 0;
 
 			if( sc->data[SC_SPEEDUP1] )
-				val = max( val, 100 );
+				val = max( val, sc->data[SC_SPEEDUP1]->val1 );
 			if( sc->data[SC_INCREASEAGI] )
 				val = max( val, 25 );
 			if( sc->data[SC_WINDWALK] )
@@ -6040,7 +6046,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 				val = max( val, 100 );
 			//FIXME: Official items use a single bonus for this [ultramage]
 			if( sc->data[SC_SPEEDUP0] ) //Temporary item-based speedup
-				val = max( val, 25 );
+				val = max( val, sc->data[SC_SPEEDUP0]->val1 );
 			if( sd && sd->bonus.speed_rate + sd->bonus.speed_add_rate < 0 )
 				val = max( val, -(sd->bonus.speed_rate + sd->bonus.speed_add_rate) );
 
@@ -6220,9 +6226,9 @@ static short status_calc_fix_aspd(struct block_list *bl, struct status_change *s
 	if (sc->data[SC_FIGHTINGSPIRIT])
 		aspd -= sc->data[SC_FIGHTINGSPIRIT]->val2;
 	if (sc->data[SC_MTF_ASPD])
-		aspd -= 10;
+		aspd -= sc->data[SC_MTF_ASPD]->val1;
 	if (sc->data[SC_MTF_ASPD2])
-		aspd -= 20;
+		aspd -= sc->data[SC_MTF_ASPD]->val1;
 
     return cap_value(aspd, 0, 2000); //Will be recap for proper bl anyway
 }
@@ -7633,7 +7639,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				opt_flag = 0; //Reuse to check success condition
 				if(sd->bonus.unstripable_equip&EQP_WEAPON)
 					return 0;
-
 				i = sd->equip_index[EQI_HAND_R];
 				if(i >= 0 && sd->inventory_data[i] && sd->inventory_data[i]->type == IT_WEAPON) {
 					opt_flag |= 2;
@@ -12655,9 +12660,9 @@ int status_change_spread(struct block_list *src, struct block_list *bl) {
 			//case SC_WINKCHARM:
 			//case SC_STOP:
 			case SC_ORCISH:
-			//case SC_STRIPWEAPON: //Omg I got infected and had the urge to strip myself physically.
-			//case SC_STRIPSHIELD: //No this is stupid and shouldnt be spreadable at all.
-			//case SC_STRIPARMOR: //Disabled until I can confirm if it does or not. [Rytech]
+			//case SC_STRIPWEAPON: //Omg I got infected and had the urge to strip myself physically
+			//case SC_STRIPSHIELD: //No this is stupid and shouldnt be spreadable at all
+			//case SC_STRIPARMOR: //Disabled until I can confirm if it does or not [Rytech]
 			//case SC_STRIPHELM:
 			//case SC__STRIPACCESSORY:
 			//case SC_BITE:

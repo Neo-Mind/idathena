@@ -1518,13 +1518,13 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				sc_start(src,bl,SC_STUN,10 * skill_lv + rnd()%50,skill_lv,skill_get_time2(skill_id,skill_lv)); //Custom
 			break;
 		case RL_S_STORM: {
-				uint16 where[] = { EQP_HELM,EQP_WEAPON,EQP_SHIELD,EQP_ARMOR,EQP_SHOES,EQP_GARMENT };
+				uint16 pos[] = { EQP_HELM,EQP_WEAPON,EQP_SHIELD,EQP_ARMOR,EQP_SHOES,EQP_GARMENT };
 				uint16 mrate, rate;
 
 				mrate = skill_lv * 500;
 				rate = (status_get_dex(src) * skill_lv * 10) - (status_get_agi(bl) * status_get_lv(bl) / 5); //Custom
 				rate = max(rate,mrate);
-				skill_break_equip(src,bl,where[rnd()%6],rate,BCT_ENEMY);
+				skill_break_equip(src,bl,pos[rnd()%6],rate,BCT_ENEMY);
 			}
 			break;
 		case RL_AM_BLAST:
@@ -2103,24 +2103,24 @@ int skill_counter_additional_effect(struct block_list* src, struct block_list *b
  - flag is a BCT_ flag to indicate which type of adjustment should be used
    (BCT_ENEMY/BCT_PARTY/BCT_SELF) are the valid values.
 --------------------------------------------------------------------------*/
-int skill_break_equip(struct block_list *src, struct block_list *bl, unsigned short where, int rate, int flag)
+int skill_break_equip(struct block_list *src, struct block_list *bl, unsigned short pos, int rate, int flag)
 {
-	const int where_list[4]     = { EQP_HELM,EQP_WEAPON,EQP_SHIELD,EQP_ARMOR };
-	const enum sc_type scatk[4] = { SC_STRIPHELM,SC_STRIPWEAPON,SC_STRIPSHIELD,SC_STRIPARMOR };
-	const enum sc_type scdef[4] = { SC_CP_HELM,SC_CP_WEAPON,SC_CP_SHIELD,SC_CP_ARMOR };
+	const int pos_list[4]        = { EQP_HELM,EQP_WEAPON,EQP_SHIELD,EQP_ARMOR };
+	const enum sc_type sc_atk[4] = { SC_STRIPHELM,SC_STRIPWEAPON,SC_STRIPSHIELD,SC_STRIPARMOR };
+	const enum sc_type sc_def[4] = { SC_CP_HELM,SC_CP_WEAPON,SC_CP_SHIELD,SC_CP_ARMOR };
 	struct status_change *sc = status_get_sc(bl);
-	int i;
 	TBL_PC *sd = BL_CAST(BL_PC,bl);
+	int i;
 
 	if (sc && !sc->count)
 		sc = NULL;
 
 	if (sd) {
 		if (sd->bonus.unbreakable_equip)
-			where &= ~sd->bonus.unbreakable_equip;
+			pos &= ~sd->bonus.unbreakable_equip;
 		if (sd->bonus.unbreakable)
 			rate -= rate * sd->bonus.unbreakable / 100;
-		if (where&EQP_WEAPON) {
+		if (pos&EQP_WEAPON) {
 			switch (sd->status.weapon) {
 				case W_FIST: //Bare fists should not break
 				case W_1HAXE:
@@ -2131,7 +2131,7 @@ int skill_break_equip(struct block_list *src, struct block_list *bl, unsigned sh
 				case W_2HSTAFF:
 				case W_BOOK: //Rods and Books can't be broken [Skotlex]
 				case W_HUUMA:
-					where &= ~EQP_WEAPON;
+					pos &= ~EQP_WEAPON;
 					break;
 			}
 		}
@@ -2143,17 +2143,17 @@ int skill_break_equip(struct block_list *src, struct block_list *bl, unsigned sh
 		if (battle_config.equip_self_break_rate != 100)
 			rate = rate * battle_config.equip_self_break_rate / 100;
 	}
-	for (i = 0; i < 4; i++) {
-		if (where&where_list[i]) {
-			if (sc && sc->count && sc->data[scdef[i]])
-				where &= ~where_list[i];
+	for (i = 0; i < ARRAYLENGTH(pos_list); i++) {
+		if (pos&pos_list[i]) {
+			if (sc && sc->count && sc->data[sc_def[i]])
+				pos &= ~pos_list[i];
 			else if (rnd()%10000 >= rate)
-				where &= ~where_list[i];
-			else if (!sd && !(status_get_mode(bl)&MD_BOSS)) //Cause Strip effect
-				sc_start(src,bl,scatk[i],100,0,skill_get_time(status_sc2skill(scatk[i]),1));
+				pos &= ~pos_list[i];
+			else if (!sd && !(status_get_mode(bl)&MD_BOSS)) //Cause strip effect
+				sc_start(src,bl,sc_atk[i],100,0,skill_get_time(status_sc2skill(sc_atk[i]),1));
 		}
 	}
-	if (!where) //Nothing to break
+	if (!pos) //Nothing to break
 		return 0;
 	if (sd) {
 		for (i = 0; i < EQI_MAX; i++) {
@@ -2163,21 +2163,21 @@ int skill_break_equip(struct block_list *src, struct block_list *bl, unsigned sh
 				continue;
 			switch(i) {
 				case EQI_HEAD_TOP: //Upper Head
-					flag = (where&EQP_HELM);
+					flag = (pos&EQP_HELM);
 					break;
 				case EQI_ARMOR: //Body
-					flag = (where&EQP_ARMOR);
+					flag = (pos&EQP_ARMOR);
 					break;
 				case EQI_HAND_R: //Right/Left hands
 				case EQI_HAND_L:
-					flag = (((where&EQP_WEAPON) && sd->inventory_data[j]->type == IT_WEAPON) ||
-						((where&EQP_SHIELD) && sd->inventory_data[j]->type == IT_ARMOR));
+					flag = (((pos&EQP_WEAPON) && sd->inventory_data[j]->type == IT_WEAPON) ||
+						((pos&EQP_SHIELD) && sd->inventory_data[j]->type == IT_ARMOR));
 					break;
 				case EQI_SHOES:
-					flag = (where&EQP_SHOES);
+					flag = (pos&EQP_SHOES);
 					break;
 				case EQI_GARMENT:
-					flag = (where&EQP_GARMENT);
+					flag = (pos&EQP_GARMENT);
 					break;
 				default:
 					continue;
@@ -2190,13 +2190,13 @@ int skill_break_equip(struct block_list *src, struct block_list *bl, unsigned sh
 		clif_equiplist(sd);
 	}
 
-	return where; //Return list of pieces broken
+	return pos; //Return list of pieces broken
 }
 
-int skill_strip_equip(struct block_list *src, struct block_list *bl, unsigned short where, int rate, int lv, int time)
+int skill_strip_equip(struct block_list *src, struct block_list *bl, unsigned short pos, int rate, uint16 skill_lv, int time)
 {
 	struct status_change *sc;
-	const int pos[5]             = { EQP_WEAPON,EQP_SHIELD,EQP_ARMOR,EQP_HELM,EQP_ACC };
+	const int pos_list[5]        = { EQP_WEAPON,EQP_SHIELD,EQP_ARMOR,EQP_HELM,EQP_ACC };
 	const enum sc_type sc_atk[5] = { SC_STRIPWEAPON,SC_STRIPSHIELD,SC_STRIPARMOR,SC_STRIPHELM,SC__STRIPACCESSORY };
 	const enum sc_type sc_def[5] = { SC_CP_WEAPON,SC_CP_SHIELD,SC_CP_ARMOR,SC_CP_HELM,SC_NONE };
 	int i;
@@ -2206,17 +2206,16 @@ int skill_strip_equip(struct block_list *src, struct block_list *bl, unsigned sh
 	sc = status_get_sc(bl);
 	if (!sc || (sc->option&OPTION_MADOGEAR) ) //Mado Gear cannot be divested [Ind]
 		return 0;
-	for (i = 0; i < ARRAYLENGTH(pos); i++) {
-		if (where&pos[i] && sc_def[i] > SC_NONE && sc->data[sc_def[i]])
-			where &= ~pos[i];
-	}
-	if (!where)
+	for (i = 0; i < ARRAYLENGTH(pos_list); i++)
+		if (pos&pos_list[i] && sc->data[sc_def[i]])
+			pos &= ~pos_list[i];
+	if (!pos)
 		return 0;
-	for (i = 0; i < ARRAYLENGTH(pos); i++) {
-		if (where&pos[i] && !sc_start(src,bl,sc_atk[i],100,lv,time))
-			where &= ~pos[i];
-	}
-	return (where ? 1 : 0);
+	for (i = 0; i < ARRAYLENGTH(pos_list); i++)
+		if (pos&pos_list[i] && !sc_start(src,bl,sc_atk[i],100,skill_lv,time))
+			pos &= ~pos_list[i];
+
+	return (pos ? 1 : 0);
 }
 
 /**
@@ -7021,8 +7020,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case GC_WEAPONCRUSH:
 		case SC_STRIPACCESSARY:
 			{
-				unsigned short location = 0;
-				int d = 0;
+				unsigned short pos = 0;
+				int dur = 0;
 
 				//Rate in percent
 				if(skill_id == ST_FULLSTRIP)
@@ -7037,52 +7036,51 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 				//Duration in ms
 				if(skill_id == GC_WEAPONCRUSH) {
-					d = skill_get_time(skill_id,skill_lv);
+					dur = skill_get_time(skill_id,skill_lv);
 					if(bl->type == BL_PC)
-						d += skill_lv * 15 + (sstatus->dex - tstatus->dex) * 1000;
+						dur += skill_lv * 15 + (sstatus->dex - tstatus->dex) * 1000;
 					else
-						d += skill_lv * 30 + (sstatus->dex - tstatus->dex) * 500;
+						dur += skill_lv * 30 + (sstatus->dex - tstatus->dex) * 500;
 				} else
-					d = skill_get_time(skill_id,skill_lv) + (sstatus->dex - tstatus->dex) * 500;
+					dur = skill_get_time(skill_id,skill_lv) + (sstatus->dex - tstatus->dex) * 500;
 
-				if(d < 0)
-					d = 0; //Minimum duration 0ms
+				if(dur < 0)
+					dur = 0; //Minimum duration 0ms
 
 				switch(skill_id) {
 					case RG_STRIPWEAPON:
 					case GC_WEAPONCRUSH:
-						location = EQP_WEAPON;
+						pos = EQP_WEAPON;
 						break;
 					case RG_STRIPSHIELD:
-						location = EQP_SHIELD;
+						pos = EQP_SHIELD;
 						break;
 					case RG_STRIPARMOR:
-						location = EQP_ARMOR;
+						pos = EQP_ARMOR;
 						break;
 					case RG_STRIPHELM:
-						location = EQP_HELM;
+						pos = EQP_HELM;
 						break;
 					case ST_FULLSTRIP:
-						location = EQP_WEAPON|EQP_SHIELD|EQP_ARMOR|EQP_HELM;
+						pos = EQP_WEAPON|EQP_SHIELD|EQP_ARMOR|EQP_HELM;
 						break;
 					case SC_STRIPACCESSARY:
-						location = EQP_ACC;
+						pos = EQP_ACC;
 						break;
 				}
 
-				//Special message when trying to use strip on FCP [Jobbie]
+				//Special message when trying to use Full Strip on FCP [Jobbie]
 				if(sd && skill_id == ST_FULLSTRIP && tsc && tsc->data[SC_CP_WEAPON] && tsc->data[SC_CP_HELM] &&
 					tsc->data[SC_CP_ARMOR] && tsc->data[SC_CP_SHIELD]) {
 					clif_gospel_info(sd,0x28);
 					break;
 				}
 
-				//Attempts to strip at rate i and duration d
-				if((i = skill_strip_equip(src,bl,location,i,skill_lv,d)) || (skill_id != ST_FULLSTRIP && skill_id != GC_WEAPONCRUSH))
+				//Attempts to strip at rate i and duration dur
+				if((i = skill_strip_equip(src,bl,pos,i,skill_lv,dur)) && skill_id != ST_FULLSTRIP && skill_id != GC_WEAPONCRUSH)
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,i);
 
-				//Nothing stripped
-				if(sd && !i)
+				if(sd && !i) //Nothing stripped
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
 			}
 			break;
@@ -7745,7 +7743,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case NPC_AGIUP:
-			sc_start(src,bl,SC_SPEEDUP1,100,skill_lv,skill_get_time(skill_id,skill_lv));
+			sc_start(src,bl,SC_SPEEDUP1,100,100,skill_get_time(skill_id,skill_lv));
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
 				sc_start(src,bl,type,100,100,skill_get_time(skill_id,skill_lv)));
 			break;
@@ -8092,9 +8090,9 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 								status_fix_damage(src,bl,1000,0);
 								clif_damage(src,bl,tick,0,0,1000,0,DMG_NORMAL,0);
 								if (!status_isdead(bl)) {
-									int where[] = { EQP_HELM,EQP_SHIELD,EQP_ARMOR,EQP_SHOES,EQP_GARMENT };
+									int pos[] = { EQP_HELM,EQP_SHIELD,EQP_ARMOR,EQP_SHOES,EQP_GARMENT };
 
-									skill_break_equip(src,bl,where[rnd()%5],10000,BCT_ENEMY);
+									skill_break_equip(src,bl,pos[rnd()%5],10000,BCT_ENEMY);
 								}
 							}
 							break;

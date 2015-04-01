@@ -2403,9 +2403,9 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 
 	if(sc) {
 		if(sc->data[SC_MTF_ASPD])
-			hitrate += 5;
+			hitrate += sc->data[SC_MTF_ASPD]->val2;
 		if(sc->data[SC_MTF_ASPD2])
-			hitrate += 10;
+			hitrate += sc->data[SC_MTF_ASPD2]->val2;
 	}
 
 	hitrate = cap_value(hitrate,battle_config.min_hitrate,battle_config.max_hitrate);
@@ -4337,22 +4337,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 				ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_FLASHCOMBO]->val2);
 #endif
 			}
-			if((wd.flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON)) {
-				if(sc->data[SC_MTF_RANGEATK]) {
-					ATK_ADDRATE(wd.damage, wd.damage2, 25);
-					RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.long_attack_atk_rate'
-				}
-				if(sc->data[SC_MTF_RANGEATK2]) {
-					ATK_ADDRATE(wd.damage, wd.damage2, 30);
-					RE_ALLATK_ADDRATE(wd, 30);
-				}
-			}
-			if(sc->data[SC_MTF_CRIDAMAGE] && is_attack_critical(wd, src, target, skill_id, skill_lv, false)) {
-				ATK_ADDRATE(wd.damage, wd.damage2, 25);
-				RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.crit_atk_rate'
-			}
-		}
-		if(skill_id == CR_SHIELDBOOMERANG && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_CRUSADER) {
+		} else if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_CRUSADER) {
 			ATK_ADDRATE(wd.damage, wd.damage2, 100);
 			RE_ALLATK_ADDRATE(wd, 100);
 		}
@@ -7232,8 +7217,9 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			if (tsd && rnd()%100 < tsc->data[SC_GT_ENERGYGAIN]->val2)
 				pc_addspiritball(tsd,skill_get_time2(SR_GENTLETOUCH_ENERGYGAIN,tsc->data[SC_GT_ENERGYGAIN]->val1),spheremax);
 		}
-		if (tsc->data[SC_MTF_MLEATKED] && rnd()%100 < 20)
-			clif_skill_nodamage(target,target,SM_ENDURE,5,sc_start(target,target,SC_ENDURE,100,5,skill_get_time(SM_ENDURE,5)));
+		if (tsc->data[SC_MTF_MLEATKED] && rnd()%100 < tsc->data[SC_MTF_MLEATKED]->val3)
+			clif_skill_nodamage(target,target,SM_ENDURE,tsc->data[SC_MTF_MLEATKED]->val2,
+				sc_start(target,target,SC_ENDURE,100,tsc->data[SC_MTF_MLEATKED]->val2,skill_get_time(SM_ENDURE,tsc->data[SC_MTF_MLEATKED]->val2)));
 		if (tsc->data[SC_KAAHI] && tstatus->hp < tstatus->max_hp && status_charge(target,0,tsc->data[SC_KAAHI]->val3)) {
 			int hp_heal = tstatus->max_hp - tstatus->hp;
 

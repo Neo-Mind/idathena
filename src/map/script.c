@@ -10028,8 +10028,8 @@ BUILDIN_FUNC(hideonnpc)
 	return SCRIPT_CMD_SUCCESS;
 }
 
-/* Starts a status effect on the target unit or on the attached player.
- *
+/**
+ * Starts a status effect on the target unit or on the attached player.
  * sc_start  <effect_id>,<duration>,<val1>{,<rate>,<flag>,{<unit_id>}};
  * sc_start2 <effect_id>,<duration>,<val1>,<val2>{,<rate,<flag>,{<unit_id>}};
  * sc_start4 <effect_id>,<duration>,<val1>,<val2>,<val3>,<val4>{,<rate,<flag>,{<unit_id>}};

@@ -3920,7 +3920,7 @@ int pc_insert_card(struct map_session_data* sd, int idx_card, int idx_equip)
 	if( (sd->inventory_data[idx_equip]->equip & sd->inventory_data[idx_card]->equip) == 0 )
 		return 0; //Card cannot be compounded on this item type
 	if( sd->inventory_data[idx_equip]->type == IT_WEAPON && sd->inventory_data[idx_card]->equip == EQP_SHIELD )
-		return 0; //Attempted to place shield card on left-hand weapon.
+		return 0; //Attempted to place shield card on left-hand weapon
 	if( sd->status.inventory[idx_equip].equip != 0 )
 		return 0; //Item must be unequipped
 
