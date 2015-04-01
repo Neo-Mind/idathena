@@ -15572,7 +15572,7 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 		index[i] = pc_search_inventory(sd,require.itemid[i]);
 		if( index[i] == INDEX_NOT_FOUND || sd->status.inventory[index[i]].amount < require.amount[i] ) {
 			unsigned char type;
-			int btype, val;
+			int btype = 0, val = 0;
 
 			switch( require.itemid[i] ) {
 				case ITEMID_RED_GEMSTONE:

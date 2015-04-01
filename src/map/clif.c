@@ -2146,7 +2146,7 @@ void clif_parse_NPCMarketPurchase(int fd, struct map_session_data *sd) {
 	if( !sd->npc_shopid )
 		return;
 
-	info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
+	info = &packet_db[sd->packet_ver][cmd];
 	if( !info || info->len == 0 )
 		return;
 	len = RFIFOW(fd,info->pos[0]);
