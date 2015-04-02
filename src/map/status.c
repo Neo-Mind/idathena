@@ -708,8 +708,8 @@ void initChangeTables(void) {
 	set_sc( SC_MAELSTROM         , SC__MAELSTROM      , SI_BLANK           , SCB_NONE );
 	add_sc( SC_FEINTBOMB         , SC__FEINTBOMB );
 
-	add_sc( SR_DRAGONCOMBO           , SC_STUN            );
-	add_sc( SR_EARTHSHAKER           , SC_STUN            );
+	add_sc( SR_DRAGONCOMBO           , SC_STUN );
+	add_sc( SR_EARTHSHAKER           , SC_STUN );
 	set_sc( SR_FALLENEMPIRE          , SC_FALLENEMPIRE       , SI_FALLENEMPIRE          , SCB_NONE );
 	set_sc( SR_CRESCENTELBOW         , SC_CRESCENTELBOW      , SI_CRESCENTELBOW         , SCB_NONE );
 	set_sc_with_vfx( SR_CURSEDCIRCLE , SC_CURSEDCIRCLE_TARGET, SI_CURSEDCIRCLE_TARGET   , SCB_NONE );
@@ -745,7 +745,7 @@ void initChangeTables(void) {
 	set_sc( SO_ELECTRICWALK      , SC_PROPERTYWALK    , SI_PROPERTYWALK    , SCB_NONE );
 	set_sc( SO_SPELLFIST         , SC_SPELLFIST       , SI_SPELLFIST       , SCB_NONE );
 	set_sc_with_vfx( SO_DIAMONDDUST , SC_CRYSTALIZE   , SI_COLD            , SCB_NONE );
-	set_sc( SO_CLOUD_KILL        , SC_POISON          , SI_CLOUD_KILL      , SCB_NONE );
+	add_sc( SO_CLOUD_KILL        , SC_POISON );
 	set_sc( SO_STRIKING          , SC_STRIKING        , SI_STRIKING        , SCB_WATK|SCB_CRI );
 	set_sc( SO_WARMER            , SC_WARMER          , SI_WARMER          , SCB_NONE );
 	set_sc( SO_VACUUM_EXTREME    , SC_VACUUM_EXTREME  , SI_VACUUM_EXTREME  , SCB_NONE );
@@ -7071,7 +7071,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 				tick_def2 = status->luk * 100;
 			} else { //For monsters: 30000 - 200 * vit
 				tick >>= 1;
-				tick_def = (status->vit * 200) / 3;
+				tick_def = status->vit * 200 / 3;
 			}
 			break;
 		case SC_STUN:
@@ -7104,7 +7104,13 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 				status->vit
 #endif
 				* 100;
-			sc_def2 = status->luk * 10 + SCDEF_LVL_DIFF(bl,src,99,10);
+			sc_def2 =
+#ifdef RENEWAL
+				(status->vit + status->luk) * 5
+#else
+				status->luk * 10
+#endif
+				+ SCDEF_LVL_DIFF(bl,src,99,10);
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_SLEEP:
@@ -7135,7 +7141,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			tick_def2 = status_src->luk * -10; //Caster can increase final duration with luk
 			break;
 		case SC_CURSE:
-			if (status->luk == 0)
+			if (!status->luk)
 				return 0; //Special property: Immunity when luk is zero
 			sc_def = status->luk * 100;
 			sc_def2 = status->luk * 10 - SCDEF_LVL_CAP(src,99) * 10; //Curse only has a level penalty and no resistance
@@ -7143,8 +7149,20 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_BLIND:
-			sc_def = (status->vit + status->int_) * 50;
-			sc_def2 = status->luk * 10 + SCDEF_LVL_DIFF(bl,src,99,10);
+			sc_def =
+#ifdef RENEWAL
+				status->int_
+#else
+				status->vit
+#endif
+				* 100;
+			sc_def2 =
+#ifdef RENEWAL
+				(status->vit + status->luk) * 5
+#else
+				status->luk * 10
+#endif
+				+ SCDEF_LVL_DIFF(bl,src,99,10);
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_CONFUSION:
@@ -8317,14 +8335,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_ALL_RIDING:
 				tick = -1; //Permanent effects
 				break;
-
 			case SC_DECREASEAGI:
 			case SC_INCREASEAGI:
 			case SC_ADORAMUS:
 				val2 = 2 + val1; //Agi change
 				if( type == SC_ADORAMUS )
-					sc_start(src,bl,SC_BLIND,val1 * 4 + (sd ? sd->status.job_level / 2 : 0),
-						val1,skill_get_time(status_sc2skill(type),val1));
+					sc_start(src,bl,SC_BLIND,val1 * 4 + (sd ? sd->status.job_level / 2 : 0),val1,skill_get_time(status_sc2skill(type),val1));
 				break;
 			case SC_ENDURE:
 				val2 = 7; //Hit-count [Celest]
@@ -8568,16 +8584,18 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						return 0;
 					} else if( status->hp > status->max_hp>>2 ) {
 						if( val2 && bl->type == BL_MOB ) {
-							struct block_list* src = map_id2bl(val2);
+							struct block_list *src = map_id2bl(val2);
 
 							if( src )
-								mob_log_damage((TBL_MOB*)bl,src,diff);
+								mob_log_damage((TBL_MOB *)bl,src,diff);
 						}
 						status_zap(bl,diff,0);
 					}
 				}
-				//Fall through
+			//Fall through
 			case SC_POISON:
+				if( type == SC_POISON && val1 == SO_CLOUD_KILL )
+					clif_status_change(bl,SI_CLOUD_KILL,1,tick,0,0,0);
 				tick_time = 1000;
 				val3 = tick / tick_time; //Damage iterations
 				if( val3 < 1 )
@@ -10684,6 +10702,10 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			if (bl->type == BL_PC)
 				skill_break_equip(bl,bl,EQP_WEAPON,10000,BCT_SELF);
 			break;
+		case SC_POISON:
+			if (sce->val1 == SO_CLOUD_KILL)
+				clif_status_load(bl,SI_CLOUD_KILL,0);
+			break;
 		case SC_KEEPING: {
 				struct unit_data *ud = unit_bl2ud(bl);
 
@@ -10803,7 +10825,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 						skill_delunitgroup(group);
 				}
 				if ((sce->val1&0xFFFF) == CG_MOONLIT)
-					clif_status_change(bl,SI_MOONLIT,0,0,0,0,0);
+					clif_status_load(bl,SI_MOONLIT,0);
 				status_change_end(bl,SC_LONGING,INVALID_TIMER);
 			}
 			break;
@@ -11350,7 +11372,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 	}
 
 	//On Aegis, when turning off a status change, first goes the sc packet, then the option packet
-	clif_status_change(bl,StatusIconChangeTable[type],0,0,0,0,0);
+	clif_status_load(bl,StatusIconChangeTable[type],0);
 
 	if (opt_flag&8) //bugreport:681
 		clif_changeoption2(bl);

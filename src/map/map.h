@@ -365,7 +365,7 @@ struct spawn_data {
 	unsigned int level;
 	struct {
 		unsigned int size : 2; //Holds if mob has to be tiny/large
-		enum mob_ai ai; //Special ai for summoned monsters.
+		enum mob_ai ai; //Special ai for summoned monsters
 		unsigned int dynamic : 1; //Whether this data is indexed by a map's dynamic mob list
 		unsigned int boss : 1; //0: Non-boss monster | 1: Boss monster
 	} state;

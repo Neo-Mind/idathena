@@ -6896,12 +6896,12 @@ int pc_resetskill(struct map_session_data* sd, int flag)
 	if( flag&4 && (sd->class_&MAPID_UPPERMASK) != MAPID_BARDDANCER )
 		return 0;
 
-	if( !(flag&2) ) { //Remove stuff lost when resetting skills.
+	if( !(flag&2) ) { //Remove stuff lost when resetting skills
 		//It has been confirmed on official servers that when you reset skills with a ranked Taekwon your skills are not reset (because you have all of them anyway)
 		if( pc_is_taekwon_ranker(sd) )
 			return 0;
 		if( pc_checkskill(sd, SG_DEVIL) &&  !pc_nextjobexp(sd) )
-			clif_status_load(&sd->bl, SI_DEVIL, 0); //Remove perma blindness due to skill-reset. [Skotlex]
+			clif_status_load(&sd->bl, SI_DEVIL, 0); //Remove perma blindness due to skill-reset [Skotlex]
 		i = sd->sc.option;
 		if( i&OPTION_RIDING && pc_checkskill(sd, KN_RIDING) )
 			i &= ~OPTION_RIDING;

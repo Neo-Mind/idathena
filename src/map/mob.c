@@ -1045,7 +1045,7 @@ int mob_target(struct mob_data *md, struct block_list *bl, int dist)
 }
 
 /*==========================================
- * The ?? routine of an active monster
+ * The search routine of an active monster
  *------------------------------------------*/
 static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 {
@@ -1061,18 +1061,16 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 	mode = va_arg(ap,int);
 
 	//If can't seek yet, not an enemy, or you can't attack it, skip
-	if(md->bl.id == bl->id || (*target) == bl || !status_check_skilluse(&md->bl,bl,0,0))
+	if(md->bl.id == bl->id || (*target) == bl || battle_check_target(&md->bl,bl,BCT_ENEMY) <= 0 ||
+		!status_check_skilluse(&md->bl,bl,0,0))
 		return 0;
 
 	if((mode&MD_TARGETWEAK) && status_get_lv(bl) >= md->level - 5)
 		return 0;
 
-	if(battle_check_target(&md->bl,bl,BCT_ENEMY) <= 0)
-		return 0;
-
 	switch(bl->type) {
 		case BL_PC:
-			if(((TBL_PC*)bl)->state.gangsterparadise && !(status_get_mode(&md->bl)&MD_BOSS))
+			if(((TBL_PC *)bl)->state.gangsterparadise && !(status_get_mode(&md->bl)&MD_BOSS))
 				return 0; //Gangster paradise protection
 		default:
 			if((battle_config.hom_setting&HOMSET_FIRST_TARGET) && (*target) && (*target)->type == BL_HOM && bl->type != BL_HOM)
@@ -1104,7 +1102,7 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 }
 
 /*==========================================
- * chase target-change routine.
+ * Chase target-change routine.
  *------------------------------------------*/
 static int mob_ai_sub_hard_changechase(struct block_list *bl,va_list ap)
 {
@@ -1115,10 +1113,9 @@ static int mob_ai_sub_hard_changechase(struct block_list *bl,va_list ap)
 	md = va_arg(ap,struct mob_data *);
 	target = va_arg(ap,struct block_list **);
 
-	//If can't seek yet, not an enemy, or you can't attack it, skip.
-	if(md->bl.id == bl->id || (*target) == bl ||
-		battle_check_target(&md->bl,bl,BCT_ENEMY) <= 0 ||
-	  	!status_check_skilluse(&md->bl,bl,0,0))
+	//If can't seek yet, not an enemy, or you can't attack it, skip
+	if(md->bl.id == bl->id || (*target) == bl || battle_check_target(&md->bl,bl,BCT_ENEMY) <= 0 ||
+		!status_check_skilluse(&md->bl,bl,0,0))
 		return 0;
 
 	if(battle_check_range(&md->bl,bl,md->status.rhw.range)) {
@@ -1266,7 +1263,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 			}
 			if(tbl && status_check_skilluse(&md->bl,tbl,0,0)) {
 				md->target_id = tbl->id;
-				md->min_chase = md->db->range3 + distance_bl(&md->bl,tbl);
+				md->min_chase = distance_bl(&md->bl,tbl) + md->db->range3;
 				if(md->min_chase > MAX_MINCHASE)
 					md->min_chase = MAX_MINCHASE;
 				return 1;
@@ -1399,7 +1396,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 {
 	struct block_list *tbl = NULL, *abl = NULL;
 	int mode;
-	int view_range, can_move;
+	int view_range, chase_range, can_move;
 
 	if(md->bl.prev == NULL || md->status.hp == 0)
 		return false;
@@ -1420,9 +1417,11 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 	}
 
 	if(md->sc.count && md->sc.data[SC_BLIND])
-		view_range = 3;
-	else
+		view_range = chase_range = 3;
+	else {
 		view_range = md->db->range2;
+		chase_range = md->min_chase;
+	}
 
 	mode = status_get_mode(&md->bl);
 	can_move = ((mode&MD_CANMOVE) && unit_can_move(&md->bl));
@@ -1431,9 +1430,9 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 		tbl = map_id2bl(md->target_id);
 		if(!tbl || tbl->m != md->bl.m ||
 			(md->ud.attacktimer == INVALID_TIMER && !status_check_skilluse(&md->bl, tbl, 0, 0)) ||
-			(md->ud.walktimer != INVALID_TIMER && !(battle_config.mob_ai&0x1) && !check_distance_bl(&md->bl, tbl, md->min_chase)) ||
-			(tbl->type == BL_PC && ((((TBL_PC*)tbl)->state.gangsterparadise && !(mode&MD_BOSS)) ||
-			((TBL_PC*)tbl)->invincible_timer != INVALID_TIMER)))
+			(md->ud.walktimer != INVALID_TIMER && !(battle_config.mob_ai&0x1) && !check_distance_bl(&md->bl, tbl, chase_range)) ||
+			(tbl->type == BL_PC && ((((TBL_PC *)tbl)->state.gangsterparadise && !(mode&MD_BOSS)) ||
+			((TBL_PC *)tbl)->invincible_timer != INVALID_TIMER)))
 		{ //No valid target
 			if(mob_warpchase(md, tbl))
 				return true; //Chasing this target
@@ -1455,7 +1454,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 						|| md->sc.data[SC__MANHOLE] //Not yet confirmed if boss will teleport once it can't reach target
 						|| md->walktoxy_fail_count > 0)
 					)
-					|| !mob_can_reach(md, tbl, md->min_chase, MSS_RUSH)
+					|| !mob_can_reach(md, tbl, chase_range, MSS_RUSH)
 				)
 			&& md->state.attacked_count++ >= RUDE_ATTACKED_COUNT
 			&& !mobskill_use(md, tick, MSC_RUDEATTACKED) //If can't rude Attack
@@ -1471,8 +1470,8 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 			if(md->bl.m != abl->m || abl->prev == NULL
 				|| (dist = distance_bl(&md->bl, abl)) >= MAX_MINCHASE //Attacker longer than visual area
 				|| battle_check_target(&md->bl, abl, BCT_ENEMY) <= 0 //Attacker is not enemy of mob
-				|| (battle_config.mob_ai&0x2 && !status_check_skilluse(&md->bl, abl, 0, 0)) //Cannot normal attack back to Attacker
-				|| (!battle_check_range(&md->bl, abl, md->status.rhw.range) //Not on Melee Range and,
+				|| (battle_config.mob_ai&0x2 && !status_check_skilluse(&md->bl, abl, 0, 0)) //Cannot normal attack back to attacker
+				|| (!battle_check_range(&md->bl, abl, md->status.rhw.range) //Not on melee range
 				&& ( //Reach check
 						(!can_move && DIFF_TICK(tick, md->ud.canmove_tick) > 0 && (battle_config.mob_ai&0x2 || (md->sc.data[SC_SPIDERWEB] && md->sc.data[SC_SPIDERWEB]->val1)
 							|| md->sc.data[SC_BITE] || md->sc.data[SC_VACUUM_EXTREME] || md->sc.data[SC_THORNSTRAP]
@@ -1491,13 +1490,11 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 					md->attacked_id = 0;
 					return true;
 				}
-			} else if(!(battle_config.mob_ai&0x2) && !status_check_skilluse(&md->bl, abl, 0, 0)) {
+			} else if(!(battle_config.mob_ai&0x2) && !status_check_skilluse(&md->bl, abl, 0, 0))
 				; //Can't attack back, but didn't invoke a rude attacked skill
-			} else { //Attackable
-				if(!tbl || dist < md->status.rhw.range || !check_distance_bl(&md->bl, tbl, dist) ||
-					battle_gettarget(tbl) != md->bl.id) {
-					//Change if the new target is closer than the actual one
-					//or if the previous target is not attacking the mob. [Skotlex]
+			else { //Attackable
+				if(!tbl || dist < md->status.rhw.range || !check_distance_bl(&md->bl, tbl, dist) || battle_gettarget(tbl) != md->bl.id) {
+					//Change if the new target is closer than the actual one or if the previous target is not attacking the mob [Skotlex]
 					md->target_id = md->attacked_id; //Set target
 					if(md->state.attacked_count)
 					  md->state.attacked_count--; //Should we reset rude attack count?
@@ -1508,14 +1505,11 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 				}
 			}
 		}
-
-		//Clear it since it's been checked for already
-		md->attacked_id = 0;
+		md->attacked_id = 0; //Clear it since it's been checked for already
 	}
 
-	//Processing of slave monster
 	if(md->master_id > 0 && mob_ai_sub_hard_slavemob(md, tick))
-		return true;
+		return true; //Processing of slave monster
 
 	//Scan area for targets and items to loot, avoid trying to loot if the mob is full and can't consume the items
 	if(!tbl && (mode&MD_LOOTER) && md->lootitem && DIFF_TICK(tick, md->ud.canact_tick) > 0 &&
@@ -1633,7 +1627,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 	if(battle_check_range(&md->bl, tbl, md->status.rhw.range))
 		return true;
 
-	//Only update target cell / drop target after having moved at least "mob_chase_refresh" cells
+	//Only update target cell/drop target after having moved at least "mob_chase_refresh" cells
 	if(md->ud.walktimer != INVALID_TIMER && (!can_move || md->ud.walkpath.path_pos <= battle_config.mob_chase_refresh))
 		return true;
 
@@ -3686,7 +3680,7 @@ static void item_dropratio_adjust(unsigned short nameid, int mob_id, int *rate_a
 // Initialization
 //
 /*==========================================
- * processes one mobdb entry
+ * Processes one mobdb entry
  *------------------------------------------*/
 static bool mob_parse_dbrow(char** str)
 {
@@ -3743,7 +3737,7 @@ static bool mob_parse_dbrow(char** str)
 	status->int_ = atoi(str[17]);
 	status->dex = atoi(str[18]);
 	status->luk = atoi(str[19]);
-	//All status should be min 1 to prevent divisions by zero from some skills. [Skotlex]
+	//All status should be min 1 to prevent divisions by zero from some skills [Skotlex]
 	if (status->str < 1) status->str = 1;
 	if (status->agi < 1) status->agi = 1;
 	if (status->vit < 1) status->vit = 1;
