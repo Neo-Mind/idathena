@@ -2738,7 +2738,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 		return 0;
 
 	//When Gravitational Field is active, damage can only be dealt by Gravitational Field and Autospells
-	if (sc && sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF && skill_id != HW_GRAVITATION && !sd->state.autocast)
+	if (sc && sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF && skill_id != HW_GRAVITATION && sd && !sd->state.autocast)
 		return 0;
 
 	dmg = battle_calc_attack(attack_type, src, bl, skill_id, skill_lv, flag&0xFFF);
@@ -8046,17 +8046,13 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			}
 			break;
 
-		case RG_CLEANER: //AppleGirl
+		case RG_CLEANER: //[AppleGirl]
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			break;
 
-		case CG_LONGINGFREEDOM: {
-				if (tsc && !tsce && (tsce = tsc->data[SC_DANCING]) && tsce->val4 &&
-					(tsce->val1&0xFFFF) != CG_MOONLIT) { //Can't use Longing for Freedom while under Moonlight Petals. [Skotlex]
-					clif_skill_nodamage(src,bl,skill_id,skill_lv,
-						sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
-				}
-			}
+		case CG_LONGINGFREEDOM: //Can't use Longing for Freedom while under Sheltering Bliss [Skotlex]
+			if (tsc && !tsce && (tsce = tsc->data[SC_DANCING]) && tsce->val4 && (tsce->val1&0xFFFF) != CG_MOONLIT)
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			break;
 
 		case CG_TAROTCARD: {
@@ -13122,11 +13118,10 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 			//break;
 
 		case UNT_MOONLIT:
-			//Knockback out of area if affected char isn't in Moonlit effect
 			if( sc && sc->data[SC_DANCING] && (sc->data[SC_DANCING]->val1&0xFFFF) == CG_MOONLIT )
-				break;
-			if( bl->id == src->id ) //Also needed to prevent infinite loop crash
-				break;
+				break; //Knockback out of area if affected char isn't in Moonlit effect
+			if( bl->id == src->id )
+				break; //Also needed to prevent infinite loop crash
 			skill_blown(src,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
 			break;
 
@@ -14845,7 +14840,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 				return false;
 			}
 			break;
-		case CG_MOONLIT: { //Check there's no wall in the range+1 area around the caster. [Skotlex]
+		case CG_MOONLIT: { //Check there's no wall in the range+1 area around the caster [Skotlex]
 				int i, range = skill_get_splash(skill_id,skill_lv) + 1;
 				int size = range * 2 + 1;
 
@@ -15346,9 +15341,8 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		}
 	}
 
+	//'mhp' is the max-hp-requirement, so that you must have this % or less of HP to cast it
 	if( require.mhp > 0 && get_percentage(status->hp, status->max_hp) > require.mhp ) {
-		//mhp is the max-hp-requirement, that is,
-		//you must have this % or less of HP to cast it.
 		clif_skill_fail(sd,skill_id,USESKILL_FAIL_HP_INSUFFICIENT,0,0);
 		return false;
 	}
@@ -20636,7 +20630,7 @@ static bool skill_parse_row_requiredb(char* split[], int columns, int current)
 		skill_db[idx].require.amount[i] = atoi(split[14 + 2 * i]);
 	}
 
-	//Equipped Item requirements.
+	//Equipped Item requirements
 	//NOTE: We don't check the item is exist or not here
 	trim(split[33]);
 	if( split[33][0] != '\0' || atoi(split[33]) ) {

@@ -5109,19 +5109,17 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			wd.equipAtk2 += battle_calc_cardfix(BF_WEAPON, src, target, skill_id, nk, right_element, left_element, wd.equipAtk2, 3, wd.flag);
 		}
 
-		switch(skill_id) {
-			case PA_SHIELDCHAIN:
-				if(sd) {
-					short index = sd->equip_index[EQI_HAND_L];
+		if(skill_id == PA_SHIELDCHAIN) {
+			if(sd) {
+				short index = sd->equip_index[EQI_HAND_L];
 
-					if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR)
-						ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sd->inventory_data[index]->weight / 10);
-				} else {
-					struct status_data *sstatus = status_get_status_data(src);
+				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR)
+					ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sd->inventory_data[index]->weight / 10);
+			} else {
+				struct status_data *sstatus = status_get_status_data(src);
 
-					ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sstatus->rhw.atk2);
-				}
-				break;
+				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sstatus->rhw.atk2);
+			}
 		}
 
 		//Final attack bonuses that aren't affected by cards
@@ -5386,10 +5384,10 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 	}
 #endif
 
+	//Shield refine bonus applies after cards and elements
 	if(sd && (skill_id == CR_SHIELDBOOMERANG || skill_id == PA_SHIELDCHAIN)) {
 		short index = sd->equip_index[EQI_HAND_L];
 
-		//Shield refine bonus applies after cards and elements
 		if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR)
 			ATK_ADD(wd.damage, wd.damage2, 10 * sd->status.inventory[index].refine);
 	}

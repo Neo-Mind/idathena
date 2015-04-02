@@ -16,7 +16,7 @@
 // 11. R_Full			Amount of Intimacy that is decreased when over-fed.
 // 12. Intimate			Amount of Intimacy the pet starts with.
 // 13. Die			Amount of Intimacy that is decreased when the pet owner dies.
-// 14. Capture			Capture succes rate (10000 = 100%)
+// 14. Capture			Capture success rate (10000 = 100%)
 // 15. Speed			Pet's walk speed. (Defaul: 150)
 // 16. S_Performance		Special Performance. (Yes = 1, No = 0)
 // 17. talk_convert_class	Disables pet talk (instead of talking they emote  with /!.)
