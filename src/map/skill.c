@@ -14569,8 +14569,8 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 	if( sd->chatID )
 		return false;
 
+	//GMs don't override the skillItem check, otherwise they can use items without them being consumed! [Skotlex]
 	if( pc_has_permission(sd,PC_PERM_SKILL_UNCONDITIONAL) && sd->skillitem != skill_id ) {
-		//GMs don't override the skillItem check, otherwise they can use items without them being consumed! [Skotlex]
 		sd->state.arrow_atk = (skill_get_ammotype(skill_id) ? 1 : 0); //Need to do arrow state check
 		sd->spiritball_old = sd->spiritball; //Need to do Spiritball check
 		return true;
@@ -14629,18 +14629,17 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		return false;
 	}
 
-	//Checks if disabling skill - in which case no SP requirements are necessary
-	if( sc && skill_disable_check(sc,skill_id) )
+	if( sc && skill_disable_check(sc,skill_id) ) //Checks if disabling skill - in which case no SP requirements are necessary
 		return true;
 
 	inf3 = skill_get_inf3(skill_id);
 
 	//Check the skills that can be used while mounted on a warg
+	//In official there is no message
 	if( pc_isridingwug(sd) && !(inf3&INF3_USABLE_WARG) )
-		return false; //In official there is no message.
+		return false;
 
-	//Check the skills that can be used while mounted on a mado
-	if( pc_ismadogear(sd) ) {
+	if( pc_ismadogear(sd) ) { //Check the skills that can be used while mounted on a mado
 		if( !(skill_id > NC_MADOLICENCE && skill_id <= NC_DISJOINT) &&
 			skill_id != NC_MAGMA_ERUPTION && skill_id != ALL_FULL_THROTTLE &&
 			skill_id != BS_GREED )
@@ -14655,8 +14654,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 
 	require = skill_get_requirement(sd,skill_id,skill_lv);
 
-	//Can only update state when weapon/arrow info is checked
-	sd->state.arrow_atk = (require.ammo ? 1 : 0);
+	sd->state.arrow_atk = (require.ammo ? 1 : 0); //Can only update state when weapon/arrow info is checked
 
 	inf2 = skill_get_inf2(skill_id);
 
@@ -14671,8 +14669,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		return false;
 	}
 
-	//Perform skill-specific checks (and actions)
-	switch( skill_id ) {
+	switch( skill_id ) { //Perform skill-specific checks (and actions)
 		case AL_WARP:
 			if( !battle_config.duel_allow_teleport && sd->duel_group ) { //Duel restriction [LuzZza]
 				char output[128]; sprintf(output,msg_txt(365),skill_get_name(AL_WARP));
@@ -14866,8 +14863,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 			break;
 		case HP_BASILICA:
 			if( !(sc && sc->data[SC_BASILICA]) ) {
-				if( sd ) {
-					//When castbegin, needs 7x7 clear area
+				if( sd ) { //When castbegin, needs 7x7 clear area
 					int i, range = skill_get_unit_layout_type(skill_id,skill_lv) + 1;
 					int size = range * 2 + 1;
 
@@ -14917,8 +14913,8 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		case SG_FUSION:
 			if( sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_STAR )
 				break;
-			//Auron insists we should implement SP consumption when you are not Soul Linked. [Skotlex]
-			//Only invoke on skill begin cast (instant cast skill). [Kevin]
+			//Auron insists we should implement SP consumption when you are not Soul Linked [Skotlex]
+			//Only invoke on skill begin cast (instant cast skill) [Kevin]
 			if( require.sp > 0 ) {
 				if( status->sp < (unsigned int)require.sp )
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_SP_INSUFFICIENT,0,0);
@@ -14936,8 +14932,8 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		//Fall through
 		case GD_EMERGENCYCALL:
 		case GD_ITEMEMERGENCYCALL:
-			if( !sd->status.guild_id || !sd->state.gmaster_flag ) //Other checks were already done in skill_isNotOk()
-				return false; 
+			if( !sd->status.guild_id || !sd->state.gmaster_flag )
+				return false; //Other checks were already done in skill_isNotOk()
 			break;
 		case GS_GLITTERING:
 			if( sd->spiritball >= 10 ) {
@@ -15221,8 +15217,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 			break;
 	}
 
-	//Check state required
-	switch( require.state ) {
+	switch( require.state ) { //Check state required
 		case ST_HIDDEN:
 			if( !pc_ishiding(sd) ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
@@ -15313,12 +15308,10 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 			break;
 	}
 
-	//Check the status required
-	if( require.status_count ) {
+	if( require.status_count ) { //Check the status required
 		switch( skill_id ) {
-			//Being checked later in skill_check_condition_castend()
 			case WZ_SIGHTRASHER:
-				break;
+				break; //Being checked later in skill_check_condition_castend()
 			default:
 				if( !skill_check_condition_sc_required(sd,skill_id,&require) )
 					return false;
@@ -15326,16 +15319,29 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		}
 	}
 
-	//Check if equiped item
-	if( require.eqItem_count ) {
+	if( require.eqItem_count ) { //Check if equiped item
 		for( i = 0; i < require.eqItem_count; i++ ) {
 			uint16 reqeqit = require.eqItem[i];
 
 			if( !reqeqit )
 				break; //No more required item get out of here
-			if( !pc_checkequip2(sd,reqeqit,EQI_ACC_L,EQI_MAX) ) {
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_EQUIPMENT,0,reqeqit);
-				return false;
+			switch( skill_id ) {
+				case NC_PILEBUNKER:
+					if( !pc_checkequip2(sd,reqeqit,EQI_ACC_L,EQI_MAX) &&
+						!pc_checkequip2(sd,ITEMID_PILE_BUNKER_S,EQI_ACC_L,EQI_MAX) &&
+						!pc_checkequip2(sd,ITEMID_PILE_BUNKER_P,EQI_ACC_L,EQI_MAX) &&
+						!pc_checkequip2(sd,ITEMID_PILE_BUNKER_T,EQI_ACC_L,EQI_MAX) )
+					{
+						clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_EQUIPMENT,0,reqeqit);
+						return false;
+					}
+					break;
+				default:
+					if( !pc_checkequip2(sd,reqeqit,EQI_ACC_L,EQI_MAX) ) {
+						clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_EQUIPMENT,0,reqeqit);
+						return false;
+					}
+					break;
 			}
 		}
 	}
@@ -20377,7 +20383,8 @@ int skill_block_check(struct block_list *bl, sc_type type , uint16 skill_id) {
 	return 0;
 }
 
-/* Determines whether a skill is currently active or not
+/**
+ * Determines whether a skill is currently active or not
  * Used for purposes of cancelling SP usage when disabling a skill
  */
 int skill_disable_check(struct status_change *sc, uint16 skill_id)
