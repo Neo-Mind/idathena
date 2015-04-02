@@ -14634,17 +14634,15 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 
 	inf3 = skill_get_inf3(skill_id);
 
-	//Check the skills that can be used while mounted on a warg
-	//In official there is no message
-	if( pc_isridingwug(sd) && !(inf3&INF3_USABLE_WARG) )
-		return false;
+	if( pc_isridingwug(sd) && !(inf3&INF3_USABLE_WARG) ) //Check the skills that can be used while mounted on a warg
+		return false; //In official there is no fail message
 
 	if( pc_ismadogear(sd) ) { //Check the skills that can be used while mounted on a mado
 		if( !(skill_id > NC_MADOLICENCE && skill_id <= NC_DISJOINT) &&
 			skill_id != NC_MAGMA_ERUPTION && skill_id != ALL_FULL_THROTTLE &&
 			skill_id != BS_GREED )
 		{
-			clif_skill_fail(sd,skill_id,USESKILL_FAIL_MADOGEAR,0,0);
+			clif_skill_fail(sd,skill_id,USESKILL_FAIL_MADOGEAR_RIDE,0,0);
 			return false;
 		}
 	}
