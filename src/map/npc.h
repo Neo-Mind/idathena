@@ -206,7 +206,7 @@ int npc_rr_secure_timeout_timer(int tid, unsigned int tick, int id, intptr_t dat
 #endif
 
 // @commands (script-based)
-int npc_do_atcmd_event(struct map_session_data* sd, const char* command, const char* message, const char* eventname);
+int npc_do_atcmd_event(struct map_session_data *sd, const char *command, const char *message, const char *eventname);
 
 bool npc_unloadfile(const char* path);
 

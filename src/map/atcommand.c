@@ -4646,7 +4646,7 @@ ACMD_FUNC(jailfor) {
 	modif_p = atcmd_output;
 	jailtime = (int)solve_time(modif_p) / 60; // Change to minutes
 
-	if (jailtime == 0) {
+	if (!jailtime) {
 		clif_displaymessage(fd, msg_txt(1136)); // Invalid time for jail command.
 		clif_displaymessage(fd, msg_txt(702)); // Time parameter format is +/-<value> to alter. y/a = Year, m = Month, d/j = Day, h = Hour, n/mn = Minute, s = Second.
 		return -1;
@@ -4668,11 +4668,12 @@ ACMD_FUNC(jailfor) {
 		if (jailtime <= 0) {
 			jailtime = 0;
 			clif_displaymessage(pl_sd->fd, msg_txt(120)); // GM has discharge you.
-			clif_displaymessage(fd, msg_txt(121)); // Player unjailed
+			clif_displaymessage(fd, msg_txt(121)); // Player unjailed.
 		} else {
 			int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0;
 			char timestr[21];
 			time_t now = time(NULL);
+
 			split_time(jailtime * 60, &year, &month, &day, &hour, &minute, &second);
 			sprintf(atcmd_output, msg_txt(402), msg_txt(1137), year, month, day, hour, minute); // %s in jail for %d years, %d months, %d days, %d hours and %d minutes
 			clif_displaymessage(pl_sd->fd, atcmd_output);
@@ -4688,8 +4689,7 @@ ACMD_FUNC(jailfor) {
 		return -1;
 	}
 
-	// Jail locations, add more as you wish.
-	switch(rnd()%2) {
+	switch(rnd()%2) { // Jail locations, add more as you wish.
 		case 1: // Jail #1
 			m_index = mapindex_name2id(MAP_JAIL);
 			x = 49; y = 75;
@@ -4700,7 +4700,8 @@ ACMD_FUNC(jailfor) {
 			break;
 	}
 
-	sc_start4(NULL, &pl_sd->bl, SC_JAILED, 100, jailtime, m_index, x, y, jailtime ? 60000 : 1000); //jailtime = 0: Time was reset to 0. Wait 1 second to warp player out (since it's done in status_change_timer).
+	//jailtime = 0: Time was reset to 0. Wait 1 second to warp player out (since it's done in status_change_timer).
+	sc_start4(NULL, &pl_sd->bl, SC_JAILED, 100, jailtime, m_index, x, y, (jailtime ? 60000 : 1000));
 	return 0;
 }
 

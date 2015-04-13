@@ -314,12 +314,12 @@ int skill_get_casttype(uint16 skill_id)
 }
 
 //Returns actual skill range taking into account attack range and AC_OWL [Skotlex]
-int skill_get_range2 (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
+int skill_get_range2(struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 {
 	int range, inf3 = 0;
 
 	if( bl->type == BL_MOB && (battle_config.mob_ai&0x400) )
-		return 9; //Mobs have a range of 9 regardless of skill used.
+		return 9; //Mobs have a range of 9 regardless of skill used
 
 	range = skill_get_range(skill_id, skill_lv);
 	if( range < 0 ) {
@@ -332,10 +332,9 @@ int skill_get_range2 (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 	if( inf3&(INF3_EFF_VULTURE|INF3_EFF_SNAKEEYE) ) {
 		if( bl->type == BL_PC ) {
 			if( inf3&INF3_EFF_VULTURE )
-				range += pc_checkskill((TBL_PC*)bl, AC_VULTURE);
-			//Added to allow GS skills to be effected by the range of Snake Eyes [Reddozen]
-			if( inf3&INF3_EFF_SNAKEEYE )
-				range += pc_checkskill((TBL_PC*)bl, GS_SNAKEEYE);
+				range += pc_checkskill((TBL_PC *)bl, AC_VULTURE);
+			if( inf3&INF3_EFF_SNAKEEYE ) //Allow GS skills to be effected by the range of Snake Eyes [Reddozen]
+				range += pc_checkskill((TBL_PC *)bl, GS_SNAKEEYE);
 		} else
 			range += 10; //Assume level 10?
 	}
@@ -343,11 +342,11 @@ int skill_get_range2 (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 	if( inf3&(INF3_EFF_SHADOWJUMP|INF3_EFF_RADIUS|INF3_EFF_RESEARCHTRAP) ) {
 		if( bl->type == BL_PC ) {
 			if( inf3&INF3_EFF_SHADOWJUMP )
-				range = skill_get_range(NJ_SHADOWJUMP, pc_checkskill((TBL_PC*)bl, NJ_SHADOWJUMP));
+				range = skill_get_range(NJ_SHADOWJUMP, pc_checkskill((TBL_PC *)bl, NJ_SHADOWJUMP));
 			if( inf3&INF3_EFF_RADIUS )
-				range += pc_checkskill((TBL_PC*)bl, WL_RADIUS);
+				range += pc_checkskill((TBL_PC *)bl, WL_RADIUS);
 			if( inf3&INF3_EFF_RESEARCHTRAP )
-				range += (1 + pc_checkskill((TBL_PC*)bl, RA_RESEARCHTRAP)) / 2;
+				range += (1 + pc_checkskill((TBL_PC *)bl, RA_RESEARCHTRAP)) / 2;
 		}
 	}
 
@@ -975,12 +974,13 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			sc_start(src,bl,SC_STUN,(6 * skill_lv),skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
 		case AS_VENOMKNIFE:
-			if( sd ) //Poison chance must be that of Envenom. [Skotlex]
+			if( sd ) //Poison chance must be that of Envenom [Skotlex]
 				skill_lv = pc_checkskill(sd,TF_POISON);
+		//Fall through
 		case TF_POISON:
 		case AS_SPLASHER:
-			if( !sc_start2(src,bl,SC_POISON,(4 * skill_lv + 10),skill_lv,src->id,skill_get_time2(skill_id,skill_lv) ) &&
-				sd && skill_id == TF_POISON)
+			if( skill_id == TF_POISON && sd &&
+				!sc_start2(src,bl,SC_POISON,(4 * skill_lv + 10),skill_lv,src->id,skill_get_time2(skill_id,skill_lv)) )
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
 			break;
 		case AS_SONICBLOW:
@@ -1107,8 +1107,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			break;
 		case NPC_PETRIFYATTACK:
 			sc_start4(src,bl,status_skill2sc(skill_id),50 + 10 * skill_lv,
-				skill_lv,0,0,skill_get_time(skill_id,skill_lv),
-				skill_get_time2(skill_id,skill_lv));
+				skill_lv,0,0,skill_get_time(skill_id,skill_lv),skill_get_time2(skill_id,skill_lv));
 			break;
 		case NPC_CURSEATTACK:
 		case NPC_SLEEPATTACK:
@@ -1288,7 +1287,8 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			sc_start(src,bl,SC_FREEZE,100,skill_lv,skill_get_time(skill_id,skill_lv));
 			break;
 		case RA_WUGBITE:
-			sc_start(src,bl,SC_BITE,50 + 10 * skill_lv + (sd ? pc_checkskill(sd,RA_TOOTHOFWUG) * 2 : 0),skill_lv,(skill_get_time(skill_id,skill_lv) + (sd ? pc_checkskill(sd,RA_TOOTHOFWUG) * 500 : 0)) );
+			sc_start(src,bl,SC_BITE,50 + 10 * skill_lv + (sd ? pc_checkskill(sd,RA_TOOTHOFWUG) * 2 : 0),
+				skill_lv,(skill_get_time(skill_id,skill_lv) + (sd ? pc_checkskill(sd,RA_TOOTHOFWUG) * 500 : 0)));
 			break;
 		case RA_SENSITIVEKEEN:
 			if( rnd()%100 < 8 * skill_lv )
@@ -2234,7 +2234,7 @@ int skill_strip_equip(struct block_list *src, struct block_list *bl, unsigned sh
  *  0x40 - if target is in Basilica area
  * @return Number of knocked back cells done
  */
-short skill_blown(struct block_list* src, struct block_list* target, char count, int8 dir, unsigned char flag)
+short skill_blown(struct block_list *src, struct block_list *target, char count, int8 dir, unsigned char flag)
 {
 	int dx = 0, dy = 0;
 	int reason = 0, checkflag = 0;
@@ -2582,17 +2582,17 @@ static void skill_do_copy(struct block_list* src,struct block_list *bl, uint16 s
 }
 
 /**
-* Knockback the target on skill_attack
-* @param src is the master behind the attack
-* @param dsrc is the actual originator of the damage, can be the same as src, or a BL_SKILL
-* @param target is the target to be attacked.
-* @param blewcount
-* @param skill_id
-* @param skill_lv
-* @param damage
-* @param tick
-* @param flag can hold a bunch of information:
-*/
+ * Knockback the target on skill_attack
+ * @param src is the master behind the attack
+ * @param dsrc is the actual originator of the damage, can be the same as src, or a BL_SKILL
+ * @param target is the target to be attacked.
+ * @param blewcount
+ * @param skill_id
+ * @param skill_lv
+ * @param damage
+ * @param tick
+ * @param flag can hold a bunch of information:
+ */
 void skill_attack_blow(struct block_list *src, struct block_list *dsrc, struct block_list *target, uint8 blewcount, uint16 skill_id, uint16 skill_lv, int64 damage, unsigned int tick, int flag) {
 	int8 dir = -1; //Default direction
 
@@ -2626,31 +2626,24 @@ void skill_attack_blow(struct block_list *src, struct block_list *dsrc, struct b
 			break;
 	}
 
-	//Blown-specific handling
-	switch (skill_id) {
-		case LG_OVERBRAND_BRANDISH:
-			//Give knockback damage bonus only hits the wall. (bugreport:9096)
-			if (skill_blown(dsrc, target, blewcount, dir, 0x08|0x10|0x20|0x40) < blewcount)
+	switch (skill_id) { //Blown-specific handling
+		case LG_OVERBRAND_BRANDISH: //Give knockback damage bonus only hits the wall (bugreport:9096)
+			if (skill_blown(dsrc, target, blewcount, dir, 0x08|0x10|0x20) < blewcount)
 				skill_addtimerskill(src, tick + status_get_amotion(src), target->id, 0, 0, LG_OVERBRAND_PLUSATK, skill_lv, BF_WEAPON, flag|SD_ANIMATION);
 			break;
 		case SR_KNUCKLEARROW: {
 				short x = target->x, y = target->y;
 
-				//Ignore knockback damage bonus if in WOE (player cannot be knocked in WOE)
-				//Boss & Immune Knockback (mode or from bonus bNoKnockBack) target still remains the damage bonus
-				//(bugreport:9096)
-				if (skill_blown(dsrc, target, blewcount, dir_ka, 0x08) < blewcount)
+				//Ignore knockback damage bonus if in WOE or target is boss/knockback immune (bugreport:9096)
+				if (skill_blown(dsrc, target, blewcount, dir_ka, 0x08|0x10|0x20) < blewcount)
 					skill_addtimerskill(src, tick + 300 * ((flag&2) ? 1 : 2), target->id, 0, 0, skill_id, skill_lv, BF_WEAPON, flag|4);
-
 				dir_ka = -1;
-
-				//Move attacker to the target position after knocked back
 				if ((target->x != x || target->y != y) && unit_movepos(src,target->x,target->y,1,true))
-					clif_blown(src, target);
+					clif_blown(src, target); //Move attacker to the target position after knocked back
 			}
 			break;
 		case RL_R_TRIP:
-			if (skill_blown(dsrc, target, blewcount, dir, 0) < blewcount)
+			if (skill_blown(dsrc, target, blewcount, dir, 0x08|0x10|0x20) < blewcount)
 				skill_addtimerskill(src, tick + status_get_amotion(src), target->id, 0, 0, RL_R_TRIP_PLUSATK, skill_lv, BF_WEAPON, flag|SD_ANIMATION);
 			break;
 		case RL_SLUGSHOT:
@@ -2660,7 +2653,7 @@ void skill_attack_blow(struct block_list *src, struct block_list *dsrc, struct b
 		default:
 			skill_blown(dsrc, target, blewcount, dir, 0);
 			if (!blewcount && target->type == BL_SKILL && damage > 0) {
-				TBL_SKILL *su = (TBL_SKILL*)target;
+				TBL_SKILL *su = (TBL_SKILL *)target;
 
 				if (su->group && su->group->skill_id == HT_BLASTMINE)
 					skill_blown(src, target, 3, -1, 0);
@@ -3052,7 +3045,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 			if ((flag&SD_ANIMATION) && dmg.div_ < 2) //Disabling skill animation doesn't works on multi-hit
 				type = DMG_SPLASH;
 			if (bl->type == BL_SKILL) {
-				TBL_SKILL *su = (TBL_SKILL*)bl;
+				TBL_SKILL *su = (TBL_SKILL *)bl;
 
 				if (su && su->group && (skill_get_inf2(su->group->skill_id)&INF2_TRAP)) //Show damage on trap targets
 					clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, (flag&SD_LEVEL) ? -1 : skill_lv, DMG_SPLASH);
@@ -4127,18 +4120,16 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 				unsigned int dist = distance_bl(src,bl);
 				uint8 dir = map_calc_dir(bl,src->x,src->y);
 
-				//Teleport to target (if not on WoE grounds)
 				if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x,bl->y,0,true))
-					clif_blown(src,bl);
+					clif_blown(src,bl); //Teleport to target (If not in GVG)
 
-				//Cause damage and knockback if the path to target was a straight one
-				if (path) {
+				if (path) { //Cause damage and knockback if the path to target was a straight one
 					if (dist > 9)
 						dist = 9;
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,dist);
 					skill_blown(src,bl,dist,dir,0);
-					//HACK: Since knockback officially defaults to the left, the client also turns to the left... therefore,
-					//Make the caster look in the direction of the target
+					//HACK: Since knockback officially defaults to the left, the client also turns to the left
+					//Therefore make the caster look in the direction of the target
 					unit_setdir(src,(dir + 4)%8);
 				}
 			}
@@ -4230,9 +4221,8 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 				else
 					y = 0;
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
-				//Ashura Strike still has slide effect in GVG
-				if ((mbl->id == src->id || (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground)) &&
-					unit_movepos(src,mbl->x + x,mbl->y + y,1,true)) {
+				if ((mbl == src || (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground)) &&
+					unit_movepos(src,mbl->x + x,mbl->y + y,1,true)) { //Ashura Strike still has slide effect in GVG
 					clif_blown(src,mbl);
 					clif_spiritball(src);
 				}
@@ -4669,8 +4659,8 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 				y = 2;
 			else
 				y = 0;
-			//Doesn't have slide effect in GVG
-			if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x + x,bl->y + y,1,true)) {
+			if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground &&
+				unit_movepos(src,bl->x + x,bl->y + y,1,true)) { //Doesn't have slide effect in GVG
 				clif_blown(src,bl);
 				clif_spiritball(src);
 			}
@@ -4723,8 +4713,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 		case NPC_BLOODDRAIN:
 		case NPC_ENERGYDRAIN:
 			{
-				int heal = skill_attack((skill_id == NPC_BLOODDRAIN) ? BF_WEAPON : BF_MAGIC,
-					src,src,bl,skill_id,skill_lv,tick,flag);
+				int heal = skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag);
 
 				if (heal > 0) {
 					clif_skill_nodamage(NULL,src,AL_HEAL,heal,1);
@@ -4742,16 +4731,15 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 				sc_start(src,src,SC_HIDING,100,skill_lv,skill_get_time(skill_id,skill_lv));
 			break;
 
-		case NJ_KIRIKAGE:
-			if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground) { //You don't move on GVG grounds.
+		case NJ_KIRIKAGE: {
 				short x, y;
 
 				map_search_freecell(bl,0,&x,&y,1,1,0);
 				if (unit_movepos(src,x,y,0,false))
 					clif_blown(src,src);
+				status_change_end(src,SC_HIDING,INVALID_TIMER);
+				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			}
-			status_change_end(src,SC_HIDING,INVALID_TIMER);
-			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
 
 		case GC_DARKILLUSION:
@@ -5054,9 +5042,8 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 			//Holds current direction of bl/target to src/attacker before the src is moved to bl location
 			dir_ka = map_calc_dir(bl,src->x,src->y);
 
-			//Has slide effect even in GVG
 			if (unit_movepos(src,bl->x,bl->y,1,true))
-				clif_blown(src,bl);
+				clif_blown(src,bl); //Has slide effect even in GVG
 			skill_addtimerskill(src,tick,bl->id,0,0,skill_id,skill_lv,BF_WEAPON,flag|SD_LEVEL|2);
 			break;
 
@@ -6783,10 +6770,9 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
 					break;
 				}
-				if (sc_start4(src,bl,SC_STONE,(skill_lv * 4 + 20) + brate,
-					skill_lv,0,0,skill_get_time(skill_id,skill_lv),
-					skill_get_time2(skill_id,skill_lv)))
-						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+				if (sc_start4(src,bl,SC_STONE,skill_lv * 4 + 20 + brate,
+					skill_lv,0,0,skill_get_time(skill_id,skill_lv),skill_get_time2(skill_id,skill_lv)))
+					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				else if (sd) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
 					//Level 6-10 doesn't consume a red gem if it fails [celest]
@@ -9036,7 +9022,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 		case WL_WHITEIMPRISON:
 			if( bl->id == src->id || battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
-				int rate = ( sd ? sd->status.job_level / 4 : 0 );
+				int rate = (sd ? sd->status.job_level / 4 : 0);
 
 				if( bl->id == src->id )
 					rate = 100; //Success Chance: On self, 100%
@@ -9044,10 +9030,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					rate += 20 + 10 * skill_lv; //On Players, (20 + 10 * Skill Level) %
 				else
 					rate += 40 + 10 * skill_lv; //On Monsters, (40 + 10 * Skill Level) %
-
-				if( sd )
-					skill_blockpc_start(sd,skill_id,4000);
-
 				if( !(tsc && tsc->data[type]) ) {
 					i = sc_start2(src,bl,type,rate,skill_lv,src->id,(bl->id == src->id) ? 5000 : (bl->type == BL_PC) ?
 						skill_get_time(skill_id,skill_lv) : skill_get_time2(skill_id,skill_lv));
@@ -9516,13 +9498,13 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			if( flag&1 ) {
 				if( sc_start2(src,bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv))) {
 					if( bl->type == BL_MOB )
-						mob_unlocktarget((TBL_MOB*)bl,gettick());
+						mob_unlocktarget((TBL_MOB *)bl,gettick());
 					clif_bladestop(src,bl->id,1);
 					map_freeblock_unlock();
 					return 1;
 				}
 			} else {
-				int count = 0;
+				int count;
 
 				clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,DMG_SKILL);
 				count = map_forcountinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),(sd) ? sd->spiritball_old : 15, //Assume 15 spiritballs in non-charactors
@@ -9976,12 +9958,12 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				if( !sd->ed )
 					break;
 				switch( sd->ed->db->class_ ) {
-					case 2115:case 2124:
-					case 2118:case 2121:
+					case 2115:	case 2124:
+					case 2118:	case 2121:
 						duration = 6000;
 						break;
-					case 2116:case 2119:
-					case 2122:case 2125:
+					case 2116:	case 2119:
+					case 2122:	case 2125:
 						duration = 9000;
 						break;
 				}
@@ -11631,9 +11613,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 		case NJ_SHADOWJUMP:
 			if( !map_flag_gvg2(src->m) && !map[src->m].flag.battleground &&
-				unit_movepos(src,x,y,1,false) ) { //You don't move on GVG grounds
+				unit_movepos(src,x,y,1,false) ) //You don't move on GVG grounds
 				clif_blown(src,src);
-			}
 			status_change_end(src,SC_HIDING,INVALID_TIMER);
 			break;
 
@@ -11909,8 +11890,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case SC_FEINTBOMB:
 			clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 			skill_unitsetting(src,skill_id,skill_lv,x,y,0); //Set bomb on current Position
-			if( skill_blown(src,src,3 * skill_lv,unit_getdir(src),0) && sc )
-				sc_start(src,src,type,100,skill_lv,skill_get_time2(skill_id,skill_lv));
+			skill_blown(src,src,skill_get_blewcount(skill_id,skill_lv),unit_getdir(src),0);
+			sc_start(src,src,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 			break;
 
 		case SC_ESCAPE:
@@ -18096,6 +18077,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 					skill_delunit(unit);
 					break;
 				}
+			//Fall through
 			case UNT_SKIDTRAP:
 			case UNT_LANDMINE:
 			case UNT_SHOCKWAVE:
@@ -18196,7 +18178,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 				break;
 
 			case UNT_B_TRAP: {
-					struct block_list* src;
+					struct block_list *src;
 
 					if( group->item_id && unit->val2 <= 0 && (src = map_id2bl(group->src_id)) && src->type == BL_PC ) {
 						struct item item_tmp;
@@ -19647,20 +19629,20 @@ int skill_blockpc_end(int tid, unsigned int tick, int id, intptr_t data) {
 }
 
 /**
-* flags a singular skill as being blocked from persistent usage.
-* @param   sd        the player the skill delay affects
-* @param   skill_id   the skill which should be delayed
-* @param   tick      the length of time the delay should last
-* @param   load      whether this assignment is being loaded upon player login
-* @return  0 if successful, -1 otherwise
-*/
+ * flags a singular skill as being blocked from persistent usage.
+ * @param   sd        the player the skill delay affects
+ * @param   skill_id  the skill which should be delayed
+ * @param   tick      the length of time the delay should last
+ * @param   load      whether this assignment is being loaded upon player login
+ * @return  1 if successful, 0 otherwise
+ */
 int skill_blockpc_start(struct map_session_data *sd, uint16 skill_id, int tick) {
 	int i;
 
-	nullpo_retr(-1, sd);
+	nullpo_ret(sd);
 
 	if (!skill_id || tick < 1)
-		return -1;
+		return 0;
 
 	ARR_FIND(0, MAX_SKILLCOOLDOWN, i, sd->scd[i] && sd->scd[i]->skill_id == skill_id);
 	if (i < MAX_SKILLCOOLDOWN) { //Skill already with cooldown
@@ -19670,12 +19652,12 @@ int skill_blockpc_start(struct map_session_data *sd, uint16 skill_id, int tick) 
 	}
 
 	ARR_FIND(0, MAX_SKILLCOOLDOWN, i, !sd->scd[i]);
-	if (i < MAX_SKILLCOOLDOWN) { //Free Slot found
+	if (i < MAX_SKILLCOOLDOWN) { //Free slot found
 		CREATE(sd->scd[i], struct skill_cooldown_entry, 1);
 		sd->scd[i]->skill_id = skill_id;
 		sd->scd[i]->timer = add_timer(gettick() + tick, skill_blockpc_end, sd->bl.id, i);
 
-		if (battle_config.display_status_timers && tick > 0)
+		if (battle_config.display_status_timers && tick)
 			clif_skill_cooldown(sd, skill_id, tick);
 		return 1;
 	} else {

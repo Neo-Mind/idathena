@@ -446,7 +446,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint16 skill_id, uint16 skill_lv, unsigned int tick, int flag);
 int skill_castend_pos2(struct block_list *src, int x, int y, uint16 skill_id, uint16 skill_lv, unsigned int tick, int flag);
 
-int skill_blockpc_start(struct map_session_data*, uint16 skill_id, int tick);
+int skill_blockpc_start(struct map_session_data *sd, uint16 skill_id, int tick);
 int skill_blockpc_get(struct map_session_data *sd, uint16 skill_id);
 int skill_blockpc_clear(struct map_session_data *sd);
 int skill_blockpc_end(int tid, unsigned int tick, int id, intptr_t data);

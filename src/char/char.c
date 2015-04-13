@@ -1253,7 +1253,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 		SqlStmt_Free(stmt);
 		return 0;
 	}
-	if( SQL_ERROR == SqlStmt_NextRow(stmt) ) {
+	if( SQL_SUCCESS != SqlStmt_NextRow(stmt) ) {
 		ShowError("Requested non-existant character id: %d!\n", char_id);
 		SqlStmt_Free(stmt);
 		return 0;
@@ -1419,16 +1419,16 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 	strcat(t_msg, " hotkeys");
 #endif
 
-	/* Mercenary Owner DataBase */
+	//Mercenary owner database
 	mercenary_owner_fromsql(char_id, p);
 	strcat(t_msg, " mercenary");
 
 	if( save_log )
-		ShowInfo("Loaded char (%d - %s): %s\n", char_id, p->name, t_msg); //OK. all data load successfuly!
+		ShowInfo("Loaded char (%d - %s): %s\n", char_id, p->name, t_msg); //All data load successfuly!
 	SqlStmt_Free(stmt);
 	StringBuf_Destroy(&buf);
 
-	/* Load options into proper vars */
+	//Load options into proper vars
 	if( opt&OPT_ALLOW_PARTY )
 		p->allow_party = true;
 	if( opt&OPT_SHOW_EQUIP )
@@ -3606,7 +3606,7 @@ int parse_frommap(int fd)
 					}
 					if( Sql_NumRows(sql_handle) > 0 ) {
 						int count;
-						char* data;
+						char *data;
 						struct skill_cooldown_data scd;
 
 						WFIFOHEAD(fd,14 + MAX_SKILLCOOLDOWN * sizeof(struct skill_cooldown_data));

@@ -649,7 +649,7 @@ void pc_makesavestatus(struct map_session_data *sd)
 #else
 	sd->status.option = sd->sc.option&(OPTION_INVISIBLE|OPTION_CART|OPTION_FALCON|OPTION_RIDING|OPTION_DRAGON|OPTION_WUG|OPTION_WUGRIDER|OPTION_MADOGEAR);
 #endif
-	if(sd->sc.data[SC_JAILED]) { //When Jailed, do not move last point.
+	if(sd->sc.data[SC_JAILED]) { //When Jailed, do not move last point
 		if(pc_isdead(sd)) {
 			pc_setrestartvalue(sd,0);
 		} else {

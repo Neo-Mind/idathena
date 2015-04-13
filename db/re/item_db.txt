@@ -6296,8 +6296,8 @@
 12456,F_Greed_Scroll,F Greed Scroll,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
 12457,F_Glass_Of_Illusion,F Glass Of Illusion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
 12458,F_Abrasive,F Abrasive,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
-12459,F_Med_Life_Potion,F Med Life Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_HEAL3; sc_start2 SC_L_LIFEPOTION,600000,-7,4; },{},{}
-12460,F_Small_Life_Potion,F Small Life Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_HEAL3; sc_start2 SC_S_LIFEPOTION,600000,-5,5; },{},{}
+12459,F_Med_Life_Potion,F Med Life Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_HEAL3; sc_start2 SC_L_LIFEPOTION,600000,-7,4000; },{},{}
+12460,F_Small_Life_Potion,F Small Life Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_HEAL3; sc_start2 SC_S_LIFEPOTION,600000,-5,5000; },{},{}
 12461,F_Regeneration_Potion,F Regeneration Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
 12462,F_B_Mdef_Potion,F B Mdef Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_SPELLBREAKER; bonus_script "{ bonus3 bSubEle,Ele_All,3,BF_MAGIC; }",180,0,0,SI_MDEF_RATE; },{},{}
 12463,F_S_Mdef_Potion,F S Mdef Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_SPELLBREAKER; bonus_script "{ bonus3 bSubEle,Ele_All,3,BF_MAGIC; }",60,0,0,SI_MDEF_RATE; },{},{}
@@ -6351,8 +6351,8 @@
 12512,E_Greed_Scroll,E Greed Scroll,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
 12513,E_Glass_Of_Illusion,E Glass Of Illusion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
 12514,E_Abrasive,E Abrasive,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ autobonus "{ bonus bCriticalRate,30;}",100,1000; },{},{}
-12515,E_Med_Life_Potion,E Med Life Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_HEAL3; sc_start2 SC_L_LIFEPOTION,600000,-7,4; },{},{}
-12516,E_Small_Life_Potion,E Small Life Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_HEAL3; sc_start2 SC_S_LIFEPOTION,600000,-5,5; },{},{}
+12515,E_Med_Life_Potion,E Med Life Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_HEAL3; sc_start2 SC_L_LIFEPOTION,600000,-7,4000; },{},{}
+12516,E_Small_Life_Potion,E Small Life Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_HEAL3; sc_start2 SC_S_LIFEPOTION,600000,-5,5000; },{},{}
 12517,E_Regeneration_Potion,E Regeneration Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
 12518,E_B_Mdef_Potion,E B Mdef Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
 12519,E_S_Mdef_Potion,E S Mdef Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
@@ -8039,8 +8039,8 @@
 14531,Accuracy_30_Scroll,Concentration Scroll,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ sc_start SC_HITFOOD,1800000,30; },{},{}
 14532,Battle_Manual25,Field Manual 25%,2,2,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ sc_start SC_EXPBOOST,1800000,25; },{},{}
 14533,Battle_Manual100,Field Manual 100%,2,2,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ sc_start SC_EXPBOOST,1800000,100; },{},{}
-14534,Small_Life_Potion,Small Life Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_HEAL3; sc_start4 SC_S_LIFEPOTION,600000,-5,5,0,0; },{},{}
-14535,Med_Life_Potion,Medium Life Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_HEAL3; sc_start4 SC_L_LIFEPOTION,600000,-7,4,0,0; },{},{}
+14534,Small_Life_Potion,Small Life Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_HEAL3; sc_start2 SC_S_LIFEPOTION,600000,-5,5000; },{},{}
+14535,Med_Life_Potion,Medium Life Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_HEAL3; sc_start2 SC_L_LIFEPOTION,600000,-7,4000; },{},{}
 14536,Abrasive,Abrasive,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_MAGICALATTHIT; sc_start SC_INCCRI,300000,30; },{},{}
 14537,Regeneration_Potion,Regeneration Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_LIGHTSPHERE; sc_start SC_INCHEALRATE,1800000,20; },{},{}
 14538,Glass_Of_Illusion,Glass of Illusion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_STEAL; sc_start SC_INCFLEE2,60000,20; },{},{}
@@ -8791,7 +8791,7 @@
 17244,Event_Almighty_Box,Event Almighty Box,2,10,,10,,,,0,0xFFFFFFFF,63,2,,,,,,{ getitem 12883,10; },{},{}
 17245,Idn_Independ_Scroll,Idn Independ Scroll,18,20,,0,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
 17246,HD_Elunium_Box(30),HD Elunium Box(30),2,10,,10,,,,0,0xFFFFFFFF,63,2,,,,,,{ getitem 6241,30; },{},{}
-17247,HD_Oridecon_Box(30),HD Oridecon Box(30),2,10,,10,,,,0,0xFFFFFFFF,63,2,,,,,,{ getitem 6241,40; },{},{}
+17247,HD_Oridecon_Box(30),HD Oridecon Box(30),2,10,,10,,,,0,0xFFFFFFFF,63,2,,,,,,{ getitem 6241,30; },{},{}
 17251,C_Wing_Of_Fly_3Day_Box,C Wing Of Fly 3Day Box,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getgroupitem(IG_C_Wing_Of_Fly_3Day_Box); /* rentitem C_Wing_Of_Fly,259200; */ },{},{}	
 17252,RWC_2012_Set_Box,RWC 2012 Set Box,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getgroupitem(IG_RWC_2012_Set_Box); /* getitem 2966,1; getitem 2968,1; getitem 17251,1; */ },{},{}	
 17253,RWC_2012_Ring_Box,RWC 2012 Ring Box,18,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getitem 2966,1; },{},{}
@@ -9206,7 +9206,7 @@
 18763,Remodel_Joker_Jester,Improved Joker Jester,4,20,,100,,3,,1,0xFFFFFFFE,63,2,256,,0,1,89,{ bonus bLuk,2; bonus bMdef,5; if(getrefine()>=7) bonus bCritAtkRate,5; },{},{}
 18764,Remodel_Bunny_Band,Improved Bunny Band,4,20,,100,,3,,1,0xFFFFFFFF,63,2,256,,0,1,15,{ bonus bLuk,2; if(getrefine()>=7) bonus bCritical,5; },{},{}
 18765,Enhanced_Corsair,Enhanced Corsair,4,20,,500,,10,,1,0xFFFFFFFE,63,2,256,,99,1,105,{ bonus bVit,1; bonus bMaxHprate,5; if(getrefine()>=7){ bonus2 bSubEle,Ele_Neutral,1; if(getrefine()>=9) bonus bMaxHPrate,3; } },{},{}
-18766,Enhanced_Helm_Of_Angel,Enhanced Helm of Angel,4,20,,1600,,10,,1,0x00CFDF80,63,2,256,,99,1,110,{ bonus bAgi,1; bonus bLuk,1; bonus bMdef,3; if(getrefine()>=7){ bonus bAgi,2; bonus bLuk,2; if(getrefine()>=9) bonus bAspd,1; } },{},{}
+18766,Enhanced_Helm_Of_Angel,Enhanced Helm of Angel,4,20,,1600,,10,,1,0x00CFDF80,63,2,256,,99,1,110,{ bonus bAgi,1; bonus bLuk,1; bonus bMdef,3; if(getrefine()>=7) { bonus bAgi,2; bonus bLuk,2; } if(getrefine()>=9) bonus bAspd,1; },{},{}
 18767,Enhanced_Helm_Of_Sun,Enhanced Hat of the Sun God,4,20,,2400,,4,,1,0x00CFDF80,63,2,768,,99,1,138,{ bonus bStr,3; bonus bInt,2; if(getrefine()>=7){ set .@i,1; if(getrefine()>=9) set .@i,2; } bonus bBaseAtk,10+(15*.@i); bonus bMatk,10+(15*.@i); },{},{}
 18768,Enhanced_Bone_Helm,Enhanced Bone Helm,4,20,,800,,15,,1,0x000444A2,63,2,256,,70,1,103,{ bonus2 bSubEle,Ele_Dark,-15; if(getrefine()>=7){ set .@i,1; if(getrefine()>=9) set .@i,2; } bonus2 bSubEle,Ele_Neutral,2+(2*.@i); },{},{}
 18769,Remodel_Munak_Turban,Improved Munak Hat,4,20,,300,,5,,1,0xFFFFFFFF,63,2,769,,0,0,51,{ bonus2 bSubRace,RC_Undead,10; if(getrefine()>=7) bonus2 bAddRace,RC_Undead,10; },{},{}

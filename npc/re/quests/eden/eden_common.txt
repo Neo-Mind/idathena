@@ -295,7 +295,8 @@ OnTouch:
 	end;
 }
 
-moc_para01,47,39,3	script	#warp_2_pass	111,{
+moc_para01,47,39,3	script	#warp_2_pass	45,1,1,{
+OnTouch:
 	if (countitem(6219) > 0) {
 		mes "[Lime Evenor]";
 		mes "Oh, it is an exclusive place only for Eden's members.";

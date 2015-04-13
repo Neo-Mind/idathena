@@ -1493,9 +1493,8 @@ int clif_spawn(struct block_list *bl)
 	if (!vd || vd->class_ == INVISIBLE_CLASS)
 		return 0;
 
-	//Hide NPC from maya purple card
-	if (bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
-		return 0;
+	if (bl->type == BL_NPC && !((TBL_NPC *)bl)->chat_id && (((TBL_NPC *)bl)->sc.option&OPTION_INVISIBLE))
+		return 0; //Hide NPC from maya purple card
 
 #ifndef VISIBLE_MONSTER_HP
 	len = clif_set_unit_idle(bl,buf,true);
@@ -1512,7 +1511,7 @@ int clif_spawn(struct block_list *bl)
 
 	switch (bl->type) {
 		case BL_PC: {
-				TBL_PC *sd = ((TBL_PC*)bl);
+				TBL_PC *sd = ((TBL_PC *)bl);
 				int i;
 
 				if (sd->state.size == SZ_BIG) //Tiny/Big players [Valaris]
@@ -1534,7 +1533,7 @@ int clif_spawn(struct block_list *bl)
 			}
 			break;
 		case BL_MOB: {
-				TBL_MOB *md = ((TBL_MOB*)bl);
+				TBL_MOB *md = ((TBL_MOB *)bl);
 				int effect_id;
 
 				if (md->special_state.size == SZ_BIG) //Tiny/Big mobs [Valaris]
@@ -1551,7 +1550,7 @@ int clif_spawn(struct block_list *bl)
 			}
 			break;
 		case BL_NPC: {
-				TBL_NPC *nd = ((TBL_NPC*)bl);
+				TBL_NPC *nd = ((TBL_NPC *)bl);
 
 				if (nd->size == SZ_BIG)
 					clif_specialeffect(&nd->bl,423,AREA);
@@ -1561,7 +1560,7 @@ int clif_spawn(struct block_list *bl)
 			break;
 		case BL_PET:
 			if (vd->head_bottom)
-				clif_pet_equip_area((TBL_PET*)bl); //Needed to display pet equip properly
+				clif_pet_equip_area((TBL_PET *)bl); //Needed to display pet equip properly
 			break;
 	}
 	return 0;
@@ -1780,7 +1779,7 @@ static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_
 
 	switch (bl->type) {
 		case BL_PC: {
-				TBL_PC *sd = ((TBL_PC*)bl);
+				TBL_PC *sd = ((TBL_PC *)bl);
 
 				//clif_movepc(sd);
 				if (sd->state.size == SZ_BIG) //Tiny/big players [Valaris]
@@ -1790,7 +1789,7 @@ static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_
 			}
 			break;
 		case BL_MOB: {
-				TBL_MOB *md = ((TBL_MOB*)bl);
+				TBL_MOB *md = ((TBL_MOB *)bl);
 
 				if (md->special_state.size == SZ_BIG) //Tiny/big mobs [Valaris]
 					clif_specialeffect(&md->bl,423,AREA);
@@ -1814,17 +1813,16 @@ static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_
 void clif_move(struct unit_data *ud)
 {
 	unsigned char buf[16];
-	struct view_data* vd;
-	struct block_list* bl = ud->bl;
+	struct view_data *vd;
+	struct block_list *bl = ud->bl;
 	struct status_change *sc = status_get_sc(bl);
 
 	vd = status_get_viewdata(bl);
 	if (!vd || vd->class_ == INVISIBLE_CLASS)
-		return; //This performance check is needed to keep GM-hidden objects from being notified to bots.
+		return; //This performance check is needed to keep GM-hidden objects from being notified to bots
 
-	//Hide NPC from maya purple card
-	if (bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
-		return;
+	if (bl->type == BL_NPC && !((TBL_NPC *)bl)->chat_id && (((TBL_NPC *)bl)->sc.option&OPTION_INVISIBLE))
+		return; //Hide NPC from maya purple card
 
 	if (ud->state.speed_changed) {
 		//Since we don't know how to update the speed of other objects,
@@ -2845,8 +2843,8 @@ void clif_storagelist(struct map_session_data* sd, struct item* items, int items
 	const int cmde = 0x996;
 #endif
 
-	buf = (unsigned char*)aMalloc(items_length * s + sidx);
-	bufe = (unsigned char*)aMalloc(items_length * se + sidxe);
+	buf = (unsigned char *)aMalloc(items_length * s + sidx);
+	bufe = (unsigned char *)aMalloc(items_length * se + sidxe);
 
 	for( i = 0, n = 0, ne = 0; i < items_length; i++ ) {
 		if( items[i].nameid <= 0 )
@@ -2866,7 +2864,7 @@ void clif_storagelist(struct map_session_data* sd, struct item* items, int items
 		WFIFOW(sd->fd,0) = cmd;
 		WFIFOW(sd->fd,2) = sidx + nn * s;
 #if PACKETVER >= 20120925
-		memset((char*)WFIFOP(sd->fd,4), 0, 24); //Storename
+		memset((char *)WFIFOP(sd->fd,4), 0, 24); //Storename
 #endif
 		memcpy(WFIFOP(sd->fd,sidx), buf + sidx + i * s, nn * s);
 		WFIFOSET(sd->fd,WFIFOW(sd->fd,2));
@@ -2877,7 +2875,7 @@ void clif_storagelist(struct map_session_data* sd, struct item* items, int items
 		WFIFOW(sd->fd,0) = cmde;
 		WFIFOW(sd->fd,2) = sidxe + nn * se;
 #if PACKETVER >= 20120925
-		memset((char*)WFIFOP(sd->fd,4), 0, 24); //Storename
+		memset((char *)WFIFOP(sd->fd,4), 0, 24); //Storename
 #endif
 		memcpy(WFIFOP(sd->fd,sidxe), bufe + sidxe + i * se, nn * se);
 		WFIFOSET(sd->fd,WFIFOW(sd->fd,2));
@@ -4514,9 +4512,8 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 	if (!vd || vd->class_ == INVISIBLE_CLASS)
 		return;
 
-	//Hide NPC from maya purple card
-	if (bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
-		return;
+	if (bl->type == BL_NPC && !((TBL_NPC *)bl)->chat_id && (((TBL_NPC *)bl)->sc.option&OPTION_INVISIBLE))
+		return; //Hide NPC from maya purple card
 
 	ud = unit_bl2ud(bl);
 #ifndef VISIBLE_MONSTER_HP
@@ -4530,7 +4527,7 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 		clif_refreshlook(&sd->bl,bl->id,LOOK_CLOTHES_COLOR,vd->cloth_color,SELF);
 	switch (bl->type) {
 		case BL_PC: {
-				TBL_PC* tsd = (TBL_PC*)bl;
+				TBL_PC *tsd = (TBL_PC *)bl;
 
 				clif_getareachar_pc(sd,tsd);
 				if (tsd->state.size == SZ_BIG) //Tiny/big players [Valaris]
@@ -4544,11 +4541,11 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 			}
 			break;
 		case BL_MER: //Devotion Effects
-			if (((TBL_MER*)bl)->devotion_flag)
+			if (((TBL_MER *)bl)->devotion_flag)
 				clif_devotion(bl,sd);
 			break;
 		case BL_NPC: {
-				TBL_NPC* nd = (TBL_NPC*)bl;
+				TBL_NPC *nd = (TBL_NPC *)bl;
 
 				if (nd->chat_id)
 					clif_dispchat((struct chat_data*)map_id2bl(nd->chat_id),sd->fd);
@@ -4559,7 +4556,7 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 			}
 			break;
 		case BL_MOB: {
-				TBL_MOB* md = (TBL_MOB*)bl;
+				TBL_MOB *md = (TBL_MOB *)bl;
 				int effect_id;
 
 				if (md->special_state.size == SZ_BIG) //Tiny/big mobs [Valaris]
@@ -4593,7 +4590,7 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 			break;
 		case BL_PET:
 			if (vd->head_bottom)
-				clif_pet_equip(sd,(TBL_PET*)bl); //Needed to display pet equip properly
+				clif_pet_equip(sd,(TBL_PET *)bl); //Needed to display pet equip properly
 			break;
 	}
 }
@@ -5160,45 +5157,46 @@ int clif_insight(struct block_list *bl,va_list ap)
 void clif_skillinfoblock(struct map_session_data *sd)
 {
 	int fd;
-	int i,len,id;
+	int i, len, id;
+
 	nullpo_retv(sd);
 
 	fd = sd->fd;
-	if (!fd)
+	if( !fd )
 		return;
 
-	WFIFOHEAD(fd, MAX_SKILL * 37 + 4);
+	WFIFOHEAD(fd,MAX_SKILL * 37 + 4);
 	WFIFOW(fd,0) = 0x10f;
-	for ( i = 0, len = 4; i < MAX_SKILL; i++) {
+	for( i = 0, len = 4; i < MAX_SKILL; i++) {
 		if( (id = sd->status.skill[i].id) != 0 ) {
-			// workaround for bugreport:5348
-			if (len + 37 > 8192)
+			//Workaround for bugreport:5348
+			if( len + 37 > 8192 )
 				break;
-
-			WFIFOW(fd,len)   = id;
-			WFIFOL(fd,len+2) = skill_get_inf(id);
-			WFIFOW(fd,len+6) = sd->status.skill[i].lv;
-			WFIFOW(fd,len+8) = skill_get_sp(id,sd->status.skill[i].lv);
-			WFIFOW(fd,len+10)= skill_get_range2(&sd->bl, id,sd->status.skill[i].lv);
-			safestrncpy((char*)WFIFOP(fd,len+12), skill_get_name(id), NAME_LENGTH);
-			if(sd->status.skill[i].flag == SKILL_FLAG_PERMANENT)
-				WFIFOB(fd,len+36) = (sd->status.skill[i].lv < skill_tree_get_max(id, sd->status.class_))? 1:0;
+			WFIFOW(fd,len) = id;
+			WFIFOL(fd,len + 2) = skill_get_inf(id);
+			WFIFOW(fd,len + 6) = sd->status.skill[i].lv;
+			WFIFOW(fd,len + 8) = skill_get_sp(id,sd->status.skill[i].lv);
+			WFIFOW(fd,len + 10) = skill_get_range2(&sd->bl, id,sd->status.skill[i].lv);
+			safestrncpy((char *)WFIFOP(fd,len + 12), skill_get_name(id), NAME_LENGTH);
+			if( sd->status.skill[i].flag == SKILL_FLAG_PERMANENT )
+				WFIFOB(fd,len + 36) = (sd->status.skill[i].lv < skill_tree_get_max(id, sd->status.class_)) ? 1 : 0;
 			else
-				WFIFOB(fd,len+36) = 0;
+				WFIFOB(fd,len + 36) = 0;
 			len += 37;
 		}
 	}
 	WFIFOW(fd,2) = len;
 	WFIFOSET(fd,len);
 
-	// workaround for bugreport:5348; send the remaining skills one by one to bypass packet size limit
-	for ( ; i < MAX_SKILL; i++) {
+	//Workaround for bugreport:5348, send the remaining skills one by one to bypass packet size limit
+	for( ; i < MAX_SKILL; i++) {
 		if( (id = sd->status.skill[i].id) != 0 ) {
 			clif_addskill(sd, id);
 			clif_skillinfo(sd, id, 0);
 		}
 	}
 }
+
 /**
  * Server tells client 'sd' to add skill of id 'id' to it's skill tree (e.g. with Ice Falcion item)
  */
@@ -5211,7 +5209,8 @@ void clif_addskill(struct map_session_data *sd, int id)
 	nullpo_retv(sd);
 
 	fd = sd->fd;
-	if (!fd) return;
+	if( !fd )
+		return;
 
 	if( sd->status.skill[id].id <= 0 )
 		return;
@@ -5222,10 +5221,10 @@ void clif_addskill(struct map_session_data *sd, int id)
 	WFIFOL(fd,4) = skill_get_inf(id);
 	WFIFOW(fd,8) = sd->status.skill[id].lv;
 	WFIFOW(fd,10) = skill_get_sp(id,sd->status.skill[id].lv);
-	WFIFOW(fd,12)= skill_get_range2(&sd->bl, id,sd->status.skill[id].lv);
-	safestrncpy((char*)WFIFOP(fd,14), skill_get_name(id), NAME_LENGTH);
+	WFIFOW(fd,12) = skill_get_range2(&sd->bl, id,sd->status.skill[id].lv);
+	safestrncpy((char *)WFIFOP(fd,14), skill_get_name(id), NAME_LENGTH);
 	if( sd->status.skill[id].flag == SKILL_FLAG_PERMANENT )
-		WFIFOB(fd,38) = (sd->status.skill[id].lv < skill_tree_get_max(id, sd->status.class_))? 1:0;
+		WFIFOB(fd,38) = (sd->status.skill[id].lv < skill_tree_get_max(id, sd->status.class_)) ? 1 : 0;
 	else
 		WFIFOB(fd,38) = 0;
 	WFIFOSET(fd,packet_len(0x111));
@@ -5238,10 +5237,12 @@ void clif_deleteskill(struct map_session_data *sd, int id)
 {
 #if PACKETVER >= 20081217
 	int fd;
+
 	nullpo_retv(sd);
 
 	fd = sd->fd;
-	if( !fd ) return;
+	if( !fd )
+		return;
 
 	WFIFOHEAD(fd,packet_len(0x441));
 	WFIFOW(fd,0) = 0x441;
@@ -5257,6 +5258,7 @@ void clif_deleteskill(struct map_session_data *sd, int id)
 void clif_skillup(struct map_session_data *sd, uint16 skill_id, int lv, int range, int upgradable)
 {
 	int fd;
+
 	nullpo_retv(sd);
 
 	fd = sd->fd;
@@ -5429,22 +5431,25 @@ void clif_skill_cooldown(struct map_session_data *sd, uint16 skill_id, unsigned 
 #endif
 }
 
-/// List of skills that have cooldown (ZC_SKILL_POSTDELAY_LIST).
-/// 043e <len>.W <skill ID>.W <tick>.L
+
+/// List of skills that have cooldown.
 /// NOTE: This will tell the client which skills are currently in cooldown when a player logs on
 /// and display them in the shortcut bar. [Rytech]
+/// 043e <len>.W <skill ID>.W <tick>.L (ZC_SKILL_POSTDELAY_LIST) (PACKETVER >= 20081112)
 void clif_skill_cooldown_list(struct map_session_data *sd, uint16 skill_id, unsigned int tick)
 {
 #if PACKETVER >= 20081112
-	unsigned char buf[8];
+	int fd;
 
 	nullpo_retv(sd);
 
-	WBUFW(buf,0) = 0x43e;
-	WBUFW(buf,2) = packet_len(0x43e);
-	WBUFW(buf,4) = skill_id;
-	WBUFL(buf,6) = tick;
-	clif_send(buf,packet_len(0x43e),&sd->bl,SELF);
+	fd = sd->fd;
+	WFIFOHEAD(fd,packet_len(0x43e));
+	WFIFOW(fd,0) = 0x43e;
+	WFIFOW(fd,2) = packet_len(0x43e);
+	WFIFOW(fd,4) = skill_id;
+	WFIFOL(fd,6) = tick;
+	WFIFOSET(fd,packet_len(0x43e));
 #endif
 }
 
@@ -8303,14 +8308,14 @@ void clif_guild_emblem(struct map_session_data *sd,struct guild *g)
 
 /// Sends update of the guild id/emblem id to everyone in the area (ZC_CHANGE_GUILD).
 /// 01b4 <id>.L <guild id>.L <emblem id>.W
-void clif_guild_emblem_area(struct block_list* bl)
+void clif_guild_emblem_area(struct block_list *bl)
 {
 	uint8 buf[12];
 
 	nullpo_retv(bl);
 
-	// TODO this packet doesn't force the update of ui components that have the emblem visible
-	//      (emblem in the flag npcs and emblem over the head in agit maps) [FlavioJS]
+	//@TODO: This packet doesn't force the update of ui components that have the emblem visible
+	//(emblem in the flag npcs and emblem over the head in agit maps) [FlavioJS]
 	WBUFW(buf,0) = 0x1b4;
 	WBUFL(buf,2) = bl->id;
 	WBUFL(buf,6) = status_get_guild_id(bl);
@@ -8321,42 +8326,43 @@ void clif_guild_emblem_area(struct block_list* bl)
 
 /// Sends guild skills (ZC_GUILD_SKILLINFO).
 /// 0162 <packet len>.W <skill points>.W { <skill id>.W <type>.L <level>.W <sp cost>.W <atk range>.W <skill name>.24B <upgradable>.B }*
-void clif_guild_skillinfo(struct map_session_data* sd)
+void clif_guild_skillinfo(struct map_session_data *sd)
 {
 	int fd;
-	struct guild* g;
-	int i,c;
+	struct guild *g;
+	int i, c;
 
 	nullpo_retv(sd);
 	if( (g = sd->guild) == NULL )
 		return;
 
 	fd = sd->fd;
-	WFIFOHEAD(fd, 6 + MAX_GUILDSKILL*37);
+	WFIFOHEAD(fd,6 + MAX_GUILDSKILL * 37);
 	WFIFOW(fd,0) = 0x0162;
 	WFIFOW(fd,4) = g->skill_point;
-	for(i = 0, c = 0; i < MAX_GUILDSKILL; i++) {
-		if(g->skill[i].id > 0 && guild_check_skill_require(g, g->skill[i].id)) {
+	for( i = 0, c = 0; i < MAX_GUILDSKILL; i++ ) {
+		if( g->skill[i].id > 0 && guild_check_skill_require(g, g->skill[i].id) ) {
 			int id = g->skill[i].id;
-			int p = 6 + c*37;
-			WFIFOW(fd,p+0) = id;
-			WFIFOL(fd,p+2) = skill_get_inf(id);
-			WFIFOW(fd,p+6) = g->skill[i].lv;
-			WFIFOW(fd,p+8) = skill_get_sp(id, g->skill[i].lv);
-			WFIFOW(fd,p+10) = skill_get_range(id, g->skill[i].lv);
-			safestrncpy((char*)WFIFOP(fd,p+12), skill_get_name(id), NAME_LENGTH);
-			WFIFOB(fd,p+36)= (g->skill[i].lv < guild_skill_get_max(id) && sd == g->member[0].sd) ? 1 : 0;
+			int p = 6 + c * 37;
+
+			WFIFOW(fd,p + 0) = id;
+			WFIFOL(fd,p + 2) = skill_get_inf(id);
+			WFIFOW(fd,p + 6) = g->skill[i].lv;
+			WFIFOW(fd,p + 8) = skill_get_sp(id, g->skill[i].lv);
+			WFIFOW(fd,p + 10) = skill_get_range(id, g->skill[i].lv);
+			safestrncpy((char *)WFIFOP(fd,p + 12), skill_get_name(id), NAME_LENGTH);
+			WFIFOB(fd,p + 36)= (g->skill[i].lv < guild_skill_get_max(id) && sd == g->member[0].sd) ? 1 : 0;
 			c++;
 		}
 	}
-	WFIFOW(fd,2) = 6 + c*37;
+	WFIFOW(fd,2) = 6 + c * 37;
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
 
 
 /// Sends guild notice to client (ZC_GUILD_NOTICE).
 /// 016f <subject>.60B <notice>.120B
-void clif_guild_notice(struct map_session_data* sd, struct guild* g)
+void clif_guild_notice(struct map_session_data *sd, struct guild *g)
 {
 	int fd;
 
@@ -8365,10 +8371,10 @@ void clif_guild_notice(struct map_session_data* sd, struct guild* g)
 
 	fd = sd->fd;
 
-	if ( !session_isActive(fd) )
+	if( !session_isActive(fd) )
 		return;
  
-	if(g->mes1[0] == '\0' && g->mes2[0] == '\0')
+	if( g->mes1[0] == '\0' && g->mes2[0] == '\0' )
 		return;
 
 	WFIFOHEAD(fd,packet_len(0x16f));
@@ -8388,10 +8394,10 @@ void clif_guild_invite(struct map_session_data *sd,struct guild *g)
 	nullpo_retv(sd);
 	nullpo_retv(g);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x16a));
-	WFIFOW(fd,0)=0x16a;
-	WFIFOL(fd,2)=g->guild_id;
+	WFIFOW(fd,0) = 0x16a;
+	WFIFOL(fd,2) = g->guild_id;
 	memcpy(WFIFOP(fd,6),g->name,NAME_LENGTH);
 	WFIFOSET(fd,packet_len(0x16a));
 }
@@ -8410,10 +8416,10 @@ void clif_guild_inviteack(struct map_session_data *sd,int flag)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x169));
-	WFIFOW(fd,0)=0x169;
-	WFIFOB(fd,2)=flag;
+	WFIFOW(fd,0) = 0x169;
+	WFIFOB(fd,2) = flag;
 	WFIFOSET(fd,packet_len(0x169));
 }
 
@@ -8426,10 +8432,10 @@ void clif_guild_leave(struct map_session_data *sd,const char *name,const char *m
 
 	nullpo_retv(sd);
 
-	WBUFW(buf, 0)=0x15a;
-	memcpy(WBUFP(buf, 2),name,NAME_LENGTH);
-	memcpy(WBUFP(buf,26),mes,40);
-	clif_send(buf,packet_len(0x15a),&sd->bl,GUILD_NOBG);
+	WBUFW(buf,0) = 0x15a;
+	memcpy(WBUFP(buf,2), name, NAME_LENGTH);
+	memcpy(WBUFP(buf,26), mes, 40);
+	clif_send(buf, packet_len(0x15a), &sd->bl,GUILD_NOBG);
 }
 
 
@@ -9369,10 +9375,10 @@ void clif_slide(struct block_list *bl, int x, int y)
 	unsigned char buf[10];
 	nullpo_retv(bl);
 
-	WBUFW(buf, 0) = 0x01ff;
-	WBUFL(buf, 2) = bl->id;
-	WBUFW(buf, 6) = x;
-	WBUFW(buf, 8) = y;
+	WBUFW(buf,0) = 0x01ff;
+	WBUFL(buf,2) = bl->id;
+	WBUFW(buf,6) = x;
+	WBUFW(buf,8) = y;
 	clif_send(buf, packet_len(0x1ff), bl, AREA);
 
 	if( disguised(bl) ) {
@@ -9583,9 +9589,9 @@ void clif_equipcheckbox(struct map_session_data* sd)
 /// 0859 <packet len>.W <name>.24B <class>.W <hairstyle>.W <bottom-viewid>.W <mid-viewid>.W <up-viewid>.W <haircolor>.W <cloth-dye>.W <gender>.B {equip item}.28B* (ZC_EQUIPWIN_MICROSCOPE2, PACKETVER >= 20101124)
 /// 0859 <packet len>.W <name>.24B <class>.W <hairstyle>.W <bottom-viewid>.W <mid-viewid>.W <up-viewid>.W <robe>.W <haircolor>.W <cloth-dye>.W <gender>.B {equip item}.28B* (ZC_EQUIPWIN_MICROSCOPE2, PACKETVER >= 20110111)
 /// 0997 <packet len>.W <name>.24B <class>.W <hairstyle>.W <bottom-viewid>.W <mid-viewid>.W <up-viewid>.W <robe>.W <haircolor>.W <cloth-dye>.W <gender>.B {equip item}.31B* (ZC_EQUIPWIN_MICROSCOPE_V5, PACKETVER >= 20120925)
-void clif_viewequip_ack(struct map_session_data* sd, struct map_session_data* tsd)
+void clif_viewequip_ack(struct map_session_data *sd, struct map_session_data *tsd)
 {
-	uint8* buf;
+	uint8 *buf;
 	int i, n, fd, offset = 0;
 #if PACKETVER < 20100629
 	const int s = 26;
@@ -9608,7 +9614,7 @@ void clif_viewequip_ack(struct map_session_data* sd, struct map_session_data* ts
 #else
 	WBUFW(buf,0) = 0x997;
 #endif
-	safestrncpy((char*)WBUFP(buf, 4), tsd->status.name, NAME_LENGTH);
+	safestrncpy((char *)WBUFP(buf, 4), tsd->status.name, NAME_LENGTH);
 	WBUFW(buf,28) = tsd->status.class_;
 	WBUFW(buf,30) = tsd->vd.hair_style;
 	WBUFW(buf,32) = tsd->vd.head_bottom;
@@ -9628,7 +9634,7 @@ void clif_viewequip_ack(struct map_session_data* sd, struct map_session_data* ts
 			continue;
 		if (!itemdb_isequip2(tsd->inventory_data[i])) //Is not equippable
 			continue;
-		//Add item info : refine, identify flag, element, etc.
+		//Add item info : refine, identify flag, element, etc
 		clif_item_sub(WBUFP(buf,0), n * s + 43, i + 2, &tsd->status.inventory[i], tsd->inventory_data[i], pc_equippoint(tsd, i));
 		n++;
 	}
@@ -9640,12 +9646,13 @@ void clif_viewequip_ack(struct map_session_data* sd, struct map_session_data* ts
 
 /// Display msgstringtable.txt string (ZC_MSG).
 /// 0291 <message>.W
-void clif_msg(struct map_session_data* sd, unsigned short id)
+void clif_msg(struct map_session_data *sd, unsigned short id)
 {
 	int fd;
-	nullpo_retv(sd);
-	fd = sd->fd;
 
+	nullpo_retv(sd);
+
+	fd = sd->fd;
 	WFIFOHEAD(fd, packet_len(0x291));
 	WFIFOW(fd,0) = 0x291;
 	WFIFOW(fd,2) = id; //Zero-based msgstringtable.txt index
@@ -18509,7 +18516,7 @@ void packetdb_readdb(bool reload)
 		0,  0,  0,  0,  0,  0,  0, 14,  6, 50,  0, 16,  4,288, 12,  0,
 	//#0x0980
 		0,  0,  0, 29, 28,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-		31, 0,  0,  0,  0,  0,  0, -1,  8, 11,  9,  8,  0,  0,  0, 22,
+		31,-1, -1, -1, -1, -1, -1, -1,  8, 11,  9,  8,  0,  0,  0, 22,
 		0,  0,  0,  0,  0,  0, 12, 10, 16, 10, 16,  6,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  6,  4,  6,  4,  0,  0,  0,  0,  0,  0,
 	//#0x09C0

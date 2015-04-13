@@ -3400,9 +3400,9 @@ void npc_setclass(struct npc_data* nd, short class_)
 }
 
 // @commands (script based)
-int npc_do_atcmd_event(struct map_session_data* sd, const char* command, const char* message, const char* eventname)
+int npc_do_atcmd_event(struct map_session_data *sd, const char *command, const char *message, const char *eventname)
 {
-	struct event_data* ev = (struct event_data*)strdb_get(ev_db, eventname);
+	struct event_data *ev = (struct event_data *)strdb_get(ev_db, eventname);
 	struct npc_data *nd;
 	struct script_state *st;
 	int i = 0, j = 0, k = 0;
@@ -3415,7 +3415,7 @@ int npc_do_atcmd_event(struct map_session_data* sd, const char* command, const c
 		return 0;
 	}
 
-	if( sd->npc_id != 0 ) { // Enqueue the event trigger.
+	if( sd->npc_id != 0 ) { // Enqueue the event trigger
 		int i;
 		ARR_FIND( 0, MAX_EVENTQUEUE, i, sd->eventqueue[i][0] == '\0' );
 		if( i < MAX_EVENTQUEUE ) {

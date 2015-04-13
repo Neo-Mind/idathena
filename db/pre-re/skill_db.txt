@@ -589,8 +589,8 @@
 526,9,6,1,0,0x50,0,10,1,no,0,0x4000,0,misc,0,0,	NJ_ZENYNAGE,Throw Zeny
 527,0,6,4,-1,0,0,5,1,no,0,0,0,weapon,1:2:2:3:3,0,	NJ_TATAMIGAESHI,Improvised Defense
 528,-1,6,1,-1,0,0,10,1,no,0,0,0,weapon,0,0,	NJ_KASUMIKIRI,Vanishing Slash
-529,7:9:11:13:15,6,2,0,0x1,0,5,1,no,0,0,0,none,0,0x4,	NJ_SHADOWJUMP,Shadow Leap
-530,7:9:11:13:15,6,1,-1,0,0,5,1,no,0,0,0,weapon,0,0x204,	NJ_KIRIKAGE,Shadow Slash
+529,5:6:7:8:9,6,2,0,0x1,0,5,1,no,0,0,0,none,0,0x4,	NJ_SHADOWJUMP,Shadow Leap
+530,5:6:7:8:9,6,1,-1,0,0,5,1,no,0,0,0,weapon,0,0x204,	NJ_KIRIKAGE,Shadow Slash
 531,0,6,4,0,0x1,0,5,1,no,0,0,0,none,7,0,	NJ_UTSUSEMI,Cicada Skin Sheeding
 532,0,6,4,0,0x1,0,10,1,yes,0,0,0,magic,0,0,	NJ_BUNSINJYUTSU,Mirror Image
 533,0,0,0,0,0,0,10,0,no,0,0,0,none,0,0,	NJ_NINPOU,Spirit of the Blade
@@ -903,7 +903,7 @@
 2301,7,6,2,0,0x1,0,3,1,yes,0,0x8000,0,magic,0,0,	SC_CHAOSPANIC,Chaos Panic
 2302,7,6,2,0,0x1,0,3,1,yes,0,0x8000,1,magic,0,0,	SC_MAELSTROM,Maelstrom
 2303,7,6,2,0,0x1,0,3,1,yes,0,0,0,magic,0,0,	SC_BLOODYLUST,Bloody Lust
-2304,0,6,4,-1,0,0,3,1,no,0,0,0,weapon,0,0,	SC_FEINTBOMB,Feint Bomb
+2304,0,6,4,-1,0,0,3,1,no,0,0,0,weapon,3:6:9,0,	SC_FEINTBOMB,Feint Bomb
 
 //****
 // LG Royal Guard

@@ -650,7 +650,7 @@ void clif_guild_masterormember(struct map_session_data *sd);
 void clif_guild_basicinfo(struct map_session_data *sd);
 void clif_guild_allianceinfo(struct map_session_data *sd);
 void clif_guild_memberlist(struct map_session_data *sd);
-void clif_guild_skillinfo(struct map_session_data* sd);
+void clif_guild_skillinfo(struct map_session_data *sd);
 void clif_guild_send_onlineinfo(struct map_session_data *sd); //[LuzZza]
 void clif_guild_memberlogin_notice(struct guild *g,int idx,int flag);
 void clif_guild_invite(struct map_session_data *sd,struct guild *g);
@@ -660,8 +660,8 @@ void clif_guild_expulsion(struct map_session_data* sd, const char* name, const c
 void clif_guild_positionchanged(struct guild *g,int idx);
 void clif_guild_memberpositionchanged(struct guild *g,int idx);
 void clif_guild_emblem(struct map_session_data *sd,struct guild *g);
-void clif_guild_emblem_area(struct block_list* bl);
-void clif_guild_notice(struct map_session_data* sd, struct guild* g);
+void clif_guild_emblem_area(struct block_list *bl);
+void clif_guild_notice(struct map_session_data *sd, struct guild *g);
 void clif_guild_message(struct guild *g,int account_id,const char *mes,int len);
 void clif_guild_reqalliance(struct map_session_data *sd,int account_id,const char *name);
 void clif_guild_allianceack(struct map_session_data *sd,int flag);
@@ -757,10 +757,10 @@ void clif_send_homdata(struct map_session_data *sd, int state, int param); //[or
 
 void clif_equiptickack(struct map_session_data* sd, int flag);
 void clif_partytickack(struct map_session_data* sd, bool flag);
-void clif_viewequip_ack(struct map_session_data* sd, struct map_session_data* tsd);
+void clif_viewequip_ack(struct map_session_data *sd, struct map_session_data *tsd);
 void clif_equipcheckbox(struct map_session_data* sd);
 
-void clif_msg(struct map_session_data* sd, unsigned short id);
+void clif_msg(struct map_session_data *sd, unsigned short id);
 void clif_msg_value(struct map_session_data* sd, unsigned short id, int value);
 void clif_msg_skill(struct map_session_data* sd, uint16 skill_id, int msg_id);
 

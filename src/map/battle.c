@@ -1232,7 +1232,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			int dy[8] = { 1,1,0,-1,-1,-1,0,1 };
 			uint8 dir = map_calc_dir(bl,src->x,src->y);
 
-			if( unit_movepos(bl,src->x - dx[dir],src->y - dy[dir],1,true) ) {
+			if( !map_flag_gvg2(src->m) && !map[src->m].flag.battleground &&
+				unit_movepos(bl,src->x - dx[dir],src->y - dy[dir],1,true) ) {
 				clif_blown(bl,src);
 				unit_setdir(bl,dir);
 			}
@@ -1824,16 +1825,9 @@ void battle_consume_ammo(TBL_PC *sd, uint16 skill_id, uint16 skill_lv)
 
 static int battle_range_type(struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv)
 {
-	//[Akinari], [Xynvaroth]: Traps are always short range
-	if(skill_get_inf2(skill_id)&INF2_TRAP)
+	if(skill_get_inf2(skill_id)&INF2_TRAP || //Traps are always short range [Akinari],[Xynvaroth]
+		skill_id == NJ_KIRIKAGE)
 		return BF_SHORT;
-
-	if(skill_id == SR_GATEOFHELL) {
-		if(skill_lv < 5)
-			return BF_SHORT;
-		else
-			return BF_LONG;
-	}
 
 	//Skill Range Criteria
 	if(battle_config.skillrange_by_distance && (src->type&battle_config.skillrange_by_distance)) {
@@ -4498,16 +4492,12 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 		case RK_DRAGONBREATH:
 		case RK_DRAGONBREATH_WATER:
 		case NC_SELFDESTRUCTION:
+		case GN_CARTCANNON:
 		case KO_HAPPOKUNAI:
 			//Total defense reduction
 			wd.damage -= (def1 + vit_def);
 			if(is_attack_left_handed(src, skill_id))
 				wd.damage2 -= (def1 + vit_def);
-			break;
-		case GN_CARTCANNON:
-			wd.damage -= def1;
-			if(is_attack_left_handed(src, skill_id))
-				wd.damage2 -= def1;
 			break;
 		default:
 			wd.damage = wd.damage * (4000 + def1) / (4000 + 10 * def1) - vit_def;
@@ -6547,7 +6537,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			md.damage = 200 + 100 * skill_lv + sstatus->int_;
 			break;
 		case GN_HELLS_PLANT_ATK:
-			md.damage = skill_lv * status_get_lv(target) * 10 + sstatus->int_ * 7 / 2 * (18 + (sd ? sd->status.job_level : 0) / 4) * 5 / (10 - (sd ? pc_checkskill(sd,AM_CANNIBALIZE) : 0));
+			md.damage = skill_lv * status_get_lv(target) * 10 + sstatus->int_ * 7 / 2 *
+				(18 + (sd ? sd->status.job_level : 0) / 4) * 5 / (10 - (sd ? pc_checkskill(sd,AM_CANNIBALIZE) : 0));
 			md.flag |= BF_WEAPON;
 			break;
 		case RL_B_TRAP:
