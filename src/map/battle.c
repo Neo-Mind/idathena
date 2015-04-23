@@ -4241,12 +4241,6 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 				ATK_ADD(wd.equipAtk, wd.equipAtk2, (10 + 10 * sc->data[SC_BANDING]->val1) * sc->data[SC_BANDING]->val2);
 #endif
 			}
-			if(sc->data[SC_INSPIRATION]) {
-				ATK_ADD(wd.damage, wd.damage2, 40 * sc->data[SC_INSPIRATION]->val1 + 3 * sc->data[SC_INSPIRATION]->val2);
-#ifdef RENEWAL
-				ATK_ADD(wd.equipAtk, wd.equipAtk2, 40 * sc->data[SC_INSPIRATION]->val1 + 3 * sc->data[SC_INSPIRATION]->val2);
-#endif
-			}
 			if(sc->data[SC_GT_CHANGE]) {
 				ATK_ADD(wd.damage, wd.damage2, sc->data[SC_GT_CHANGE]->val2);
 #ifdef RENEWAL

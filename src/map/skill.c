@@ -13824,7 +13824,12 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 		case UNT_WARMER: { //It has effect on everything, including monsters, undead property and demon
 				int hp = 0;
 				struct status_change *ssc = status_get_sc(src);
+#ifdef RENEWAL
+				struct mob_data *md = BL_CAST(BL_MOB,bl);
 
+				if (md && md->mob_id == MOBID_EMPERIUM)
+					break;
+#endif
 				if (ssc && ssc->data[SC_HEATER_OPTION])
 					hp = tstatus->max_hp * 3 * skill_lv / 100;
 				else
