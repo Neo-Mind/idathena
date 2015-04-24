@@ -1799,7 +1799,7 @@ static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_
 			break;
 		case BL_PET:
 			if (vd->head_bottom) //Needed to display pet equip properly
-				clif_pet_equip_area((TBL_PET*)bl);
+				clif_pet_equip_area((TBL_PET *)bl);
 			break;
 	}
 

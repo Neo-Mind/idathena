@@ -1688,14 +1688,13 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 
 	ud->state.skillcastcancel = castcancel;
 
-	//Combo: Used to signal force cast now
-	combo = 0;
+	combo = 0; //Used to signal force cast now
 
 	switch( skill_id ) {
 		case ALL_RESURRECTION:
-			if( battle_check_undead(tstatus->race, tstatus->def_ele) ) {
+			if( battle_check_undead(tstatus->race, tstatus->def_ele) )
 				combo = 1;
-			} else if( !status_isdead(target) )
+			else if( !status_isdead(target) )
 				return 0; //Can't cast on non-dead characters
 			break;
 		case MO_FINGEROFFENSIVE:

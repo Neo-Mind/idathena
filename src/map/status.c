@@ -120,7 +120,6 @@ int status_sc2skill(sc_type sc)
 		ShowError("status_sc2skill: Unsupported status change id %d\n", sc);
 		return 0;
 	}
-
 	return StatusSkillChangeTable[sc];
 }
 
@@ -135,7 +134,6 @@ unsigned int status_sc2scb_flag(sc_type sc)
 		ShowError("status_sc2scb_flag: Unsupported status change id %d\n", sc);
 		return SCB_NONE;
 	}
-
 	return StatusChangeFlagTable[sc];
 }
 
@@ -150,7 +148,6 @@ int status_type2relevant_bl_types(int type)
 		ShowError("status_type2relevant_bl_types: Unsupported type %d\n", type);
 		return SI_BLANK;
 	}
-
 	return StatusRelevantBLTypes[type];
 }
 
@@ -170,13 +167,11 @@ static void set_sc(uint16 skill_id, sc_type sc, int icon, unsigned int flag)
 		ShowError("set_sc: Unsupported status change id %d\n", sc);
 		return;
 	}
-
 	if( StatusSkillChangeTable[sc] == 0 )
 		StatusSkillChangeTable[sc] = skill_id;
 	if( StatusIconChangeTable[sc] == SI_BLANK )
 		StatusIconChangeTable[sc] = icon;
 	StatusChangeFlagTable[sc] |= flag;
-
 	if( SkillStatusChangeTable[idx] == SC_NONE )
 		SkillStatusChangeTable[idx] = sc;
 }
@@ -1665,13 +1660,12 @@ int status_heal(struct block_list *bl, int64 in_hp, int64 in_sp, int flag)
 		status->hp >= status->max_hp>>2) //End auto berserk
 		status_change_end(bl, SC_PROVOKE, INVALID_TIMER);
 
-	//Send hp update to client
-	switch (bl->type) {
-		case BL_PC:  pc_heal((TBL_PC*)bl, hp, sp, (flag&2 ? 1 : 0)); break;
-		case BL_MOB: mob_heal((TBL_MOB*)bl, hp); break;
-		case BL_HOM: hom_heal((TBL_HOM*)bl); break;
-		case BL_MER: mercenary_heal((TBL_MER*)bl, hp, sp); break;
-		case BL_ELEM: elemental_heal((TBL_ELEM*)bl, hp, sp); break;
+	switch (bl->type) { //Send hp update to client
+		case BL_PC:  pc_heal((TBL_PC *)bl, hp, sp, (flag&2 ? 1 : 0)); break;
+		case BL_MOB: mob_heal((TBL_MOB *)bl, hp); break;
+		case BL_HOM: hom_heal((TBL_HOM *)bl); break;
+		case BL_MER: mercenary_heal((TBL_MER *)bl, hp, sp); break;
+		case BL_ELEM: elemental_heal((TBL_ELEM *)bl, hp, sp); break;
 	}
 
 	return (int)(hp + sp);
@@ -5249,17 +5243,21 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk += batk * sc->data[SC_BLOODLUST]->val2 / 100;
 	if(sc->data[SC_FLEET])
 		batk += batk * sc->data[SC_FLEET]->val3 / 100;
-	if(sc->data[SC_ASH])
-		batk -= batk * sc->data[SC_ASH]->val4 / 100;
-	if(sc->data[SC_JOINTBEAT] && sc->data[SC_JOINTBEAT]->val2&BREAK_WAIST)
-		batk -= batk * 25 / 100;
 	if(sc->data[SC_CURSE])
 		batk -= batk * 25 / 100;
-	/* Curse shouldn't effect on this? <- Curse OR Bleeding??
-	if(sc->data[SC_BLEEDING])
-		batk -= batk * 25 / 100; */
+	//Curse shouldn't effect on this? <- Curse/Bleeding?
+	//if(sc->data[SC_BLEEDING])
+		//batk -= batk * 25 / 100;
+#ifdef RENEWAL
+	if(sc->data[SC_STRIPWEAPON] && bl->type != BL_PC)
+		batk -= batk * sc->data[SC_STRIPWEAPON]->val2 / 100;
+#endif
+	if(sc->data[SC_JOINTBEAT] && sc->data[SC_JOINTBEAT]->val2&BREAK_WAIST)
+		batk -= batk * 25 / 100;
 	if(sc->data[SC__ENERVATION])
 		batk -= batk * sc->data[SC__ENERVATION]->val2 / 100;
+	if(sc->data[SC_ASH])
+		batk -= batk * sc->data[SC_ASH]->val4 / 100;
 
 	return (unsigned short)cap_value(batk,0,USHRT_MAX);
 }
@@ -5302,7 +5300,7 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 	if(sc->data[SC_CONCENTRATION])
 		watk += watk * sc->data[SC_CONCENTRATION]->val2 / 100;
 #endif
-	if(sc->data[SC_INCATKRATE])
+	if(sc->data[SC_INCATKRATE] && bl->type != BL_MOB)
 		watk += watk * sc->data[SC_INCATKRATE]->val1 / 100;
 	if(sc->data[SC_PROVOKE]
 #ifdef RENEWAL
@@ -5318,8 +5316,10 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 		watk += watk * sc->data[SC_ANGRIFFS_MODUS]->val2 / 100;
 	if(sc->data[SC_CURSE])
 		watk -= watk * 25 / 100;
+#ifndef RENEWAL
 	if(sc->data[SC_STRIPWEAPON] && bl->type != BL_PC)
 		watk -= watk * sc->data[SC_STRIPWEAPON]->val2 / 100;
+#endif
 	if(sc->data[SC__ENERVATION])
 		watk -= watk * sc->data[SC__ENERVATION]->val2 / 100;
 
@@ -6818,8 +6818,8 @@ int status_isimmune(struct block_list *bl)
 
 	if (sc && sc->data[SC_HERMODE])
 		return 100;
-	if (bl->type == BL_PC && ((TBL_PC*)bl)->special_state.no_magic_damage >= battle_config.gtb_sc_immunity)
-		return ((TBL_PC*)bl)->special_state.no_magic_damage;
+	if (bl->type == BL_PC && ((TBL_PC *)bl)->special_state.no_magic_damage >= battle_config.gtb_sc_immunity)
+		return ((TBL_PC *)bl)->special_state.no_magic_damage;
 	return 0;
 }
 
@@ -7507,8 +7507,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 	sd = BL_CAST(BL_PC,bl);
 
-	//Adjust tick according to status resistances
-	if( !(flag&(SCFLAG_NOAVOID|SCFLAG_LOADED)) ) {
+	if( !(flag&(SCFLAG_NOAVOID|SCFLAG_LOADED)) ) { //Adjust tick according to status resistances
 		tick = status_get_sc_def(src,bl,type,rate,val1,val2,val3,val4,tick,flag);
 		if( !tick )
 			return 0;
@@ -7518,8 +7517,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 	undead_flag = battle_check_undead(status->race,status->def_ele);
 
-	//Check for immunities/sc fails
-	switch(type) {
+	switch(type) { //Check for immunities/sc fails
 		case SC_DECREASEAGI:
 		case SC_QUAGMIRE:
 		case SC_DONTFORGETME:
@@ -7935,10 +7933,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			status_change_end(bl,SC_TRUESIGHT,INVALID_TIMER);
 			status_change_end(bl,SC_WINDWALK,INVALID_TIMER);
 			status_change_end(bl,SC_MAGNETICFIELD,INVALID_TIMER);
+		//Fall through
 		case SC_DECREASEAGI:
 		case SC_ADORAMUS:
 			status_change_end(bl,SC_CARTBOOST,INVALID_TIMER);
 			status_change_end(bl,SC_GN_CARTBOOST,INVALID_TIMER);
+		//Fall through
 		case SC_DONTFORGETME:
 			status_change_end(bl,SC_INCREASEAGI,INVALID_TIMER);
 			status_change_end(bl,SC_ADRENALINE,INVALID_TIMER);
@@ -10205,8 +10205,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 		case SC_BERSERK:
 		case SC_SATURDAYNIGHTFEVER:
-			opt_flag = 0;
 			sc->opt3 |= OPT3_BERSERK;
+			opt_flag = 0;
 			break;
 		//case ???: //Doesn't seem to do anything
 			//sc->opt3 |= OPT3_LIGHTBLADE;
@@ -10260,6 +10260,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC__INVISIBILITY:
 		case SC__FEINTBOMB:
 			sc->option |= OPTION_CLOAK;
+		//Fall through
 		case SC_CAMOUFLAGE:
 			opt_flag = 2;
 			break;
@@ -10304,8 +10305,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 	}
 
-	//On Aegis, when turning on a status change, first goes the option packet, then the sc packet
-	if(opt_flag) {
+	if(opt_flag) { //On Aegis, when turning on a status change, first goes the option packet, then the sc packet
 		clif_changeoption(bl);
 		if(sd && (opt_flag&0x4)) {
 			if(vd) {
@@ -10316,7 +10316,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			clif_changelook(bl,LOOK_SHIELD,0);
 		}
 	}
-	if(calc_flag&SCB_DYE) { //Reset DYE color
+
+	if(calc_flag&SCB_DYE) { //Reset dye color
 		if(vd && vd->cloth_color) {
 			val4 = vd->cloth_color;
 			clif_changelook(bl,LOOK_CLOTHES_COLOR,0);
@@ -10652,7 +10653,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 	if (sd && StatusDisplayType[type])
 		status_display_remove(sd,type);
 
-	if (sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE))
+	if (sc->option&(OPTION_HIDE|OPTION_CLOAK))
 		invisible = true;
 
 	vd = status_get_viewdata(bl);
@@ -11189,6 +11190,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC__INVISIBILITY:
 		case SC__FEINTBOMB:
 			sc->option &= ~OPTION_CLOAK;
+		//Fall through
 		case SC_CAMOUFLAGE:
 			opt_flag |= 2;
 			break;
@@ -11276,8 +11278,8 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			break;
 		case SC_BERSERK:
 		case SC_SATURDAYNIGHTFEVER:
-			opt_flag = 0;
 			sc->opt3 &= ~OPT3_BERSERK;
+			opt_flag = 0;
 			break;
 //		case ???: //Doesn't seem to do anything
 //			sc->opt3 &= ~OPT3_LIGHTBLADE;
@@ -11326,7 +11328,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			break;
 	}
 
-	if (!battle_config.update_enemy_position && invisible && !(sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE)))
+	if (!battle_config.update_enemy_position && invisible && !(sc->option&(OPTION_HIDE|OPTION_CLOAK)))
 		clif_blown(bl,bl);
 
 	if (calc_flag&SCB_DYE) { //Restore DYE color
