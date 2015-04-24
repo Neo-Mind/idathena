@@ -1128,8 +1128,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( sc->data[SC_WATER_BARRIER] )
 			damage = damage * 80 / 100; //20% reduction to all type attacks
 
-		//Compressed code, fixed by map.h [Epoque]
-		if( src->type == BL_MOB ) {
+		if( src->type == BL_MOB ) { //Compressed code, fixed by map.h [Epoque]
 			int i;
 
 			if( sc->data[SC_MANU_DEF] ) {

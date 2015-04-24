@@ -5631,9 +5631,10 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						heal = 0; //Needed so that it actually displays 0 when healing
 				}
 
-				clif_skill_nodamage(src,bl,skill_id,heal,1);
 				if(tsc && tsc->data[SC_AKAITSUKI] && heal && skill_id != HLIF_HEAL)
 					heal = ~heal + 1;
+
+				clif_skill_nodamage(src,bl,skill_id,heal,1);
 				heal_get_jobexp = status_heal(bl,heal,0,0);
 
 				if(sd && dstsd && heal > 0 && sd != dstsd && battle_config.heal_exp > 0) {
@@ -6104,6 +6105,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case NC_ACCELERATION:
 		case NC_HOVERING:
 		case NC_SHAPESHIFT:
+		case WL_MARSHOFABYSS:
 		case WL_RECOGNIZEDSPELL:
 		case GC_VENOMIMPRESS:
 		case SC_INVISIBILITY:
@@ -9041,11 +9043,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_TOTARGET,0,0);
 			break;
 
-		case WL_MARSHOFABYSS:
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-			sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
-			break;
-
 		case WL_SIENNAEXECRATE:
 			if( status_isimmune(bl) || !tsc )
 				break; //Doesn't send failure packet if it fails on defense
@@ -9060,7 +9057,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			} else {
 				int rate = 45 + 5 * skill_lv + (sd ? sd->status.job_level / 4 : 0);
 
-				if( rnd()%100 < rate ) { //Success on First Target
+				if( rnd()%100 < rate ) { //Success on first target
 					if( !tsc->data[SC_STONE] )
 						rate = status_change_start(src,bl,SC_STONE,10000,skill_lv,0,0,1000,skill_get_time(skill_id,skill_lv),SCFLAG_FIXEDTICK);
 					else {
@@ -9072,7 +9069,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						skill_area_temp[1] = bl->id;
 						map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
 					}
-				} else if( sd ) //Failure on Rate
+				} else if( sd ) //Failure on rate
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
 			}
 			break;
@@ -10333,10 +10330,10 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			}
 			break;
 
-		case OB_AKAITSUKI:
-		case OB_ZANGETSU:
 		case KG_KYOMU:
 		case KG_KAGEMUSYA:
+		case OB_ZANGETSU:
+		case OB_AKAITSUKI:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,DMG_SKILL);
@@ -10868,8 +10865,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 	else
 		target = map_id2bl(ud->skilltarget);
 
-	//Use a do so that you can break out of it when the skill fails
-	do {
+	do { //Use a do so that you can break out of it when the skill fails
 		if( !target || target->prev == NULL )
 			break;
 
@@ -10895,6 +10891,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 					if( c_sd && c_sd->state.autotrade )
 						break;
 				}
+			//Fall through
 			case AM_RESURRECTHOMUN:
 			case PF_SPIDERWEB:
 				//Find a random spot to place the skill [Skotlex]
@@ -10928,15 +10925,14 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 				break;
 		}
 
-		if( ud->skill_id == RA_WUGSTRIKE )
-			if( !path_search(NULL,src->m,src->x,src->y,target->x,target->y,1,CELL_CHKNOREACH) )
-				break;
+		if( ud->skill_id == RA_WUGSTRIKE &&
+			!path_search(NULL,src->m,src->x,src->y,target->x,target->y,1,CELL_CHKNOREACH) )
+			break;
 
 		if( ud->skill_id == PR_LEXDIVINA || ud->skill_id == MER_LEXDIVINA ) {
-			sc = status_get_sc(target);
 			//If it's not an enemy, and not silenced, you can't use the skill on them [Skotlex]
-			if( battle_check_target(src,target,BCT_ENEMY) <= 0 && (!sc || !sc->data[SC_SILENCE]) ) {
-				clif_skill_nodamage (src,target,ud->skill_id,ud->skill_lv,0);
+			if( battle_check_target(src,target,BCT_ENEMY) <= 0 && !((sc = status_get_sc(target)) && sc->data[SC_SILENCE]) ) {
+				clif_skill_nodamage(src,target,ud->skill_id,ud->skill_lv,0);
 				break;
 			}
 		} else { //Check target validity
@@ -10960,7 +10956,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 			}
 
 			if( ud->skill_id >= SL_SKE && ud->skill_id <= SL_SKA && target->type == BL_MOB ) {
-				if( ((TBL_MOB*)target)->mob_id == MOBID_EMPERIUM )
+				if( ((TBL_MOB *)target)->mob_id == MOBID_EMPERIUM )
 					break;
 			} else if( inf && battle_check_target(src,target,inf) <= 0 ) {
 				if( sd )
@@ -12720,26 +12716,24 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 	group->link_group_id = link_group_id;
 	group->target_flag = target;
 	group->bl_flag = skill_get_unit_bl_target(skill_id);
-	group->state.ammo_consume = (sd && sd->state.arrow_atk && skill_id != GS_GROUNDDRIFT); //Store if this skill needs to consume ammo.
+	group->state.ammo_consume = (sd && sd->state.arrow_atk && skill_id != GS_GROUNDDRIFT); //Store if this skill needs to consume ammo
 	group->state.song_dance = (unit_flag&(UF_DANCE|UF_SONG) ? 1 : 0)|(unit_flag&UF_ENSEMBLE ? 2 : 0); //Signals if this is a song/dance/duet
 	group->state.guildaura = (skill_id >= GD_LEADERSHIP && skill_id <= GD_HAWKEYES) ? 1 : 0;
   	group->item_id = req_item;
 
-	//If tick is greater than current, do not invoke onplace function just yet. [Skotlex]
+	//If tick is greater than current, do not invoke onplace function just yet [Skotlex]
 	if( DIFF_TICK(group->tick,gettick()) > SKILLUNITTIMER_INTERVAL )
 		active_flag = 0;
 
-	//Put message for Talkie Box & Graffiti
-	if( skill_id == HT_TALKIEBOX || skill_id == RG_GRAFFITI ) {
+	if( skill_id == HT_TALKIEBOX || skill_id == RG_GRAFFITI ) { //Put message for Talkie Box & Graffiti
 		group->valstr = (char *)aMalloc(MESSAGE_SIZE * sizeof(char));
 		if( sd )
 			safestrncpy(group->valstr,sd->message,MESSAGE_SIZE);
-		else //Eh, we have to write something here, even though mobs shouldn't use this. [Skotlex]
+		else //Eh, we have to write something here, even though mobs shouldn't use this [Skotlex]
 			safestrncpy(group->valstr,"Boo!",MESSAGE_SIZE);
 	}
 
-	//Dance skill
-	if( group->state.song_dance ) {
+	if( group->state.song_dance ) { //Dance skill
 		if( sd ) {
 			sd->skill_id_dance = skill_id;
 			sd->skill_lv_dance = skill_lv;
@@ -13332,8 +13326,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 
 		case UNT_SANCTUARY:
 			if (battle_check_undead(tstatus->race,tstatus->def_ele) || tstatus->race == RC_DEMON) {
-				//Only damage enemies with offensive Sanctuary. [Skotlex]
-				if (battle_check_target(&unit->bl,bl,BCT_ENEMY) > 0 &&
+				if (battle_check_target(&unit->bl,bl,BCT_ENEMY) > 0 && //Only damage enemies with offensive Sanctuary [Skotlex]
 					skill_attack(BF_MAGIC,src,&unit->bl,bl,skill_id,skill_lv,tick,0))
 					group->val1 -= 2; //Reduce healing count if this was meant for damaging [hekate]
 			} else {
@@ -13350,9 +13343,9 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 					break;
 				if (status_isimmune(bl))
 					heal = 0;
-				clif_skill_nodamage(&unit->bl,bl,AL_HEAL,heal,1);
 				if (tsc && tsc->data[SC_AKAITSUKI] && heal)
 					heal = ~heal + 1;
+				clif_skill_nodamage(&unit->bl,bl,AL_HEAL,heal,1);
 				status_heal(bl,heal,0,0);
 				if (diff >= 500)
 					group->val1--;
@@ -13361,7 +13354,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				skill_delunitgroup(group);
 			break;
 
-		case UNT_EVILLAND: //Will heal demon and undead element monsters, but not players.
+		case UNT_EVILLAND: //Will heal demon and undead element monsters, but not players
 			if ((bl->type == BL_PC) || (!battle_check_undead(tstatus->race,tstatus->def_ele) && tstatus->race != RC_DEMON)) {
 				if (battle_check_target(&unit->bl,bl,BCT_ENEMY) > 0) //Damage enemies
 					skill_attack(BF_MISC,src,&unit->bl,bl,skill_id,skill_lv,tick,0);
@@ -13412,7 +13405,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				int sec = skill_get_time2(skill_id,skill_lv);
 
 				if (status_change_start(src,bl,type,10000,skill_lv,group->group_id,0,0,sec,SCFLAG_FIXEDRATE)) {
-					const struct TimerData* td = (tsc && tsc->data[type] ? get_timer(tsc->data[type]->timer) : NULL);
+					const struct TimerData *td = (tsc && tsc->data[type] ? get_timer(tsc->data[type]->timer) : NULL);
 					int range = skill_get_unit_range(skill_id,skill_lv);
 
 					if (td)
@@ -13547,9 +13540,9 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 					(!battle_config.song_timer_reset && tsc && tsc->data[type] && tsc->data[type]->val4 == 1))
 					break;
 				heal = skill_calc_heal(src,bl,skill_id,skill_lv,true);
-				clif_skill_nodamage(&unit->bl,bl,AL_HEAL,heal,1);
 				if (tsc && tsc->data[SC_AKAITSUKI] && heal)
 					heal = ~heal + 1;
+				clif_skill_nodamage(&unit->bl,bl,AL_HEAL,heal,1);
 				status_heal(bl,heal,0,0);
 				if (!battle_config.song_timer_reset)
 					sc_start4(src,bl,type,100,skill_lv,group->val1,group->val2,0,group->limit);
@@ -13720,11 +13713,11 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 					sp = tstatus->max_sp * sp / 100;
 					if (tsc && tsc->data[SC_AKAITSUKI] && hp)
 						hp = ~hp + 1;
-					status_heal(bl,hp,sp,1);
 					if (tstatus->hp < tstatus->max_hp)
 						clif_skill_nodamage(&unit->bl,bl,AL_HEAL,hp,1);
 					if (tstatus->sp < tstatus->max_sp)
 						clif_skill_nodamage(&unit->bl,bl,MG_SRECOVERY,sp,1);
+					status_heal(bl,hp,sp,1);
 					sc_start(src,bl,type,100,skill_lv,group->interval * 3 + 100);
 				}
 				if (group->val2%5 == 0) { //Un-hides players every 5 seconds
@@ -17386,7 +17379,7 @@ int skill_maelstrom_suction(struct block_list *bl, va_list ap)
 			int sp = unit->group->skill_lv * skill_lv;
 
 			if( src->type == BL_PC )
-				sp += ((TBL_PC*)src)->status.job_level / 5;
+				sp += ((TBL_PC *)src)->status.job_level / 5;
 			status_heal(src, 0, sp / 2, 1);
 		}
 	}

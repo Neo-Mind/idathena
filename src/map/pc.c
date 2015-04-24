@@ -1749,13 +1749,12 @@ static void pc_check_skilltree(struct map_session_data *sd, int skill)
 
 			if( sd->status.skill[id].id ) //Already learned
 				continue;
-
 			for( j = 0; j < MAX_PC_SKILL_REQUIRE; j++ ) {
 				int k = skill_tree[c][i].need[j].id;
 
 				if( k != 0 ) {
 					if( sd->status.skill[k].id == 0 || sd->status.skill[k].flag == SKILL_FLAG_TEMPORARY || sd->status.skill[k].flag == SKILL_FLAG_PLAGIARIZED )
-						k = 0; //Not learned.
+						k = 0; //Not learned
 					else if( sd->status.skill[k].flag >= SKILL_FLAG_REPLACED_LV_0) //Real lerned level
 						k = sd->status.skill[skill_tree[c][i].need[j].id].flag - SKILL_FLAG_REPLACED_LV_0;
 					else
@@ -1770,15 +1769,12 @@ static void pc_check_skilltree(struct map_session_data *sd, int skill)
 				continue;
 			if( sd->status.job_level < skill_tree[c][i].joblv )
 				continue;
-			
 			j = skill_get_inf2(id);
-			if( !sd->status.skill[id].lv && (
-				(j&INF2_QUEST_SKILL && !battle_config.quest_skill_learn) ||
+			if( !sd->status.skill[id].lv &&
+				((j&INF2_QUEST_SKILL && !battle_config.quest_skill_learn) ||
 				j&INF2_WEDDING_SKILL ||
-				(j&INF2_SPIRIT_SKILL && !sd->sc.data[SC_SPIRIT])
-			) )
-				continue; //Cannot be learned via normal means.
-
+				(j&INF2_SPIRIT_SKILL && !sd->sc.data[SC_SPIRIT])) )
+				continue; //Cannot be learned via normal means
 			sd->status.skill[id].id = id;
 			flag = 1;
 		}
@@ -1786,7 +1782,7 @@ static void pc_check_skilltree(struct map_session_data *sd, int skill)
 }
 
 // Make sure all the skills are in the correct condition
-// before persisting to the backend.. [MouseJstr]
+// before persisting to the backend. [MouseJstr]
 void pc_clean_skilltree(struct map_session_data *sd)
 {
 	uint16 i;
@@ -2237,10 +2233,10 @@ int pc_endautobonus(int tid, unsigned int tick, int id, intptr_t data)
 	return 0;
 }
 
-static void pc_bonus_addele(struct map_session_data* sd, unsigned char ele, short rate, short flag)
+static void pc_bonus_addele(struct map_session_data *sd, unsigned char ele, short rate, short flag)
 {
 	uint8 i;
-	struct weapon_data* wd;
+	struct weapon_data *wd;
 
 	wd = (sd->state.lr_flag ? &sd->left_weapon : &sd->right_weapon);
 	ARR_FIND(0, MAX_PC_BONUS, i, wd->addele2[i].rate == 0);
@@ -2263,7 +2259,7 @@ static void pc_bonus_addele(struct map_session_data* sd, unsigned char ele, shor
 	wd->addele2[i].flag = flag;
 }
 
-static void pc_bonus_subele(struct map_session_data* sd, unsigned char ele, short rate, short flag)
+static void pc_bonus_subele(struct map_session_data *sd, unsigned char ele, short rate, short flag)
 {
 	uint8 i;
 
@@ -7834,7 +7830,7 @@ bool pc_setparam(struct map_session_data *sd,int type,int val) {
 /*==========================================
  * HP/SP Healing. If flag is passed, the heal type is through clif_heal, otherwise update status.
  *------------------------------------------*/
-void pc_heal(struct map_session_data *sd,unsigned int hp,unsigned int sp, int type)
+void pc_heal(struct map_session_data *sd, unsigned int hp, unsigned int sp, int type)
 {
 	if (type) {
 		if (hp)
@@ -9938,7 +9934,8 @@ int map_night_timer(int tid, unsigned int tick, int id, intptr_t data)
 	return 0;
 }
 
-void pc_setstand(struct map_session_data *sd) {
+void pc_setstand(struct map_session_data *sd)
+{
 	nullpo_retv(sd);
 
 	status_change_end(&sd->bl, SC_TENSIONRELAX, INVALID_TIMER);
@@ -9958,7 +9955,8 @@ void pc_setstand(struct map_session_data *sd) {
 /**
  * Mechanic (MADO GEAR)
  */
-void pc_overheat(struct map_session_data *sd, int val) {
+void pc_overheat(struct map_session_data *sd, int val)
+{
 	int heat = val,
 		limit[] = { 10,20,28,46,66 };
 	uint16 skill_lv;

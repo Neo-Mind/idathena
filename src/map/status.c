@@ -1998,8 +1998,6 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 						return false;
 					if (tsc->data[SC_CAMOUFLAGE] && !(status->mode&(MD_BOSS|MD_DETECTOR)) && (!skill_id || !flag))
 						return false;
-					if (tsc->data[SC__FEINTBOMB])
-						return false;
 				}
 			}
 			break;
@@ -7855,8 +7853,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 	}
 
-	//Check for Boss resistances
-	if(status->mode&MD_BOSS && !(flag&SCFLAG_NOAVOID)) {
+	if(status->mode&MD_BOSS && !(flag&SCFLAG_NOAVOID)) { //Check for Boss resistances
 		 if(type >= SC_COMMON_MIN && type <= SC_COMMON_MAX)
 			 return 0;
 		 switch(type) {
@@ -7901,13 +7898,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC__UNLUCKY:
 			case SC__WEAKNESS:
 			case SC_CURSEDCIRCLE_TARGET:
+			case SC_KYOMU:
+			case SC_AKAITSUKI:
 				return 0;
 		}
 	}
 
-	//Check for mvp resistance
-	//ATM only those who OS
-	if( (status->mode&MD_MVP) && !(flag&SCFLAG_NOAVOID) ) {
+	if( (status->mode&MD_MVP) && !(flag&SCFLAG_NOAVOID) ) { //Check for mvp resistance
 		switch( type ) {
 			case SC_COMA:
 			//Continue list
@@ -7915,8 +7912,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		}
 	}
 
-	//Before overlapping fail, one must check for status cured
-	switch (type) {
+	switch (type) { //Before overlapping fail, one must check for status cured
 		case SC_BLESSING:
 			//@TODO: Blessing and Agi up should do 1 damage against players on Undead Status, even on PvM,
 			//but cannot be plagiarized (this requires aegis investigation on packets and official behavior) [Brainstorm]
@@ -8206,8 +8202,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 	}
 
-	//Check for overlapping fails
-	if( (sce = sc->data[type]) ) {
+	if( (sce = sc->data[type]) ) { //Check for overlapping fails
 		switch( type ) {
 			case SC_MERC_FLEEUP:
 			case SC_MERC_ATKUP:
@@ -10064,7 +10059,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_CHASEWALK:
 		case SC_CLOAKINGEXCEED:
 		case SC_CAMOUFLAGE:
-		case SC__FEINTBOMB:
 		case SC_VOICEOFSIREN:
 		case SC_ALL_RIDING:
 		case SC_HEAT_BARREL_AFTER:
@@ -10264,7 +10258,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_CLOAKING:
 		case SC_CLOAKINGEXCEED:
 		case SC__INVISIBILITY:
-		case SC__FEINTBOMB:
 			sc->option |= OPTION_CLOAK;
 		//Fall through
 		case SC_CAMOUFLAGE:
@@ -10273,6 +10266,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_CHASEWALK:
 			sc->option |= OPTION_CHASEWALK|OPTION_CLOAK;
 			opt_flag = 2;
+			break;
+		case SC__FEINTBOMB:
+			sc->option |= OPTION_INVISIBLE;
+			opt_flag |= 0x4;
 			break;
 		case SC_SIGHT:
 			sc->option |= OPTION_SIGHT;
@@ -11161,6 +11158,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 
 	opt_flag = 1;
 	switch (type) {
+		//OPT1
 		case SC_STONE:
 		case SC_FREEZE:
 		case SC_STUN:
@@ -11171,6 +11169,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_CRYSTALIZE:
 			sc->opt1 = 0;
 			break;
+		//OPT2
 		case SC_POISON:
 		case SC_CURSE:
 		case SC_SILENCE:
@@ -11187,56 +11186,10 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_SIGNUMCRUCIS:
 			sc->opt2 &= ~OPT2_SIGNUMCRUCIS;
 			break;
-		case SC_HIDING:
-			sc->option &= ~OPTION_HIDE;
-			opt_flag |= 2|4; //Check for warp trigger + AOE trigger
+		case SC_FEAR:
+			sc->opt2 &= ~OPT2_FEAR;
 			break;
-		case SC_CLOAKING:
-		case SC_CLOAKINGEXCEED:
-		case SC__INVISIBILITY:
-		case SC__FEINTBOMB:
-			sc->option &= ~OPTION_CLOAK;
-		//Fall through
-		case SC_CAMOUFLAGE:
-			opt_flag |= 2;
-			break;
-		case SC_CHASEWALK:
-			sc->option &= ~(OPTION_CHASEWALK|OPTION_CLOAK);
-			opt_flag |= 2;
-			break;
-		case SC_SIGHT:
-			sc->option &= ~OPTION_SIGHT;
-			break;
-		case SC_WEDDING:
-			sc->option &= ~OPTION_WEDDING;
-			opt_flag |= 0x4;
-			break;
-		case SC_XMAS:
-			sc->option &= ~OPTION_XMAS;
-			opt_flag |= 0x4;
-			break;
-		case SC_SUMMER:
-			sc->option &= ~OPTION_SUMMER;
-			opt_flag |= 0x4;
-			break;
-		case SC_HANBOK:
-			sc->option &= ~OPTION_HANBOK;
-			opt_flag |= 0x4;
-			break;
-		case SC_OKTOBERFEST:
-			sc->option &= ~OPTION_OKTOBERFEST;
-			opt_flag |= 0x4;
-			break;
-		case SC_ORCISH:
-			sc->option &= ~OPTION_ORCISH;
-			break;
-		case SC_RUWACH:
-			sc->option &= ~OPTION_RUWACH;
-			break;
-		case SC_FUSION:
-			sc->option &= ~OPTION_FLYING;
-			break;
-		//opt3
+		//OPT3
 		case SC_TWOHANDQUICKEN:
 		case SC_ONEHAND:
 		case SC_SPEARQUICKEN:
@@ -11287,10 +11240,10 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			sc->opt3 &= ~OPT3_BERSERK;
 			opt_flag = 0;
 			break;
-//		case ???: //Doesn't seem to do anything
-//			sc->opt3 &= ~OPT3_LIGHTBLADE;
-//			opt_flag = 0;
-//			break;
+		//case ???: //Doesn't seem to do anything
+			//sc->opt3 &= ~OPT3_LIGHTBLADE;
+			//opt_flag = 0;
+			//break;
 		case SC_DANCING:
 			if ((sce->val1&0xFFFF) == CG_MOONLIT)
 				sc->opt3 &= ~OPT3_MOONLIT;
@@ -11329,6 +11282,59 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			//sc->opt3 &= ~OPT3_CONTRACT;
 			//opt_flag = 0;
 			//break;
+		//OPTION
+		case SC_HIDING:
+			sc->option &= ~OPTION_HIDE;
+			opt_flag |= 2|4; //Check for warp trigger + AOE trigger
+			break;
+		case SC_CLOAKING:
+		case SC_CLOAKINGEXCEED:
+		case SC__INVISIBILITY:
+			sc->option &= ~OPTION_CLOAK;
+		//Fall through
+		case SC_CAMOUFLAGE:
+			opt_flag |= 2;
+			break;
+		case SC_CHASEWALK:
+			sc->option &= ~(OPTION_CHASEWALK|OPTION_CLOAK);
+			opt_flag |= 2;
+			break;
+		case SC__FEINTBOMB:
+			sc->option &= ~OPTION_INVISIBLE;
+			opt_flag |= 0x4;
+			break;
+		case SC_SIGHT:
+			sc->option &= ~OPTION_SIGHT;
+			break;
+		case SC_WEDDING:
+			sc->option &= ~OPTION_WEDDING;
+			opt_flag |= 0x4;
+			break;
+		case SC_XMAS:
+			sc->option &= ~OPTION_XMAS;
+			opt_flag |= 0x4;
+			break;
+		case SC_SUMMER:
+			sc->option &= ~OPTION_SUMMER;
+			opt_flag |= 0x4;
+			break;
+		case SC_HANBOK:
+			sc->option &= ~OPTION_HANBOK;
+			opt_flag |= 0x4;
+			break;
+		case SC_OKTOBERFEST:
+			sc->option &= ~OPTION_OKTOBERFEST;
+			opt_flag |= 0x4;
+			break;
+		case SC_ORCISH:
+			sc->option &= ~OPTION_ORCISH;
+			break;
+		case SC_RUWACH:
+			sc->option &= ~OPTION_RUWACH;
+			break;
+		case SC_FUSION:
+			sc->option &= ~OPTION_FLYING;
+			break;
 		default:
 			opt_flag = 0;
 			break;

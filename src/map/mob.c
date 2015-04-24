@@ -2932,7 +2932,7 @@ int mob_summonslave(struct mob_data *md2, int *value, int amount, uint16 skill_i
 			data.y = md2->bl.y;
 		}
 
-		//These two need to be loaded from the db for each slave.
+		//These two need to be loaded from the db for each slave
 		if (battle_config.override_mob_names == 1)
 			strcpy(data.name, "--en--");
 		else

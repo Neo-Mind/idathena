@@ -327,10 +327,9 @@ static int clif_send_sub(struct block_list *bl, va_list ap) {
 #endif
 	}
 
-	//Unless visible, hold it here
 	if (!battle_config.update_enemy_position && ally_only && !sd->special_state.intravision &&
 		!sd->sc.data[SC_INTRAVISION] && battle_check_target(src_bl, &sd->bl, BCT_ENEMY) > 0)
-		return 0;
+		return 0; //Unless visible, hold it here
 
 	if (session[fd] == NULL)
 		return 0;
