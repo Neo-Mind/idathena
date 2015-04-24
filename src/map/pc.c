@@ -1662,7 +1662,7 @@ void pc_calc_skilltree(struct map_session_data *sd)
 
 					if( (k = skill_tree[c][i].need[j].id) ) {
 						if( sd->status.skill[k].id == 0 || sd->status.skill[k].flag == SKILL_FLAG_TEMPORARY || sd->status.skill[k].flag == SKILL_FLAG_PLAGIARIZED )
-							k = 0; //Not learned.
+							k = 0; //Not learned
 						else if( sd->status.skill[k].flag >= SKILL_FLAG_REPLACED_LV_0 ) //Real learned level
 							k = sd->status.skill[skill_tree[c][i].need[j].id].flag - SKILL_FLAG_REPLACED_LV_0;
 						else

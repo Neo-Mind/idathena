@@ -8797,7 +8797,8 @@ ACMD_FUNC(charcommands)
 	atcommand_commands_sub(sd, fd, COMMAND_CHARCOMMAND);
 	return 0;
 }
-/* For new mounts */
+
+//For new mounts
 ACMD_FUNC(mount2) {
 	clif_displaymessage(sd->fd,msg_txt(1362)); // NOTICE: If you crash with mount your LUA is outdated.
 	if( !sd->sc.data[SC_ALL_RIDING] ) {

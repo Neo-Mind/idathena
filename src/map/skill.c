@@ -6777,10 +6777,9 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				else if (sd) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
-					//Level 6-10 doesn't consume a red gem if it fails [celest]
-					if (skill_lv > 5) { //Not to consume items
+					if (skill_lv > 5) { //Level 6-10 doesn't consume a red gem if it fails [celest]
 						map_freeblock_unlock();
-						return 0;
+						return 0; //Not to consume items
 					}
 				}
 			}
@@ -8748,9 +8747,9 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						i = 0;
 					if( dstsd && pc_ismadogear(dstsd) )
 						break;
-					clif_skill_nodamage(src,bl,skill_id,i,1);
 					if( tsc && tsc->data[SC_AKAITSUKI] && i )
 						i = ~i + 1;
+					clif_skill_nodamage(src,bl,skill_id,i,1);
 					status_heal(bl,i,0,0);
 				}
 			} else if( sd )
@@ -9064,7 +9063,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						rate = 1;
 						status_change_end(bl,SC_STONE,INVALID_TIMER);
 					}
-
 					if( rate ) {
 						skill_area_temp[1] = bl->id;
 						map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);

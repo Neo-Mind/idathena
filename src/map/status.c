@@ -7820,7 +7820,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				return 0;
 			break;
 		case SC_ALL_RIDING:
-			if(sc->option&(OPTION_RIDING|OPTION_DRAGON|OPTION_WUG|OPTION_MADOGEAR))
+			if(sc->option&(OPTION_RIDING|OPTION_DRAGON|OPTION_WUGRIDER|OPTION_MADOGEAR))
 				return 0;
 			if(sc->data[type]) { // Already mounted, just dismount
 				status_change_end(bl,type,INVALID_TIMER);
@@ -7853,7 +7853,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 	}
 
-	if(status->mode&MD_BOSS && !(flag&SCFLAG_NOAVOID)) { //Check for Boss resistances
+	if(status->mode&MD_BOSS && !(flag&SCFLAG_NOAVOID)) { //Check for boss resistances
 		 if(type >= SC_COMMON_MIN && type <= SC_COMMON_MAX)
 			 return 0;
 		 switch(type) {
@@ -7904,7 +7904,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		}
 	}
 
-	if( (status->mode&MD_MVP) && !(flag&SCFLAG_NOAVOID) ) { //Check for mvp resistance
+	if( (status->mode&MD_MVP) && !(flag&SCFLAG_NOAVOID) ) { //Check for MVP resistance
 		switch( type ) {
 			case SC_COMA:
 			//Continue list
@@ -7914,7 +7914,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 	switch (type) { //Before overlapping fail, one must check for status cured
 		case SC_BLESSING:
-			//@TODO: Blessing and Agi up should do 1 damage against players on Undead Status, even on PvM,
+			//@TODO: Blessing and Agi up should do 1 damage against players on Undead Status, even on PVM,
 			//but cannot be plagiarized (this requires aegis investigation on packets and official behavior) [Brainstorm]
 			if ((!undead_flag && status->race != RC_DEMON) || bl->type == BL_PC) {
 				status_change_end(bl,SC_CURSE,INVALID_TIMER);
