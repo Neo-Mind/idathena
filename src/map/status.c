@@ -299,7 +299,13 @@ void initChangeTables(void) {
 	set_sc( RG_RAID              , SC_RAID            , SI_RAID            , SCB_NONE );
 	add_sc( RG_BACKSTAP          , SC_STUN            );
 #endif
-	set_sc( RG_STRIPWEAPON       , SC_STRIPWEAPON     , SI_STRIPWEAPON     , SCB_WATK );
+	set_sc( RG_STRIPWEAPON       , SC_STRIPWEAPON     , SI_STRIPWEAPON     ,
+#ifdef RENEWAL
+		SCB_BATK
+#else
+		SCB_WATK
+#endif
+		);
 	set_sc( RG_STRIPSHIELD       , SC_STRIPSHIELD     , SI_STRIPSHIELD     , SCB_DEF );
 	set_sc( RG_STRIPARMOR        , SC_STRIPARMOR      , SI_STRIPARMOR      , SCB_VIT );
 	set_sc( RG_STRIPHELM         , SC_STRIPHELM       , SI_STRIPHELM       , SCB_INT );
