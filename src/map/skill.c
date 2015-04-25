@@ -1449,7 +1449,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 						break;
 					case ITEMID_BANANA_BOMB: //Reduces LUK and chance to force sit. Must do the force sit success chance first before LUK reduction
 						sc_start(src,bl,SC_BANANA_BOMB_SITDOWN,baselv + joblv + sstatus->dex / 6 - tbaselv - tstatus->agi / 4 - tstatus->luk / 5,skill_lv,1000 * joblv / 4);
-						//sc_start(src,bl,SC_BANANA_BOMB,100,skill_lv,77000);
+						//sc_start(src,bl,SC_BANANA_BOMB,100,skill_lv,77000); //Needs more info
 						break;
 				}
 				sd->itemid = -1;
@@ -3000,8 +3000,8 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 		case GN_FIRE_EXPANSION_ACID:
 			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, CR_ACIDDEMONSTRATION, skill_lv, DMG_MULTI_HIT);
 			break;
-		case GN_SLINGITEM_RANGEMELEEATK: //Interesting, server sends a skill level of 65534 and DMG_SKILL type [Rytech]
-			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, 65534, DMG_SKILL);
+		case GN_SLINGITEM_RANGEMELEEATK:
+			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, GN_SLINGITEM, -2, DMG_SKILL);
 			break;
 		case LG_OVERBRAND:
 		case LG_OVERBRAND_BRANDISH:
@@ -3694,7 +3694,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case SR_WINDMILL:
 					{
 						if (target->type == BL_PC) {
-							struct map_session_data *tsd = ((TBL_PC*)target);
+							struct map_session_data *tsd = ((TBL_PC *)target);
 
 							if (tsd && !pc_issit(tsd)) {
 								pc_setsit(tsd);
@@ -10056,7 +10056,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						if( ammo_id == ITEMID_PINEAPPLE_BOMB ) //Pineapple Bombs deal 5x5 splash damage on targeted enemy
 							map_foreachinrange(skill_area_sub,bl,2,BL_CHAR,src,GN_SLINGITEM_RANGEMELEEATK,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 						else //All other bombs and lumps hits one enemy
-							skill_attack(BF_WEAPON,src,src,bl,GN_SLINGITEM_RANGEMELEEATK,skill_lv,tick,flag);
+							skill_castend_damage_id(src,bl,GN_SLINGITEM_RANGEMELEEATK,skill_lv,tick,flag);
 					} else //Otherwise, it fails, shows animation and removes items
 						clif_skill_fail(sd,GN_SLINGITEM_RANGEMELEEATK,USESKILL_FAIL,0,0);
 				} else if( itemdb_is_slingbuff(ammo_id) ) { //If thrown item is a potion, food, powder, or overcooked food, then its a buff type ammo

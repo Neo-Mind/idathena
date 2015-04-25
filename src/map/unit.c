@@ -2738,10 +2738,11 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 
 	switch (bl->type) {
 		case BL_PC: {
-				struct map_session_data *sd = (struct map_session_data*)bl;
+				struct map_session_data *sd = (struct map_session_data *)bl;
 
 				if (sd->shadowform_id) { //If shadow target has leave the map
 					struct block_list *d_bl = map_id2bl(sd->shadowform_id);
+
 					if(d_bl)
 						status_change_end(d_bl,SC__SHADOWFORM,INVALID_TIMER);
 				}
@@ -2750,9 +2751,7 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 					chat_leavechat(sd,0);
 				if (sd->trade_partner)
 					trade_tradecancel(sd);
-
 				searchstore_close(sd);
-
 				if (sd->menuskill_id != AL_TELEPORT) { //bugreport:8027
 					if (sd->state.storage_flag == 1)
 						storage_storage_quit(sd,0);
@@ -2761,7 +2760,6 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 
 					sd->state.storage_flag = 0; //Force close it when being warped
 				}
-
 				if (sd->party_invite > 0)
 					party_reply_invite(sd,sd->party_invite,0);
 				if (sd->guild_invite > 0)
@@ -2777,10 +2775,8 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 					status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
 					status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);
 				}
-
 				sd->npc_shopid = 0;
 				sd->adopt_invite = 0;
-
 				if (sd->pvp_timer != INVALID_TIMER) {
 					delete_timer(sd->pvp_timer,pc_calc_pvprank_timer);
 					sd->pvp_timer = INVALID_TIMER;
@@ -2792,11 +2788,9 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 					pc_setstand(sd);
 					skill_sit(sd,0);
 				}
-
 				party_send_dot_remove(sd); //Minimap dot fix [Kevin]
 				guild_send_dot_remove(sd);
 				bg_send_dot_remove(sd);
-
 				if (map[bl->m].users <= 0 || sd->state.debug_remove_map) {
 					//This is only place where map users is decreased.
 					//If the mobs were removed too soon then this function was executed too many times [FlavioJS]
@@ -2822,7 +2816,6 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 					map[bl->m].hpmeter_visible--;
 					sd->state.hpmeter_visible = 0;
 				}
-
 				sd->state.debug_remove_map = 1; //Temporary state to track double remove_map's [FlavioJS]
 				sd->debug_file = file;
 				sd->debug_line = line;
@@ -2831,19 +2824,17 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 			}
 			break;
 		case BL_MOB: {
-				struct mob_data *md = (struct mob_data*)bl;
+				struct mob_data *md = (struct mob_data *)bl;
 
 				//Drop previous target mob_slave_keep_target: no
 				if (!battle_config.mob_slave_keep_target)
 					md->target_id = 0;
-
 				md->attacked_id = 0;
 				md->state.skillstate = MSS_IDLE;
-
 			}
 			break;
 		case BL_PET: {
-				struct pet_data *pd = (struct pet_data*)bl;
+				struct pet_data *pd = (struct pet_data *)bl;
 
 				//If logging out, this is deleted on unit_free
 				if (pd->pet.intimate <= 0 && !(pd->master && !pd->master->state.active)) {

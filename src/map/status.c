@@ -1446,6 +1446,8 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 			status_change_end(target, SC_CHASEWALK, INVALID_TIMER);
 			status_change_end(target, SC_CAMOUFLAGE, INVALID_TIMER);
 			status_change_end(target, SC_DEEPSLEEP, INVALID_TIMER);
+			status_change_end(target, SC_SITDOWN_FORCE, INVALID_TIMER);
+			status_change_end(target, SC_BANANA_BOMB_SITDOWN, INVALID_TIMER);
 			//Endure count is only reduced by non-players on non-gvg maps
 			if ((sce = sc->data[SC_ENDURE]) && !sce->val4 && //val4 signals infinite endure [Skotlex]
 				src && src->type != BL_PC && !map_flag_gvg2(target->m) && !map[target->m].flag.battleground && --(sce->val2) < 0)

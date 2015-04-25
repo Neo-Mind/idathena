@@ -5180,7 +5180,8 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		wd.div_ *= -1;
 
 	switch(skill_id) { //Damage disregard acurracy check
-		case HW_MAGICCRASHER: {
+		case HW_MAGICCRASHER:
+			if(sd) {
 				short index = sd->equip_index[EQI_HAND_R];
 
 				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
