@@ -9035,7 +9035,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				i = sc_start2(src,bl,type,rate,skill_lv,src->id,(bl->id == src->id) ? 5000 : (bl->type == BL_PC) ?
 					skill_get_time(skill_id,skill_lv) : skill_get_time2(skill_id,skill_lv));
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,i);
-				if( sd && !i )
+				if( !i && sd )
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
 			} else if( sd )
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_TOTARGET,0,0);
@@ -9291,7 +9291,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case SC_LAZINESS:
 		case SC_UNLUCKY:
 		case SC_WEAKNESS:
-			if( !(tsc && tsc->data[type]) ) {
+			{
 				int joblvbonus = 0;
 
 				joblvbonus = (sd ? sd->status.job_level : 0);
@@ -9301,7 +9301,13 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				rnd_value(tstatus->agi / 6,tstatus->agi / 3) - tstatus->luk / 10 - (dstsd ? (dstsd->max_weight / 10 - dstsd->weight / 10) / 100 : 0) - status_get_lv(bl) / 10;
 				//Finally we set the minimum success chance cap based on the caster's skill level and DEX
 				rate = cap_value(rate,skill_lv + sstatus->dex / 20,100);
-				clif_skill_nodamage(src,bl,skill_id,0,sc_start(src,bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv)));
+				i = sc_start(src,bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv));
+				clif_skill_nodamage(src,bl,skill_id,0,i);
+				if( !i ) {
+					if( sd )
+						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
+					break;
+				}
 				if( tsc ) {
 					//If the target was successfully inflected with the Ignorance status, drain some of the targets SP
 					if( tsc->data[SC__IGNORANCE] && skill_id == SC_IGNORANCE ) {
@@ -9328,8 +9334,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						}
 					}
 				}
-			} else if( sd )
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
+			}
 			break;
 
 		case LG_TRAMPLE:
