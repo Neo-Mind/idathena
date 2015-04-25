@@ -4652,12 +4652,9 @@ bool pc_isUseitem(struct map_session_data *sd, int n)
 		(sd->sc.data[SC_GRAVITATION] && sd->sc.data[SC_GRAVITATION]->val3 == BCT_SELF) ||
 		sd->sc.data[SC_TRICKDEAD] ||
 		sd->sc.data[SC_HIDING] ||
-		sd->sc.data[SC_WHITEIMPRISON] ||
-		sd->sc.data[SC_CRYSTALIZE] ||
 		sd->sc.data[SC__SHADOWFORM] ||
 		sd->sc.data[SC__INVISIBILITY] ||
 		sd->sc.data[SC__MANHOLE] ||
-		sd->sc.data[SC_DEEPSLEEP] ||
 		sd->sc.data[SC_KAGEHUMI] ||
 		(sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOITEM) ||
 		sd->sc.data[SC_HEAT_BARREL_AFTER] ||
@@ -4712,7 +4709,7 @@ int pc_useitem(struct map_session_data *sd, int n)
 	//Store information for later use before it is lost (via pc_delitem) [Paradox924X]
 	nameid = id->nameid;
 
-	if( nameid != ITEMID_NAUTHIZ && sd->sc.opt1 > 0 && sd->sc.opt1 != OPT1_STONEWAIT && sd->sc.opt1 != OPT1_BURNING )
+	if( nameid != ITEMID_NAUTHIZ && sd->sc.opt1 && sd->sc.opt1 != OPT1_STONEWAIT && sd->sc.opt1 != OPT1_BURNING && sd->sc.opt1 != OPT1_FREEZING )
 		return 0;
 
 	//Items with delayed consume are not meant to work while in mounts except ITEMID_BOARDING_HALTER
@@ -5056,8 +5053,8 @@ int pc_steal_item(struct map_session_data *sd, struct block_list *bl, uint16 ski
 
 	md = (TBL_MOB *)bl;
 
-	if( md->state.steal_flag == UCHAR_MAX || (md->sc.opt1 && md->sc.opt1 != OPT1_BURNING && md->sc.opt1 != OPT1_CRYSTALIZE) ) //Already stolen from / status change check
-		return 0;
+	if( md->state.steal_flag == UCHAR_MAX || (md->sc.opt1 && md->sc.opt1 != OPT1_BURNING && md->sc.opt1 != OPT1_FREEZING) )
+		return 0; //Already stolen from status change check
 
 	sd_status = status_get_status_data(&sd->bl);
 	md_status = status_get_status_data(bl);
@@ -5135,7 +5132,7 @@ int pc_steal_coin(struct map_session_data *sd,struct block_list *target)
 	if( !sd || !target || target->type != BL_MOB )
 		return 0;
 
-	md = ((TBL_MOB*)target);
+	md = (TBL_MOB *)target;
 	if( md->state.steal_coin_flag || md->sc.data[SC_STONE] || md->sc.data[SC_FREEZE] || md->status.mode&MD_BOSS )
 		return 0;
 
@@ -8356,12 +8353,12 @@ void pc_setoption(struct map_session_data *sd,int type)
 		new_look = sd->vd.class_;
 	}
 
-	pc_stop_attack(sd); //Stop attacking on new view change (to prevent wedding/santa attacks.
+	pc_stop_attack(sd); //Stop attacking on new view change (to prevent wedding/santa attacks
 	clif_changelook(&sd->bl,LOOK_BASE,new_look);
 
 	if (sd->vd.cloth_color)
 		clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->vd.cloth_color);
-	clif_skillinfoblock(sd); //Skill list needs to be updated after base change.
+	clif_skillinfoblock(sd); //Skill list needs to be updated after base change
 }
 
 /*==========================================
@@ -8471,14 +8468,12 @@ bool pc_can_attack(struct map_session_data *sd, int target_id)
 		sd->sc.data[SC_BLADESTOP] ||
 		sd->sc.data[SC_BASILICA] ||
 		(sd->sc.data[SC_GRAVITATION] && sd->sc.data[SC_GRAVITATION]->val3 == BCT_SELF) ||
-		sd->sc.data[SC_CRYSTALIZE] ||
 		sd->sc.data[SC__SHADOWFORM] ||
 		sd->sc.data[SC__MANHOLE] ||
 		sd->sc.data[SC_CURSEDCIRCLE_ATKER] ||
 		sd->sc.data[SC_CURSEDCIRCLE_TARGET] ||
 		sd->sc.data[SC_FALLENEMPIRE] ||
 		(sd->sc.data[SC_VOICEOFSIREN] && sd->sc.data[SC_VOICEOFSIREN]->val2 == target_id) ||
-		sd->sc.data[SC_DEEPSLEEP] ||
 		sd->sc.data[SC_ALL_RIDING] || //The client doesn't let you, this is to make cheat-safe
 		sd->sc.data[SC_KINGS_GRACE]) )
 		return false;

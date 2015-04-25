@@ -1647,7 +1647,7 @@ enum e_mode
 //Status change option definitions (options are what makes status changes visible to chars
 //who were not on your field of sight when it happened)
 
-//OPT1: (BODYSTATE_) Non stackable status changes.
+//OPT1: (BODYSTATE_) Non stackable status changes
 enum sc_opt1 {
 	OPT1_STONE = 1, //Petrified
 	OPT1_FREEZE,
@@ -1656,11 +1656,12 @@ enum sc_opt1 {
 	//Aegis uses OPT1 = 5 to identify undead enemies (which also grants them immunity to the other OPT1 changes)
 	OPT1_STONEWAIT = 6, //Petrifying
 	OPT1_BURNING,
+	OPT1_FREEZING,
 	OPT1_IMPRISON,
 	OPT1_CRYSTALIZE,
 };
 
-//OPT2: (HEALTHSTATE_) Stackable status changes.
+//OPT2: (HEALTHSTATE_) Stackable status changes
 enum sc_opt2 {
 	OPT2_POISON		= 0x0001,
 	OPT2_CURSE		= 0x0002,
@@ -2087,15 +2088,15 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 #define sc_start(src, bl, type, rate, val1, tick) status_change_start(src, bl, type, 100 * (rate), val1, 0, 0, 0, tick, SCFLAG_NONE)
 #define sc_start2(src, bl, type, rate, val1, val2, tick) status_change_start(src, bl, type, 100 * (rate), val1, val2, 0, 0, tick, SCFLAG_NONE)
 #define sc_start4(src, bl, type, rate, val1, val2, val3, val4, tick) status_change_start(src, bl, type, 100 * (rate), val1, val2, val3, val4, tick, SCFLAG_NONE)
-int status_change_start(struct block_list* src, struct block_list* bl, enum sc_type type, int rate, int val1, int val2, int val3, int val4, int tick, unsigned char flag);
+int status_change_start(struct block_list *src, struct block_list *bl, enum sc_type type, int rate, int val1, int val2, int val3, int val4, int tick, unsigned char flag);
 
-int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const char* file, int line);
+int status_change_end_(struct block_list *bl, enum sc_type type, int tid, const char *file, int line);
 #define status_change_end(bl,type,tid) status_change_end_(bl,type,tid,__FILE__,__LINE__)
 int kaahi_heal_timer(int tid, unsigned int tick, int id, intptr_t data);
 int status_change_timer(int tid, unsigned int tick, int id, intptr_t data);
-int status_change_timer_sub(struct block_list* bl, va_list ap);
-int status_change_clear(struct block_list* bl, int type);
-void status_change_clear_buffs(struct block_list* bl, int type);
+int status_change_timer_sub(struct block_list *bl, va_list ap);
+int status_change_clear(struct block_list *bl, int type);
+void status_change_clear_buffs(struct block_list *bl, int type);
 
 #define status_calc_bl(bl, flag) status_calc_bl_(bl, (enum scb_flag)(flag), SCO_NONE)
 #define status_calc_mob(md, opt) status_calc_bl_(&(md)->bl, SCB_ALL, opt)

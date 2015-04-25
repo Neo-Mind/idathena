@@ -819,10 +819,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 
 		//Gravitation and Pressure do damage without removing the effect
 		if( sc->data[SC_WHITEIMPRISON] ) {
-			if( skill_id == MG_NAPALMBEAT ||
-				skill_id == MG_SOULSTRIKE ||
-				skill_id == WL_SOULEXPANSION ||
-				(skill_id && skill_get_ele(skill_id,skill_lv) == ELE_GHOST) ||
+			if( (skill_id && skill_get_ele(skill_id,skill_lv) == ELE_GHOST) ||
 				(!skill_id && (status_get_status_data(src))->rhw.ele == ELE_GHOST) )
 				status_change_end(bl,SC_WHITEIMPRISON,INVALID_TIMER); //Those skills do damage and removes effect
 			else {
@@ -953,7 +950,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			return 0; //Attack blocked by Parrying
 		}
 
-		if( (sce = sc->data[SC_DODGE]) && (!sc->opt1 || sc->opt1 == OPT1_BURNING) &&
+		if( (sce = sc->data[SC_DODGE]) && (!sc->opt1 || sc->opt1 == OPT1_BURNING || sc->opt1 == OPT1_FREEZING) &&
 			((flag&BF_LONG) || sc->data[SC_SPURT]) && rnd()%100 < 20 ) {
 			if( sd && pc_issit(sd) )
 				pc_setstand(sd); //Stand it to dodge
@@ -1352,8 +1349,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			if( !skill_id || element == -1 ) { //Take weapon's element
 				struct status_data *sstatus = NULL;
 
-				if( src->type == BL_PC && ((TBL_PC*)src)->bonus.arrow_ele )
-					element = ((TBL_PC*)src)->bonus.arrow_ele;
+				if( src->type == BL_PC && ((TBL_PC *)src)->bonus.arrow_ele )
+					element = ((TBL_PC *)src)->bonus.arrow_ele;
 				else if( (sstatus = status_get_status_data(src)) )
 					element = sstatus->rhw.ele;
 			} else if( element == -2 ) //Use enchantment's element
@@ -2270,7 +2267,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 		return true;
 	else if(skill_id == CR_SHIELDBOOMERANG && sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_CRUSADER)
 		return true;
-	else if(tsc && tsc->opt1 && tsc->opt1 != OPT1_STONEWAIT && tsc->opt1 != OPT1_BURNING)
+	else if(tsc && tsc->opt1 && tsc->opt1 != OPT1_STONEWAIT && tsc->opt1 != OPT1_BURNING && tsc->opt1 != OPT1_FREEZING)
 		return true;
 	else if(nk&NK_IGNORE_FLEE)
 		return true;
@@ -5614,6 +5611,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				switch(skill_id) {
 					case MG_NAPALMBEAT:
 						skillratio += -30 + 10 * skill_lv;
+						if(tsc && tsc->data[SC_WHITEIMPRISON])
+							skillratio *= 2;
 						break;
 					case MG_FIREBALL:
 #ifdef RENEWAL
@@ -5627,6 +5626,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					case MG_SOULSTRIKE:
 						if(battle_check_undead(tstatus->race,tstatus->def_ele))
 							skillratio += 5 * skill_lv;
+						if(tsc && tsc->data[SC_WHITEIMPRISON])
+							skillratio *= 2;
 						break;
 					case MG_FIREWALL:
 						skillratio -= 50;
@@ -5679,6 +5680,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						break;
 					case HW_NAPALMVULCAN:
 						skillratio += 25;
+						if(tsc && tsc->data[SC_WHITEIMPRISON])
+							skillratio *= 2;
 						break;
 					case SL_STIN: //Target size must be small (0) for full damage
 						skillratio += (tstatus->size != SZ_SMALL ? -99 : 10 * skill_lv);
@@ -5867,7 +5870,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 								skillratio += 1400;
 							if(sc->data[SC_BANDING])
 								skillratio += -100 + 300 * skill_lv + 200 * sc->data[SC_BANDING]->val2;
-							skillratio = skillratio * (sd ? sd->status.job_level / 25 : 1);
+							RE_LVL_DMOD(25);
 						}
 						break;
 					case LG_SHIELDSPELL: //[(Caster's Base Level x 4) + (Shield MDEF x 100) + (Caster's INT x 2)] %
@@ -6561,7 +6564,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		struct status_change *sc = status_get_sc(target);
 
 		i = 0; //Temp for "hit or no hit"
-		if(sc && sc->opt1 && sc->opt1 != OPT1_STONEWAIT && sc->opt1 != OPT1_BURNING)
+		if(sc && sc->opt1 && sc->opt1 != OPT1_STONEWAIT && sc->opt1 != OPT1_BURNING && sc->opt1 != OPT1_FREEZING)
 			i = 1;
 		else {
 			short

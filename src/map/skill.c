@@ -1442,14 +1442,14 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				switch( sd->itemid ) {
 					case ITEMID_COCONUT_BOMB: //Causes stun and bleeding
 						sc_start(src,bl,SC_STUN,5 + joblv / 2,skill_lv,1000 * joblv / 3);
-						sc_start2(src,bl,SC_BLEEDING,3 + joblv / 2,skill_lv,src->id,1000 * ((baselv / 4) + (joblv / 3)));
+						sc_start2(src,bl,SC_BLEEDING,3 + joblv / 2,skill_lv,src->id,1000 * baselv / 4 + joblv / 3);
 						break;
 					case ITEMID_MELON_BOMB: //Reduces ASPD and movement speed
 						sc_start4(src,bl,SC_MELON_BOMB,100,skill_lv,20 + joblv,10 + joblv / 2,0,1000 * baselv / 4);
 						break;
-					case ITEMID_BANANA_BOMB: //Reduces LUK and chance to force sit
-						sc_start(src,bl,SC_BANANA_BOMB,100,skill_lv,77000);
+					case ITEMID_BANANA_BOMB: //Reduces LUK and chance to force sit. Must do the force sit success chance first before LUK reduction
 						sc_start(src,bl,SC_BANANA_BOMB_SITDOWN,baselv + joblv + sstatus->dex / 6 - tbaselv - tstatus->agi / 4 - tstatus->luk / 5,skill_lv,1000 * joblv / 4);
+						//sc_start(src,bl,SC_BANANA_BOMB,100,skill_lv,77000);
 						break;
 				}
 				sd->itemid = -1;
@@ -6816,15 +6816,14 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				status_change_end(bl,SC_STONE,INVALID_TIMER);
 				status_change_end(bl,SC_SLEEP,INVALID_TIMER);
 				status_change_end(bl,SC_STUN,INVALID_TIMER);
-				status_change_end(bl,SC_STASIS,INVALID_TIMER);
 				status_change_end(bl,SC_WHITEIMPRISON,INVALID_TIMER);
-				status_change_end(bl,SC_NETHERWORLD,INVALID_TIMER);
 			}
+			status_change_end(bl,SC_STASIS,INVALID_TIMER);
+			status_change_end(bl,SC_NETHERWORLD,INVALID_TIMER);
 			//Is this equation really right? It looks so, special
-			if(battle_check_undead(tstatus->race,tstatus->def_ele)) {
+			if(battle_check_undead(tstatus->race,tstatus->def_ele))
 				status_change_start(src,bl,SC_BLIND,100 * (100 - (tstatus->int_ / 2 + tstatus->vit / 3 + tstatus->luk / 10)),1,0,0,0,
 					skill_get_time2(skill_id,skill_lv) * (100 - (tstatus->int_ + tstatus->vit) / 2) / 100,SCFLAG_NONE);
-			}
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			if(dstmd)
 				mob_unlocktarget(dstmd,tick);
@@ -9026,18 +9025,18 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				int rate = (sd ? sd->status.job_level / 4 : 0);
 
 				if( bl->id == src->id )
-					rate = 100; //Success Chance: On self, 100%
-				else if( bl->type == BL_PC )
-					rate += 20 + 10 * skill_lv; //On Players, (20 + 10 * Skill Level) %
-				else
-					rate += 40 + 10 * skill_lv; //On Monsters, (40 + 10 * Skill Level) %
-				if( !(tsc && tsc->data[type]) ) {
-					i = sc_start2(src,bl,type,rate,skill_lv,src->id,(bl->id == src->id) ? 5000 : (bl->type == BL_PC) ?
-						skill_get_time(skill_id,skill_lv) : skill_get_time2(skill_id,skill_lv));
-					clif_skill_nodamage(src,bl,skill_id,skill_lv,i);
-					if( !i )
-						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
+					rate = 100; //On self, 100%
+				else {
+					if( bl->type == BL_PC )
+						rate += 20 + 10 * skill_lv; //On players, (20 + 10 * Skill Level)%
+					else
+						rate += 40 + 10 * skill_lv; //On monsters, (40 + 10 * Skill Level)%
 				}
+				i = sc_start2(src,bl,type,rate,skill_lv,src->id,(bl->id == src->id) ? 5000 : (bl->type == BL_PC) ?
+					skill_get_time(skill_id,skill_lv) : skill_get_time2(skill_id,skill_lv));
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,i);
+				if( sd && !i )
+					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
 			} else if( sd )
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_TOTARGET,0,0);
 			break;
@@ -9045,7 +9044,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case WL_SIENNAEXECRATE:
 			if( status_isimmune(bl) || !tsc )
 				break; //Doesn't send failure packet if it fails on defense
-
 			if( flag&1 ) {
 				if( bl->id == skill_area_temp[1] )
 					break; //Already work on this target
@@ -11382,7 +11380,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case SA_DELUGE:
 		case SA_VIOLENTGALE:
 			{
-				//Does not consumes if the skill is already active. [Skotlex]
+				//Does not consumes if the skill is already active [Skotlex]
 				struct skill_unit_group *sg;
 
 				if( (sg = skill_locate_element_field(src)) != NULL && (sg->skill_id == SA_VOLCANO || sg->skill_id == SA_DELUGE || sg->skill_id == SA_VIOLENTGALE) ) {
@@ -11591,7 +11589,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			}
 			if( sc && sc->data[SC_CURSEDCIRCLE_ATKER] )
 				status_change_end(src,SC_CURSEDCIRCLE_ATKER,INVALID_TIMER);
-			return 0; //Not to consume item
+			return 0; //Not to consume items
 
 		case MO_BODYRELOCATION:
 			if( unit_movepos(src,x,y,1,true) ) {
@@ -12129,7 +12127,7 @@ int skill_castend_map(struct map_session_data *sd, uint16 skill_id, const char *
 		return 0;
 	}
 
-	if( (sd->sc.opt1 && sd->sc.opt1 != OPT1_BURNING) || (sd->sc.option&OPTION_HIDE) ) {
+	if( (sd->sc.opt1 && sd->sc.opt1 != OPT1_BURNING && sd->sc.opt1 != OPT1_FREEZING) || (sd->sc.option&OPTION_HIDE) ) {
 		skill_failed(sd);
 		return 0;
 	}
@@ -13037,6 +13035,7 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 		case UNT_HERMODE:
 			if( group->src_id != bl->id && battle_check_target(&unit->bl,bl,BCT_PARTY|BCT_GUILD) > 0 )
 				status_change_clear_buffs(bl,1); //Should dispell only allies
+		//Fall through
 		case UNT_RICHMANKIM:
 		case UNT_ETERNALCHAOS:
 		case UNT_DRUMBATTLEFIELD:
@@ -14300,7 +14299,7 @@ int skill_check_condition_char_sub(struct block_list *bl, va_list ap)
 	if( pc_isdead(tsd) )
 		return 0;
 
-	if( tsd->sc.data[SC_SILENCE] || (tsd->sc.opt1 && tsd->sc.opt1 != OPT1_BURNING) )
+	if( tsd->sc.data[SC_SILENCE] || (tsd->sc.opt1 && tsd->sc.opt1 != OPT1_BURNING && tsd->sc.opt1 != OPT1_FREEZING) )
 		return 0;
 
 	if( skill_get_inf2(skill_id)&INF2_CHORUS_SKILL ) {

@@ -1329,16 +1329,13 @@ int unit_can_move(struct block_list *bl) {
 			(sc->data[SC_DANCING]->val1&0xFFFF) == CG_MOONLIT ||
 			(sc->data[SC_DANCING]->val1&0xFFFF) == CG_HERMODE)))
 			return 0;
-
-		if (sc->opt1 > 0 && sc->opt1 != OPT1_STONEWAIT && sc->opt1 != OPT1_BURNING && !(sc->opt1 == OPT1_CRYSTALIZE && bl->type == BL_MOB))
+		if (sc->opt1 && sc->opt1 != OPT1_STONEWAIT && sc->opt1 != OPT1_BURNING && sc->opt1 != OPT1_FREEZING)
 			return 0;
-
 		if ((sc->option&OPTION_HIDE) && (!sd || pc_checkskill(sd, RG_TUNNELDRIVE) <= 0))
 			return 0;
 	}
 
-	//Icewall walk block special trapped monster mode
-	if (bl->type == BL_MOB) {
+	if (bl->type == BL_MOB) { //Icewall walk block special trapped monster mode
 		struct mob_data *md = BL_CAST(BL_MOB, bl);
 
 		if (md && ((md->status.mode&MD_BOSS && battle_config.boss_icewall_walk_block == 1 && map_getcell(bl->m, bl->x, bl->y, CELL_CHKICEWALL)) ||
@@ -1583,12 +1580,6 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 					return 0;
 				}
 				sd->skill_id_old = skill_id;
-				break;
-			case WL_WHITEIMPRISON:
-				if( battle_check_target(src, target, BCT_SELF|BCT_ENEMY) < 0 ) {
-					clif_skill_fail(sd, skill_id, USESKILL_FAIL_TOTARGET, 0, 0);
-					return 0;
-				}
 				break;
 			case MG_FIREBOLT:
 			case MG_LIGHTNINGBOLT:

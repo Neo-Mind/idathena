@@ -10451,8 +10451,8 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd)
 		return;
 	}
 
-	if (sd->sc.opt1 && (sd->sc.opt1 == OPT1_STONEWAIT || sd->sc.opt1 == OPT1_BURNING))
-		; //You CAN walk on this OPT1 value.
+	if (sd->sc.opt1 && (sd->sc.opt1 == OPT1_STONEWAIT || sd->sc.opt1 == OPT1_BURNING || sd->sc.opt1 == OPT1_FREEZING))
+		; //You CAN walk on this OPT1 value
 	else if( sd->progressbar.npc_id )
 		clif_progressbar_abort(sd);
 	else if (pc_cant_act(sd))
@@ -10793,7 +10793,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 		return;
 	}
 
-	//Statuses that don't let the player sit / attack / talk with NPCs(targeted)
+	//Statuses that don't let the player sit/attack/talk with NPCs(targeted)
 	//(not all are included in pc_can_attack)
 	if( sd->sc.count &&
 		(sd->sc.data[SC_TRICKDEAD] ||
@@ -10804,67 +10804,58 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 
 	if( action_type != 0x00 && action_type != 0x07 )
 		pc_stop_walking(sd, 1);
+
 	pc_stop_attack(sd);
 
-	if( target_id < 0 && -target_id == sd->bl.id ) // For disguises [Valaris]
+	if( target_id < 0 && -target_id == sd->bl.id ) //For disguises [Valaris]
 		target_id = sd->bl.id;
 
 	switch( action_type ) {
-		case 0x00: // Once attack
-		case 0x07: // Continuous attack
+		case 0x00: //Once attack
+		case 0x07: //Continuous attack
 			if( (target = map_id2bl(target_id)) && target->type == BL_NPC ) {
-				npc_click(sd,(TBL_NPC*)target);
+				npc_click(sd,(TBL_NPC *)target);
 				return;
 			}
-
 			if( pc_cant_act(sd) || (sd->sc.option&OPTION_HIDE) )
 				return;
-
 			if( sd->sc.option&OPTION_COSTUME )
 				return;
-
 			if( !battle_config.sdelay_attack_enable && !pc_checkskill(sd, SA_FREECAST) ) {
 				if( DIFF_TICK(tick, sd->ud.canact_tick) < 0 ) {
 					clif_skill_fail(sd, 1, USESKILL_FAIL_SKILLINTERVAL, 0, 0);
 					return;
 				}
 			}
-
 			pc_delinvincibletimer(sd);
 			sd->idletime = last_tick;
 			unit_attack(&sd->bl, target_id, action_type != 0);
 			break;
-		case 0x02: // Sitdown
+		case 0x02: //Sitdown
 			if( battle_config.basic_skill_check && pc_checkskill(sd, NV_BASIC) < 3 ) {
 				clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 2, 0);
 				break;
 			}
-
-			if( pc_issit(sd) ) { // Bugged client? Just refresh them.
+			if( pc_issit(sd) ) { //Bugged client? Just refresh them
 				clif_sitting(&sd->bl);
 				return;
 			}
-
-			if( sd->ud.skilltimer != INVALID_TIMER || (sd->sc.opt1 && sd->sc.opt1 != OPT1_BURNING ) )
+			if( sd->ud.skilltimer != INVALID_TIMER || (sd->sc.opt1 && sd->sc.opt1 != OPT1_BURNING && sd->sc.opt1 != OPT1_FREEZING) )
 				break;
-
 			if( sd->sc.count && sd->sc.data[SC_DANCING] )
 				break;
-
-			if( sd->sc.cant.move ) // No sitting during these states either
+			if( sd->sc.cant.move ) //No sitting during these states either
 				break;
-
 			sd->idletime = last_tick;
 			pc_setsit(sd);
 			skill_sit(sd,1);
 			clif_sitting(&sd->bl);
 			break;
-		case 0x03: // Standup
-			if( !pc_issit(sd) ) { // Bugged client? Just refresh them
+		case 0x03: //Standup
+			if( !pc_issit(sd) ) { //Bugged client? Just refresh them
 				clif_standing(&sd->bl);
 				return;
 			}
-
 			sd->idletime = last_tick;
 			pc_setstand(sd);
 			skill_sit(sd,0);

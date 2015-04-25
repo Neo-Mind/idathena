@@ -1210,7 +1210,7 @@
 2016,Velum_Arc_Wand,Vellum Arc Wand,5,20,,800,110:220,,1,0,0x00818314,63,2,34,4,95,1,10,{ bonus bUnbreakableWeapon,0; bonus2 bMagicAddRace,RC_DemiHuman,25; bonus2 bIgnoreMdefRaceRate,RC_DemiHuman,25; if(getrefine()>=6) { bonus2 bMagicAddRace,RC_DemiHuman,15; } if(getrefine()>=9) { bonus bVariableCastrate,-50; bonus bFixedCast,-200; } },{},{}
 2017,Divine_Cross_,Divine Cross,5,20,,1500,120:210,,1,0,0x00008100,63,2,34,4,70,1,23,{ bonus bUnbreakableWeapon,0; bonus bAtkEle,Ele_Holy; bonus bDex,4; },{},{}
 2018,Metal_Staff,Metal Staff,5,20,,0,50:70,,1,1,0x00818315,63,2,34,3,1,1,23,{ bonus bUnbreakableWeapon,0; if(BaseJob==Job_Wizard) bonus bMatk,15; else if(BaseJob==Job_Sage) bonus bMatk,10; bonus bMatk,(getrefine()*5); set .@i,((BaseLevel/10)>12)?12:(BaseLevel/10); if(.@i>2) bonus bMatk,((.@i-2)*5); },{},{}
-2020,Jormungand,Jormungand,5,20,,3000,200:280,,,0,0x810200,63,2,34,4,90,0,10,{ bonus bInt,20; bonus3 bAddEff,Eff_Poison,500,ATF_MAGIC; bonus3 bAddEff,Eff_DPoison,500,ATF_SHORT; bonus bUnbreakableWeapon,1; },{},{}
+2020,Jormungand,Jormungand,5,20,,3000,200:280,,,0,0x810200,63,2,34,4,90,0,10,{ bonus bInt,20; bonus3 bAddEff,Eff_Poison,500,ATF_SKILL; bonus3 bAddEff,Eff_DPoison,500,ATF_SHORT; bonus bUnbreakableWeapon,1; },{},{}
 2022,Staff_Of_Geffen,Staff Of Geffen,5,20,,1000,100:300,,,1,0x00000200,63,2,34,1,150,1,10,{ bonus bInt,20; },{},{}
 2023,Tanos_Two-handed_Stick,Tanos Two-handed Stick,5,10,,1400,120:250,,,1,0x810200,63,2,34,4,120,1,23,{ bonus bInt,6; bonus bVit,6; bonus bLuk,-6; bonus bHealPower,18; bonus2 bHPLossRate,100,10000; },{},{}
 2024,Infinity_Two-handed_Stick,Infinity Two-handed Stick,5,10,,500,30:170,,,1,0x810200,63,2,34,4,100,1,23,{},{},{}
@@ -6234,8 +6234,8 @@
 12393,Repair_B,Repair B,0,500,,70,,,,,0x00000400,56,2,,,,,,{ if(checkmadogear()) itemheal rand(300,400),0; },{},{}
 12394,Repair_C,Repair C,0,1100,,70,,,,,0x00000400,56,2,,,,,,{ if(checkmadogear()) itemheal rand(400,500),0; },{},{}
 12395,Tantanmen,Tantan Noodle,2,20,,50,,,,,0xFFFFFFFF,63,2,,,,,,{ pet 1519; },{},{}
-12396,Fools_Day_Box,Gift Box?,11,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ set .@rnd,rand(1,10); if(.@rnd==1) itemskill "AL_TELEPORT",1; else if(.@rnd==2) itemskill "AL_TELEPORT",3; else if(.@rnd==3) percentheal 50,0; else if(.@rnd==4) percentheal 0,50; else if(.@rnd==5) end; else if(.@rnd==6) getitem 512,1; else if(.@rnd==7) itemskill "ALL_REVERSEORCISH",1; else if(.@rnd==8) specialeffect2 247; else if(.@rnd==9) specialeffect2 338; else specialeffect2 10; },{},{}
-12397,Fools_Day_Box2,Gift Box?,11,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ set .@rnd,rand(1,10); if(.@rnd==1) itemskill "TF_DETOXIFY",1; else if(.@rnd==2) itemskill "TF_PICKSTONE",1; else if(.@rnd==3) itemskill "BA_FROSTJOKER",1; else if(.@rnd==4) itemskill "DC_SCREAM",1; else if(.@rnd==5) end; else if(.@rnd==6) getitem 909,1; else if(.@rnd==7) itemskill "AL_RUWACH",1; else if(.@rnd==8) specialeffect2 328; else if(.@rnd==9) specialeffect2 68; else specialeffect2 196; },{},{}
+12396,Fools_Day_Box,Gift Box?,11,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ set .@rnd,rand(1,10); if(.@rnd==1) itemskill "AL_TELEPORT",1; else if(.@rnd==2) itemskill "AL_TELEPORT",3; else if(.@rnd==3) percentheal 50,0; else if(.@rnd==4) percentheal 0,50; else if(.@rnd==5) end; else if(.@rnd==6) getitem 512,1; else if(.@rnd==7) itemskill "ALL_REVERSEORCISH",1; else if(.@rnd==8) specialeffect2 EF_MAPPILLAR2; else if(.@rnd==9) specialeffect2 EF_ANGEL2; else specialeffect2 EF_COIN; },{},{}
+12397,Fools_Day_Box2,Gift Box?,11,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ set .@rnd,rand(1,10); if(.@rnd==1) itemskill "TF_DETOXIFY",1; else if(.@rnd==2) itemskill "TF_PICKSTONE",1; else if(.@rnd==3) itemskill "BA_FROSTJOKER",1; else if(.@rnd==4) itemskill "DC_SCREAM",1; else if(.@rnd==5) end; else if(.@rnd==6) getitem 909,1; else if(.@rnd==7) itemskill "AL_RUWACH",1; else if(.@rnd==8) specialeffect2 EF_BEGINASURA; else if(.@rnd==9) specialeffect2 EF_MVP; else specialeffect2 EF_CURSEATTACK; },{},{}
 12398,PCBang_Gift_Box,PCRoom Gift Box,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
 12399,Castle_Treasure_Box,Castle Treasure Box,2,20,,1000,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
 12400,Water_Of_Blessing_,Water Of Blessing,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
@@ -6872,7 +6872,7 @@
 13059,E_Asura_C,Asura,5,1,,0,120,,1,0,0x22000000,63,2,2,1,1,0,1,{},{},{}
 13060,E_Counter_Dagger_C,Counter Dagger,5,1,,0,209,,1,0,0x00810204,63,2,2,4,1,0,1,{},{},{}
 13061,Black_Wing,Black Wing,5,20,,600,142,,1,1,0x00020000,63,2,2,3,102,1,1,{ bonus2 bSkillAtk,"SC_FATALMENACE",30+((getrefine()-5)*2); bonus bMatk,((getrefine()-5)*3); },{},{}
-13062,Ancient_Dagger,Ancient Dagger,5,20,,600,107:120,,0,0,0x028F5EEE,18,2,2,4,120,1,1,{ bonus bMaxSP,100; bonus bSPrecovRate,5; bonus2 bAddEff2,Eff_Curse,20; bonus3 bAddEff,Eff_Curse,20,ATF_SELF|ATF_SKILL; },{},{}
+13062,Ancient_Dagger,Ancient Dagger,5,20,,600,107:120,,0,0,0x028F5EEE,18,2,2,4,120,1,1,{ bonus bMaxSP,100; bonus bSPrecovRate,5; bonus3 bAddEff,Eff_Curse,20,ATF_SELF; },{},{}
 13063,Adventure_Knife,Adventure Knife,5,0,,0,60,,1,0,0x02021040,63,2,2,1,1,0,1,{ bonus bUnbreakableWeapon,0; },{},{}
 13064,Academy_Knife,Academy Knife,5,0,,700,110,,1,1,0x02021040,63,2,2,1,1,1,1,{ bonus bUnbreakableWeapon,0; },{},{}
 13065,Academy_Eti_Knife,Academy Eti Knife,5,0,,1200,120,,1,1,0x00000001,63,2,2,1,1,1,1,{ bonus bUnbreakableWeapon,0; },{},{}
