@@ -444,10 +444,10 @@ struct item_data {
 	unsigned char combos_count;
 };
 
-struct item_data* itemdb_searchname(const char *name);
-int itemdb_searchname_array(struct item_data** data, int size, const char *str);
-struct item_data* itemdb_search(unsigned short nameid);
-struct item_data* itemdb_exists(unsigned short nameid);
+struct item_data *itemdb_searchname(const char *name);
+int itemdb_searchname_array(struct item_data **data, int size, const char *str);
+struct item_data *itemdb_search(unsigned short nameid);
+struct item_data *itemdb_exists(unsigned short nameid);
 #define itemdb_name(n) itemdb_search(n)->name
 #define itemdb_jname(n) itemdb_search(n)->jname
 #define itemdb_type(n) itemdb_search(n)->type
@@ -473,11 +473,12 @@ struct item_data* itemdb_exists(unsigned short nameid);
 #define itemdb_is_cashfood(n) ((n) >= ITEMID_STR_DISH10_ && (n) <= ITEMID_VIT_DISH10_)
 #define itemdb_is_slingatk(n) ((n) >= ITEMID_APPLE_BOMB && (n) <= ITEMID_VERY_HARD_LUMP)
 #define itemdb_is_slingbuff(n) ((n) >= ITEMID_MYSTERIOUS_POWDER && (n) <= ITEMID_BLACK_THING_TO_THROW)
-const char* itemdb_typename(enum item_types type);
+const char *itemdb_typename(enum item_types type);
 const char *itemdb_typename_ammo (enum e_item_ammo ammo);
 bool itemdb_is_spellbook2(unsigned short nameid);
 bool itemdb_is_item_usable(struct item_data *item);
 
+struct s_item_group_entry *itemdb_get_randgroupitem(uint16 group_id, uint8 sub_group);
 unsigned short itemdb_searchrandomid(uint16 group_id, uint8 sub_group);
 
 #define itemdb_value_buy(n) itemdb_search(n)->value_buy

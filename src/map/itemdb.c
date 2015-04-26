@@ -72,7 +72,7 @@ static int itemdb_searchname_sub(DBKey key, DBData *data, va_list ap)
  * @param str Item Name
  * @return item data
  */
-struct item_data* itemdb_searchname(const char *str)
+struct item_data *itemdb_searchname(const char *str)
 {
 	struct item_data *item = NULL, *item2 = NULL;
 
@@ -102,73 +102,60 @@ static int itemdb_searchname_array_sub(DBKey key, DBData data, va_list ap)
  * @param str
  * @return Number of matches item
  */
-int itemdb_searchname_array(struct item_data** data, int size, const char *str)
+int itemdb_searchname_array(struct item_data **data, int size, const char *str)
 {
 	DBData *db_data[MAX_SEARCH];
 	int i, count = 0, db_count;
 
-	db_count = itemdb->getall(itemdb, (DBData**)&db_data, size, itemdb_searchname_array_sub, str);
+	db_count = itemdb->getall(itemdb, (DBData **)&db_data, size, itemdb_searchname_array_sub, str);
 	for (i = 0; i < db_count && count < size; i++)
 		data[count++] = db_data2ptr(db_data[i]);
 	return count;
 }
 
 /**
- * Return a random item id from group. (takes into account % chance giving/tot group)
- * NOTE: Sub group 0 will be set to default 1, since 0 isn't random group
+ * Return a random group entry from Item Group
  * @param group_id
- * @param sub_group: Default is 1
- * @return nameid
+ * @param sub_group: 0 is 'must' item group, random groups start from 1 to MAX_ITEMGROUP_RANDGROUP + 1
+ * @return Item group entry or NULL on fail
  */
-unsigned short itemdb_searchrandomid(uint16 group_id, uint8 sub_group) {
+struct s_item_group_entry *itemdb_get_randgroupitem(uint16 group_id, uint8 sub_group) {
 	struct s_item_group_db *group = (struct s_item_group_db *)uidb_get(itemdb_group, group_id);
+	struct s_item_group_entry *list = NULL;
+	uint16 qty = 0;
 
-	if (sub_group)
-		sub_group -= 1;
 	if (!group) {
-		ShowError("itemdb_searchrandomid: Invalid group id %d\n", group_id);
-		return UNKNOWN_ITEM_ID;
+		ShowError("itemdb_get_randgroupitem: Invalid group id %d\n", group_id);
+		return NULL;
 	}
-	if (sub_group > MAX_ITEMGROUP_RANDGROUP) {
-		ShowError("itemdb_searchrandomid: Invalid sub_group %d\n", sub_group + 1);
-		return UNKNOWN_ITEM_ID;
+	if (sub_group > MAX_ITEMGROUP_RANDGROUP + 1) {
+		ShowError("itemdb_get_randgroupitem: Invalid sub_group %d\n", sub_group);
+		return NULL;
 	}
-	if (&group->random[sub_group] && group->random[sub_group].data_qty)
-		return group->random[sub_group].data[rnd()%group->random[sub_group].data_qty].nameid;
-
-	ShowError("itemdb_searchrandomid: No item entries for group id %d and sub group %d\n", group_id, sub_group + 1);
-	return UNKNOWN_ITEM_ID;
+	if (sub_group == 0) {
+		list = group->must;
+		qty = group->must_qty;
+	} else {
+		list = group->random[sub_group - 1].data;
+		qty = group->random[sub_group - 1].data_qty;
+	}
+	if (!qty) {
+		ShowError("itemdb_get_randgroupitem: No item entries for group id %d and sub group %d\n", group_id, sub_group);
+		return NULL;
+	}
+	return &list[rnd()%qty];
 }
 
-/** [Cydh]
- * Return a number of item's amount that will be obtained for 'getrandgroupitem id,1;'
- * NOTE: Sub group 0 will be set to default 1, since 0 isn't random group
+/**
+ * Return a random Item ID from from Item Group
  * @param group_id
- * @param sub_group
- * @param nameid: The target item will be found
- * @return amount
+ * @param sub_group: 0 is 'must' item group, random groups start from 1 to MAX_ITEMGROUP_RANDGROUP + 1
+ * @return Item ID or UNKNOWN_ITEM_ID on fail
  */
-uint16 itemdb_get_randgroupitem_count(uint16 group_id, uint8 sub_group, unsigned short nameid) {
-	uint16 i, amt = 1;
-	struct s_item_group_db *group = (struct s_item_group_db *)uidb_get(itemdb_group, group_id);
+unsigned short itemdb_searchrandomid(uint16 group_id, uint8 sub_group) {
+	struct s_item_group_entry *entry = itemdb_get_randgroupitem(group_id, sub_group);
 
-	if (sub_group)
-		sub_group -= 1;
-	if (!group) {
-		ShowError("itemdb_get_randgroupitem_count: Invalid group id %d\n", group_id);
-		return amt;
-	}
-	if (sub_group > MAX_ITEMGROUP_RANDGROUP) {
-		ShowError("itemdb_get_randgroupitem_count: Invalid sub_group id %d\n", group_id + 1);
-		return amt;
-	}
-	if (!(&group->random[sub_group]) || !group->random[sub_group].data_qty)
-		return amt;
-	for (i = 0; i < group->random[sub_group].data_qty; i++) {
-		if (group->random[sub_group].data[i].nameid == nameid)
-			return group->random[sub_group].data[i].amount;
-	}
-	return amt;
+	return (entry ? entry->nameid : UNKNOWN_ITEM_ID);
 }
 
 /** [Cydh]
@@ -176,7 +163,7 @@ uint16 itemdb_get_randgroupitem_count(uint16 group_id, uint8 sub_group, unsigned
  * @param sd: Player that obtains item from item group
  * @param group_id: The group ID of item that obtained by player
  * @param *group: struct s_item_group from itemgroup_db[group_id].random[idx] or itemgroup_db[group_id].must[sub_group][idx]
-*/
+ */
 static void itemdb_pc_get_itemgroup_sub(struct map_session_data *sd, struct s_item_group_entry *data) {
 	uint16 i;
 	struct item tmp;
@@ -260,13 +247,13 @@ char itemdb_pc_get_itemgroup(uint16 group_id, struct map_session_data *sd) {
  * @param nameid
  * @return *item_data if item is exist, or NULL if not
  */
-struct item_data* itemdb_exists(unsigned short nameid) {
+struct item_data *itemdb_exists(unsigned short nameid) {
 	return ((struct item_data*)uidb_get(itemdb,nameid));
 }
 
 /// Returns human readable name for given item type.
 /// @param type Type id to retrieve name for ( IT_* ).
-const char* itemdb_typename(enum item_types type)
+const char *itemdb_typename(enum item_types type)
 {
 	switch (type) {
 		case IT_HEALING:      return "Potion/Food";
@@ -343,23 +330,23 @@ static void itemdb_jobid2mapid(unsigned int *bclass, unsigned int jobmask)
 		bclass[2] |= 1<<MAPID_MERCHANT;
 	if (jobmask & 1<<JOB_BARD)
 		bclass[2] |= 1<<MAPID_ARCHER;
-//	Bard/Dancer share the same slot now.
-//	if (jobmask & 1<<JOB_DANCER)
-//		bclass[2] |= 1<<MAPID_ARCHER;
+	//Bard/Dancer share the same slot now
+	//if (jobmask & 1<<JOB_DANCER)
+		//bclass[2] |= 1<<MAPID_ARCHER;
 	if (jobmask & 1<<JOB_ROGUE)
 		bclass[2] |= 1<<MAPID_THIEF;
-	//Special classes that don't fit above.
+	//Special classes that don't fit above
 	if (jobmask & 1<<21) //Taekwon boy
 		bclass[0] |= 1<<MAPID_TAEKWON;
 	if (jobmask & 1<<22) //Star Gladiator
 		bclass[1] |= 1<<MAPID_TAEKWON;
 	if (jobmask & 1<<23) //Soul Linker
 		bclass[2] |= 1<<MAPID_TAEKWON;
-	if (jobmask & 1<<JOB_GUNSLINGER) { //Rebellion job can equip Gunslinger equips. [Rytech]
+	if (jobmask & 1<<JOB_GUNSLINGER) { //Rebellion job can equip Gunslinger equips [Rytech]
 		bclass[0] |= 1<<MAPID_GUNSLINGER;
 		bclass[1] |= 1<<MAPID_GUNSLINGER;
 	}
-	if (jobmask & 1<<JOB_NINJA) { //Kagerou/Oboro jobs can equip Ninja equips. [Rytech]
+	if (jobmask & 1<<JOB_NINJA) { //Kagerou/Oboro jobs can equip Ninja equips [Rytech]
 		bclass[0] |= 1<<MAPID_NINJA;
 		bclass[1] |= 1<<MAPID_NINJA;
 	}
@@ -376,7 +363,7 @@ static void itemdb_jobid2mapid(unsigned int *bclass, unsigned int jobmask)
 }
 
 /**
- * Create dummy item data
+ * Create dummy item_data as dummy_item and dummy item group entry as dummy_itemgroup
  */
 static void itemdb_create_dummy(void) {
 	CREATE(dummy_item, struct item_data, 1);
@@ -411,7 +398,7 @@ static struct item_data *itemdb_create_item(unsigned short nameid) {
  * @param nameid
  * @return *item_data or *dummy_item if item not found
  */
-struct item_data* itemdb_search(unsigned short nameid) {
+struct item_data *itemdb_search(unsigned short nameid) {
 	struct item_data* id = NULL;
 
 	if (nameid == dummy_item->nameid)
@@ -1683,6 +1670,6 @@ void do_init_itemdb(void) {
 	itemdb = uidb_alloc(DB_OPT_BASE);
 	itemdb_combo = uidb_alloc(DB_OPT_BASE);
 	itemdb_group = uidb_alloc(DB_OPT_BASE);
-	itemdb_create_dummy(); //Dummy data item.
+	itemdb_create_dummy();
 	itemdb_read();
 }

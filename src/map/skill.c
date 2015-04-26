@@ -4142,8 +4142,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 		case MA_SHARPSHOOTING:
 		case NJ_KAMAITACHI:
 		case LG_CANNONSPEAR:
-			//It won't shoot through walls since on castend there has to be a direct
-			//line of sight between caster and target.
+			//It won't shoot through walls since on castend there has to be a direct line of sight between caster and target
 			skill_area_temp[1] = bl->id;
 			map_foreachinpath(skill_attack_area,src->m,src->x,src->y,bl->x,bl->y,skill_get_splash(skill_id,skill_lv),
 				skill_get_maxcount(skill_id,skill_lv),splash_target(src),skill_get_type(skill_id),src,src,
