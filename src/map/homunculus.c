@@ -1171,8 +1171,7 @@ bool hom_call(struct map_session_data *sd)
 	if (!sd->status.hom_id) //Create a new homun
 		return hom_create_request(sd, HM_CLASS_BASE + rnd_value(0, 7));
 
-	//If homunc not yet loaded, load it
-	if (!sd->hd)
+	if (!sd->hd) //If homunc not yet loaded, load it
 		return intif_homunculus_requestload(sd->status.account_id, sd->status.hom_id);
 
 	hd = sd->hd;
