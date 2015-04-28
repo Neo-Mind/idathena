@@ -7406,7 +7406,10 @@ REPLACE INTO `mob_skill_db_re` VALUES (2238,'Chen@AL_INCAGI','chase',29,10,2000,
 REPLACE INTO `mob_skill_db_re` VALUES (2238,'Chen@AL_PNEUMA','attack',25,1,5000,0,10000,'yes','self','longrangeattacked',NULL,NULL,NULL,NULL,NULL,NULL,'19',NULL);
 REPLACE INTO `mob_skill_db_re` VALUES (2238,'Chen@AL_PNEUMA','idle',25,1,10000,0,0,'yes','self','longrangeattacked',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `mob_skill_db_re` VALUES (2238,'Chen@AL_PNEUMA','chase',25,1,5000,0,10000,'yes','self','longrangeattacked',NULL,NULL,NULL,NULL,NULL,NULL,'19',NULL);
+REPLACE INTO `mob_skill_db_re` VALUES (2238,'Chen@MO_BALKYOUNG','attack',1016,10,100,0,5000,'no','target','always',NULL,NULL,NULL,NULL,NULL,NULL,'19',NULL);
 REPLACE INTO `mob_skill_db_re` VALUES (2238,'Chen@MO_BODYRELOCATION','chase',264,1,2000,500,5000,'no','target','always',NULL,NULL,NULL,NULL,NULL,NULL,'28',NULL);
+REPLACE INTO `mob_skill_db_re` VALUES (2238,'Chen@MO_EXTREMITYFIST','attack',271,5,1000,2000,50000,'no','target','myhpltmaxrate','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+REPLACE INTO `mob_skill_db_re` VALUES (2238,'Chen@MO_EXTREMITYFIST','attack',271,5,1000,2000,100000,'no','target','always',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `mob_skill_db_re` VALUES (2238,'Chen@NPC_AGIUP','attack',350,5,2000,0,100000,'yes','self','always',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `mob_skill_db_re` VALUES (2238,'Chen@NPC_AGIUP','attack',350,5,2000,0,25000,'yes','self','myhpltmaxrate','30',NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `mob_skill_db_re` VALUES (2238,'Chen@NPC_CALLSLAVE','attack',352,1,10000,0,10000,'yes','self','always',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
