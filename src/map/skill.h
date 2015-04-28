@@ -110,7 +110,7 @@ enum e_skill_display {
 
 struct skill_condition {
 	int hp, //HP cost
-	    mhp, //Max HP to trigger
+	    mhp, //MaxHP to trigger
 	    sp, //SP cost
 	    hp_rate, //HP cost (%)
 	    sp_rate, //SP cost (%)
@@ -130,7 +130,7 @@ struct skill_condition {
 
 struct s_skill_require {
 	int hp[MAX_SKILL_LEVEL], //HP cost
-	    mhp[MAX_SKILL_LEVEL], //Max HP to trigger
+	    mhp[MAX_SKILL_LEVEL], //MaxHP to trigger
 	    sp[MAX_SKILL_LEVEL], //SP cost
 	    hp_rate[MAX_SKILL_LEVEL], //HP cost (%)
 	    sp_rate[MAX_SKILL_LEVEL], //SP cost (%)

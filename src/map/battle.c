@@ -4058,8 +4058,7 @@ static int64 battle_calc_skill_constant_addition(struct Damage wd,struct block_l
 	struct status_data *tstatus = status_get_status_data(target);
 	int64 atk = 0;
 
-	//Constant/misc additions from skills
-	switch(skill_id) {
+	switch(skill_id) { //Constant/misc additions from skills
 		case MO_EXTREMITYFIST:
 			atk = 250 + 150 * skill_lv;
 			break;
@@ -7599,7 +7598,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			}
 			break;
 		case BL_SKILL: {
-				TBL_SKILL *su = ((TBL_SKILL*)target);
+				TBL_SKILL *su = ((TBL_SKILL *)target);
 
 				if( !su || !su->group )
 					return 0;
@@ -8377,6 +8376,9 @@ static const struct _battle_data {
 	{ "homunculus_evo_intimacy_need",       &battle_config.homunculus_evo_intimacy_need,    91100,  0,      INT_MAX,        },
 	{ "homunculus_evo_intimacy_reset",      &battle_config.homunculus_evo_intimacy_reset,   1000,   0,      INT_MAX,        },
 	{ "monster_loot_search_type",           &battle_config.monster_loot_search_type,        1,      0,      1,              },
+	{ "max_homunculus_hp",                  &battle_config.max_homunculus_hp,               32767,  100,    INT_MAX,        },
+	{ "max_homunculus_sp",                  &battle_config.max_homunculus_sp,               32767,  100,    INT_MAX,        },
+	{ "max_homunculus_parameter",           &battle_config.max_homunculus_parameter,        150,    10,     SHRT_MAX,       },
 };
 #ifndef STATS_OPT_OUT
 /**

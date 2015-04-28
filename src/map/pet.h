@@ -68,8 +68,8 @@ struct pet_skill_attack { //Attack Skill
 struct pet_skill_support { //Support Skill
 	unsigned short id;
 	unsigned short lv;
-	unsigned short hp; //Max HP% for skill to trigger (50 -> 50% for Magnificat)
-	unsigned short sp; //Max SP% for skill to trigger (100 = no check)
+	unsigned short hp; //MaxHP% for skill to trigger (50 -> 50% for Magnificat)
+	unsigned short sp; //MaxSP% for skill to trigger (100 = no check)
 	unsigned short delay; //Time (secs) between being able to recast.
 	int timer;
 };

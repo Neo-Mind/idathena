@@ -1285,9 +1285,9 @@ int status_set_hp(struct block_list *bl, unsigned int hp, int flag)
 }
 
 /**
- * Sets Max HP to a given value
- * @param bl: Object whose Max HP will be set [PC|MOB|HOM|MER|ELEM|NPC]
- * @param maxhp: What the Max HP is to be set as
+ * Sets MaxHP to a given value
+ * @param bl: Object whose MaxHP will be set [PC|MOB|HOM|MER|ELEM|NPC]
+ * @param maxhp: What the MaxHP is to be set as
  * @param flag: Used in case final value is higher than current
  *		Use 2 to display healing effect
  * @return heal or zapped HP if valid
@@ -1332,9 +1332,9 @@ int status_set_sp(struct block_list *bl, unsigned int sp, int flag)
 }
 
 /**
- * Sets Max SP to a given value
- * @param bl: Object whose Max SP will be set [PC|HOM|MER|ELEM]
- * @param maxsp: What the Max SP is to be set as
+ * Sets MaxSP to a given value
+ * @param bl: Object whose MaxSP will be set [PC|HOM|MER|ELEM]
+ * @param maxsp: What the MaxSP is to be set as
  * @param flag: Used in case final value is higher than current
  *		Use 2 to display healing effect
  * @return heal or zapped HP if valid
@@ -2158,7 +2158,7 @@ static unsigned short status_base_atk(const struct block_list *bl, const struct 
 	//equation, hinting that perhaps non-players should use this for batk [Skotlex]
 #ifdef RENEWAL
 	if (bl->type == BL_HOM)
-		str = 2 * ((((TBL_HOM*)bl)->homunculus.level) + status_get_homstr(bl));
+		str = 2 * ((((TBL_HOM *)bl)->homunculus.level) + status_get_homstr(bl));
 #else
 	dstr = (int)((float)str / 10);
 	str += dstr * dstr;
@@ -2668,14 +2668,14 @@ int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt)
 		struct status_data *mstatus = status_get_status_data(mbl);
 
 		//Remove special AI when this is used by regular mobs
-		if (mbl->type == BL_MOB && !((TBL_MOB*)mbl)->special_state.ai)
+		if (mbl->type == BL_MOB && !((TBL_MOB *)mbl)->special_state.ai)
 			md->special_state.ai = AI_NONE;
 		if (ud) { //Different levels of HP according to skill level
 			//FIXME: We lost the unit data (skill_id and skill_lv) for magic decoy in somewhere before this
 			if (!ud->skill_id)
-				ud->skill_id = ((TBL_PC*)mbl)->menuskill_id;
+				ud->skill_id = ((TBL_PC *)mbl)->menuskill_id;
 			if (!ud->skill_lv)
-				ud->skill_lv = ((TBL_PC*)mbl)->menuskill_val;
+				ud->skill_lv = ((TBL_PC *)mbl)->menuskill_val;
 			switch (ud->skill_id) {
 				case AM_SPHEREMINE:
 					status->max_hp = 2000 + 400 * ud->skill_lv;
@@ -2794,8 +2794,7 @@ static int status_get_hpbonus(struct block_list *bl, enum e_status_bonus type) {
 	if (type == STATUS_BONUS_FIX) {
 		struct status_change *sc = status_get_sc(bl);
 
-		//Only for BL_PC
-		if (bl->type == BL_PC) {
+		if (bl->type == BL_PC) { //Only for BL_PC
 			struct map_session_data *sd = map_id2sd(bl->id);
 			uint8 i;
 
@@ -2806,8 +2805,7 @@ static int status_get_hpbonus(struct block_list *bl, enum e_status_bonus type) {
 				bonus += 2000; // Super novice lvl 99 hp bonus
 		}
 
-		//Bonus by SC
-		if (sc) {
+		if (sc) { //Bonus by SC
 			if(sc->data[SC_INCMHP])
 				bonus += sc->data[SC_INCMHP]->val1;
 			if(sc->data[SC_INSPIRATION])
@@ -2828,8 +2826,7 @@ static int status_get_hpbonus(struct block_list *bl, enum e_status_bonus type) {
 	} else if (type == STATUS_BONUS_RATE) {
 		struct status_change *sc = status_get_sc(bl);
 
-		//Only for BL_PC
-		if (bl->type == BL_PC) {
+		if (bl->type == BL_PC) { //Only for BL_PC
 			struct map_session_data *sd = map_id2sd(bl->id);
 
 			bonus += sd->hprate;
@@ -2839,8 +2836,7 @@ static int status_get_hpbonus(struct block_list *bl, enum e_status_bonus type) {
 				bonus += 200;
 		}
 
-		//Bonus by SC
-		if (sc) {
+		if (sc) { //Bonus by SC
 			//Increasing
 			if(sc->data[SC_INCMHPRATE])
 				bonus += sc->data[SC_INCMHPRATE]->val1;
@@ -2884,7 +2880,7 @@ static int status_get_hpbonus(struct block_list *bl, enum e_status_bonus type) {
 				bonus -= sc->data[SC__WEAKNESS]->val2;
 			if(sc->data[SC_MYSTERIOUS_POWDER])
 				bonus -= sc->data[SC_MYSTERIOUS_POWDER]->val1;
-			if(sc->data[SC_GT_CHANGE]) // Max HP decrease: [Skill Level x 4] %
+			if(sc->data[SC_GT_CHANGE]) // MaxHP decrease: [Skill Level x 4] %
 				bonus -= 4 * sc->data[SC_GT_CHANGE]->val1;
 			if(sc->data[SC_BEYONDOFWARCRY])
 				bonus -= sc->data[SC_BEYONDOFWARCRY]->val4;
@@ -2908,8 +2904,7 @@ static int status_get_spbonus(struct block_list *bl, enum e_status_bonus type) {
 	if (type == STATUS_BONUS_FIX) {
 		struct status_change *sc = status_get_sc(bl);
 
-		//Only for BL_PC
-		if (bl->type == BL_PC) {
+		if (bl->type == BL_PC) { //Only for BL_PC
 			struct map_session_data *sd = map_id2sd(bl->id);
 			uint8 i;
 
@@ -2922,8 +2917,7 @@ static int status_get_spbonus(struct block_list *bl, enum e_status_bonus type) {
 				bonus += 30 * i;
 		}
 
-		//Bonus by SC
-		if (sc) {
+		if (sc) { //Bonus by SC
 			if(sc->data[SC_INCMSP])
 				bonus += sc->data[SC_INCMSP]->val1;
 			if(sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 3)
@@ -2934,8 +2928,7 @@ static int status_get_spbonus(struct block_list *bl, enum e_status_bonus type) {
 	} else if (type == STATUS_BONUS_RATE) {
 		struct status_change *sc = status_get_sc(bl);
 
-		//Only for BL_PC
-		if (bl->type == BL_PC) {
+		if (bl->type == BL_PC) { //Only for BL_PC
 			struct map_session_data *sd = map_id2sd(bl->id);
 			uint8 i;
 
@@ -2952,8 +2945,7 @@ static int status_get_spbonus(struct block_list *bl, enum e_status_bonus type) {
 				bonus += 200;
 		}
 
-		//Bonus by SC
-		if (sc) {
+		if (sc) { //Bonus by SC
 			if(sc->data[SC_INCMSPRATE])
 				bonus += sc->data[SC_INCMSPRATE]->val1;
 			if(sc->data[SC_SERVICE4U])
@@ -2978,7 +2970,7 @@ static int status_get_spbonus(struct block_list *bl, enum e_status_bonus type) {
  * Get final MaxHP or MaxSP for player. References: http://irowiki.org/wiki/Max_HP and http://irowiki.org/wiki/Max_SP
  * The calculation needs base_level, battle_status (vit or int), additive modifier, and multiplicative modifier
  * @param sd Player
- * @param isHP true - calculates Max HP, false - calculated Max SP
+ * @param isHP true - calculates MaxHP, false - calculated MaxSP
  * @return max The max value of HP or SP
  */
 static unsigned int status_calc_maxhpsp_pc(struct map_session_data* sd, bool isHP)
@@ -3873,7 +3865,7 @@ int status_calc_homunculus_(struct homun_data *hd, enum e_status_calc_opt opt)
 
 	APPLY_HOMUN_LEVEL_STATWEIGHT();
 
-	if(opt&SCO_FIRST) { //[orn]
+	if( opt&SCO_FIRST ) { //[orn]
 		const struct s_homunculus_db *db = hd->homunculusDB;
 
 		status->def_ele = db->element;
@@ -3884,7 +3876,7 @@ int status_calc_homunculus_(struct homun_data *hd, enum e_status_calc_opt opt)
 		status->rhw.range = 1 + status->size;
 		status->mode = (enum e_mode)(MD_CANMOVE|MD_CANATTACK);
 		status->speed = DEFAULT_WALK_SPEED;
-		if((battle_config.hom_setting&HOMSET_COPY_SPEED) && hd->master)
+		if( (battle_config.hom_setting&HOMSET_COPY_SPEED) && hd->master )
 			status->speed = status_get_speed(&hd->master->bl);
 
 		status->hp = 1;
@@ -3916,24 +3908,30 @@ int status_calc_homunculus_(struct homun_data *hd, enum e_status_calc_opt opt)
 
 	hom_calc_skilltree(hd, 0);
 
-	if((skill_lv = hom_checkskill(hd, HAMI_SKIN)) > 0)
+	if( (skill_lv = hom_checkskill(hd, HAMI_SKIN)) > 0 )
 		status->def +=	skill_lv * 4;
 
-	if((skill_lv = hom_checkskill(hd, HVAN_INSTRUCT)) > 0) {
+	if( (skill_lv = hom_checkskill(hd, HVAN_INSTRUCT)) > 0 ) {
 		status->int_ += 1 + skill_lv / 2 + skill_lv / 4 + skill_lv / 5;
 		status->str  += 1 + skill_lv / 3 + skill_lv / 3 + skill_lv / 4;
+		status->int_ = min(status->int_, battle_config.max_homunculus_parameter);
+		status->str = min(status->str, battle_config.max_homunculus_parameter);
 	}
 
-	if((skill_lv = hom_checkskill(hd, HAMI_SKIN)) > 0)
+	if( (skill_lv = hom_checkskill(hd, HAMI_SKIN)) > 0 ) {
 		status->max_hp += skill_lv * 2 * status->max_hp / 100;
+		status->max_hp = min(status->max_hp, battle_config.max_homunculus_hp);
+	}
 
-	if((skill_lv = hom_checkskill(hd, HLIF_BRAIN)) > 0)
+	if( (skill_lv = hom_checkskill(hd, HLIF_BRAIN)) > 0 ) {
 		status->max_sp += (1 + skill_lv / 2 - skill_lv / 4 + skill_lv / 5) * status->max_sp / 100;
+		status->max_sp = min(status->max_sp, battle_config.max_homunculus_hp);
+	}
 
-	if(opt&SCO_FIRST) {
+	if( opt&SCO_FIRST ) {
 		hd->battle_status.hp = hom->hp;
 		hd->battle_status.sp = hom->sp;
-		if(hom->class_ == 6052) //Eleanor
+		if( hom->class_ == 6052 ) //Eleanor
 			sc_start(&hd->bl, &hd->bl, SC_STYLE_CHANGE, 100, MH_MD_FIGHTING, INVALID_TIMER);
 	}
 
@@ -4109,7 +4107,7 @@ void status_calc_regen(struct block_list *bl, struct status_data *status, struct
 	}
 
 	if( bl->type == BL_HOM ) {
-		struct homun_data *hd = (TBL_HOM*)bl;
+		struct homun_data *hd = (TBL_HOM *)bl;
 
 		if( (skill = hom_checkskill(hd, HAMI_SKIN)) > 0 ) {
 			val = regen->hp * (100 + 5 * skill) / 100;
@@ -4792,10 +4790,10 @@ void status_calc_bl_(struct block_list* bl, enum scb_flag flag, enum e_status_ca
 		if( b_status.sp != status->sp )
 			clif_updatestatus(sd, SP_SP);
 	} else if( bl->type == BL_HOM ) {
-		TBL_HOM* hd = BL_CAST(BL_HOM, bl);
+		TBL_HOM *hd = BL_CAST(BL_HOM, bl);
 
 		if( hd->master && memcmp(&b_status, status, sizeof(struct status_data)) != 0 )
-			clif_hominfo(hd->master,hd,0);
+			clif_hominfo(hd->master, hd, 0);
 	} else if( bl->type == BL_MER ) {
 		TBL_MER* md = BL_CAST(BL_MER, bl);
 
@@ -4855,10 +4853,12 @@ static unsigned short status_calc_str(struct block_list *bl, struct status_chang
 		str += sc->data[SC_STRFOOD]->val1;
 	if(sc->data[SC_FOOD_STR_CASH])
 		str += sc->data[SC_FOOD_STR_CASH]->val1;
-	if(sc->data[SC_BATTLEORDERS])
-		str += 5;
-	if(sc->data[SC_LEADERSHIP])
-		str += sc->data[SC_LEADERSHIP]->val1;
+	if(bl->type == BL_PC) {
+		if(sc->data[SC_BATTLEORDERS])
+			str += 5;
+		if(sc->data[SC_LEADERSHIP])
+			str += sc->data[SC_LEADERSHIP]->val1;
+	}
 	if(sc->data[SC_LOUD])
 		str += 4;
 	if(sc->data[SC_TRUESIGHT])
@@ -4918,7 +4918,7 @@ static unsigned short status_calc_agi(struct block_list *bl, struct status_chang
 		agi += sc->data[SC_AGIFOOD]->val1;
 	if(sc->data[SC_FOOD_AGI_CASH])
 		agi += sc->data[SC_FOOD_AGI_CASH]->val1;
-	if(sc->data[SC_SOULCOLD])
+	if(sc->data[SC_SOULCOLD] && bl->type == BL_PC)
 		agi += sc->data[SC_SOULCOLD]->val1;
 	if(sc->data[SC_TRUESIGHT])
 		agi += 5;
@@ -4975,7 +4975,7 @@ static unsigned short status_calc_vit(struct block_list *bl, struct status_chang
 		vit += sc->data[SC_FOOD_VIT_CASH]->val1;
 	if(sc->data[SC_CHANGE])
 		vit += sc->data[SC_CHANGE]->val2;
-	if(sc->data[SC_GLORYWOUNDS])
+	if(sc->data[SC_GLORYWOUNDS] && bl->type == BL_PC)
 		vit += sc->data[SC_GLORYWOUNDS]->val1;
 	if(sc->data[SC_TRUESIGHT])
 		vit += 5;
@@ -5026,7 +5026,7 @@ static unsigned short status_calc_int(struct block_list *bl, struct status_chang
 		int_ += sc->data[SC_FOOD_INT_CASH]->val1;
 	if(sc->data[SC_CHANGE])
 		int_ += sc->data[SC_CHANGE]->val3;
-	if(sc->data[SC_BATTLEORDERS])
+	if(sc->data[SC_BATTLEORDERS] && bl->type == BL_PC)
 		int_ += 5;
 	if(sc->data[SC_TRUESIGHT])
 		int_ += 5;
@@ -5087,10 +5087,12 @@ static unsigned short status_calc_dex(struct block_list *bl, struct status_chang
 		dex += sc->data[SC_DEXFOOD]->val1;
 	if(sc->data[SC_FOOD_DEX_CASH])
 		dex += sc->data[SC_FOOD_DEX_CASH]->val1;
-	if(sc->data[SC_BATTLEORDERS])
-		dex += 5;
-	if(sc->data[SC_HAWKEYES])
-		dex += sc->data[SC_HAWKEYES]->val1;
+	if(bl->type == BL_PC) {
+		if(sc->data[SC_BATTLEORDERS])
+			dex += 5;
+		if(sc->data[SC_HAWKEYES])
+			dex += sc->data[SC_HAWKEYES]->val1;
+	}
 	if(sc->data[SC_TRUESIGHT])
 		dex += 5;
 	if(sc->data[SC_BLESSING]) {
@@ -6375,10 +6377,10 @@ static unsigned short status_calc_dmotion(struct block_list *bl, struct status_c
 }
 
 /**
- * Calculates a max HP based on status changes
+ * Calculates a MaxHP based on status changes
  * Values can either be percentages or fixed, based on how equations are formulated
  * @param bl: Object's block_list data
- * @param maxhp: Object's current max HP
+ * @param maxhp: Object's current MaxHP
  * @return modified maxhp
  */
 static unsigned int status_calc_maxhp(struct block_list *bl, uint64 maxhp)
@@ -6394,10 +6396,10 @@ static unsigned int status_calc_maxhp(struct block_list *bl, uint64 maxhp)
 }
 
 /**
- * Calculates a max SP based on status changes
+ * Calculates a MaxSP based on status changes
  * Values can either be percentages or fixed, bas ed on how equations are formulated
  * @param bl: Object's block_list data
- * @param maxsp: Object's current max SP
+ * @param maxsp: Object's current MaxSP
  * @return modified maxsp
  */
 static unsigned int status_calc_maxsp(struct block_list *bl, uint64 maxsp)
@@ -8358,7 +8360,7 @@ int status_change_start(struct block_list *src, struct block_list *bl, enum sc_t
 				break;
 			case SC_KYRIE:
 				if( val4 ) { //Praefatio
-					val2 = status->max_hp * (val1 * 2 + 10) / 100 + val4 * 2; //% Max HP to absorb
+					val2 = status->max_hp * (val1 * 2 + 10) / 100 + val4 * 2; //% MaxHP to absorb
 					val3 = 6 + val1; //Hits
 				} else { //Kyrie Eleison
 					val2 = status->max_hp * (val1 * 2 + 10) / 100;

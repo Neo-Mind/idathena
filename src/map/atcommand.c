@@ -110,15 +110,15 @@ struct atcmd_binding_data* get_atcommandbind_byname(const char* name) {
 }
 
 /**
- * retrieves the help string associated with a given command.
+ * Retrieves the help string associated with a given command.
  *
  * @param name the name of the command to retrieve help information for
  * @return the string associated with the command, or NULL
  */
-static const char* atcommand_help_string(const char* command)
+static const char *atcommand_help_string(const char *command)
 {
-	const char* str = NULL;
-	config_setting_t* info;
+	const char *str = NULL;
+	config_setting_t *info;
 
 	if( *command == atcommand_symbol || *command == charcommand_symbol ) {
 		// Remove the prefix symbol for the raw name of the command
@@ -944,7 +944,7 @@ ACMD_FUNC(option)
 
 	// Failed to match the parameters so inform the user of the options
 	if (!message || !*message || sscanf(message, "%d %d %d", &param1, &param2, &param3) < 1 || param1 < 0 || param2 < 0 || param3 < 0) {
-		const char* text;
+		const char *text;
 
 		// Attempt to find the setting information for this command
 		text = atcommand_help_string(command);
@@ -1016,7 +1016,7 @@ ACMD_FUNC(hide)
 ACMD_FUNC(jobchange)
 {
 	int job = 0, upper = 0;
-	const char* text;
+	const char *text;
 
 	nullpo_retr(-1, sd);
 
@@ -1881,10 +1881,10 @@ ACMD_FUNC(go)
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
  
 	if (!message || !*message || sscanf(message, "%11s", map_name) < 1) { // No value matched so send the list of locations
-		const char* text;
+		const char *text;
 
 		// Attempt to find the text help string
-		text = atcommand_help_string( command );
+		text = atcommand_help_string(command);
 
 		clif_displaymessage(fd, msg_txt(38)); // Invalid location number, or name.
 
@@ -3167,7 +3167,7 @@ ACMD_FUNC(questskill)
 
 	if (!message || !*message || (skill_id = atoi(message)) <= 0) {
 		// Also send a list of skills applicable to this command
-		const char* text;
+		const char *text;
 
 		// Attempt to find the text corresponding to this command
 		text = atcommand_help_string(command);
@@ -3208,16 +3208,16 @@ ACMD_FUNC(lostskill)
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message || (skill_id = atoi(message)) <= 0) { // also send a list of skills applicable to this command
-		const char* text;
+		const char *text;
 
 		// Attempt to find the text corresponding to this command
-		text = atcommand_help_string( command );
+		text = atcommand_help_string(command);
 		
 		// Send the error message as always
 		clif_displaymessage(fd, msg_txt(1027)); // Please enter a quest skill number.
 
-		if( text ) // Send the skill ID list associated with this command
-			clif_displaymessage( fd, text );
+		if (text) // Send the skill ID list associated with this command
+			clif_displaymessage(fd, text);
 
 		return -1;
 	}
@@ -3631,12 +3631,12 @@ ACMD_FUNC(reload)
 
 	nullpo_retr(-1, sd);
 
-	if ((strlen(command) < 8 ) && (!message || !*message)) {
-		const char* text;
+	if ((strlen(command) < 8) && (!message || !*message)) {
+		const char *text;
 
-		text = atcommand_help_string( command );
-		if(text)
-			clif_displaymessage( fd, text );
+		text = atcommand_help_string(command);
+		if (text)
+			clif_displaymessage(fd, text);
 		return -1;
 	}
 
@@ -7156,9 +7156,15 @@ ACMD_FUNC(hommutate)
 		return -1;
 	}
 
-	if (!message || !*message)
-		homun_id = 6048 + (rnd()%4);
-	else
+	if (!message || !*message) {
+		const char *text;
+
+		text = atcommand_help_string(command);
+		clif_displaymessage(fd, msg_txt(1054)); // Please enter a proper mutation ID.
+		if (text)
+			clif_displaymessage(fd, text);
+		return -1;
+	} else
 		homun_id = atoi(message);
 
 	m_class = hom_class2mapid(sd->hd->homunculus.class_);
@@ -7406,6 +7412,21 @@ ACMD_FUNC(homshuffle)
 	return 0;
 }
 
+ACMD_FUNC(hommax)
+{
+	nullpo_retr(-1, sd);
+
+	if(!sd->hd)
+		return -1; // Nothing to do
+
+	if(!hom_max(sd->hd))
+		return -1;
+
+	clif_displaymessage(sd->fd, msg_txt(1053)); // [Homunculus MaxHP, MaxSP, And Stats maxed]
+	atcommand_homstats(fd, sd, command, message);
+	return 0;
+}
+
 /*==========================================
  * Show Items DB Info   v 1.0
  * originally by [Lupus]
@@ -7435,7 +7456,7 @@ ACMD_FUNC(iteminfo)
 
 		sprintf(atcmd_output, msg_txt(1277), // Item: '%s'/'%s'[%d] (%hu) Type: %s | Extra Effect: %s
 			item_data->name,item_data->jname,item_data->slot,item_data->nameid,
-			(item_data->type != IT_AMMO) ? itemdb_typename((enum item_types)item_data->type) : itemdb_typename_ammo((enum e_item_ammo)item_data->look),
+			(item_data->type == IT_AMMO) ? itemdb_typename_ammo((enum e_item_ammo)item_data->look) : itemdb_typename((enum item_types)item_data->type),
 			(item_data->script == NULL) ? msg_txt(1278) : msg_txt(1279) // None / With script
 		);
 		clif_displaymessage(fd, atcmd_output);
@@ -9824,6 +9845,7 @@ void atcommand_basecommands(void) {
 		ACMD_DEF(hominfo),
 		ACMD_DEF(homstats),
 		ACMD_DEF(homshuffle),
+		ACMD_DEF(hommax),
 		ACMD_DEF(showmobs),
 		ACMD_DEF(feelreset),
 		ACMD_DEF(auction),

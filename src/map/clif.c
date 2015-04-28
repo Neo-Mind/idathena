@@ -1582,12 +1582,12 @@ void clif_hominfo(struct map_session_data *sd, struct homun_data *hd, int flag)
 	memset(buf,0,packet_len(0x22e));
 	WBUFW(buf,0) = 0x22e;
 	memcpy(WBUFP(buf,2),hd->homunculus.name,NAME_LENGTH);
-	// Bit field, bit 0 : rename_flag (1 = already renamed), bit 1 : homunc vaporized (1 = true), bit 2 : homunc dead (1 = true)
-	WBUFB(buf,26) = (battle_config.hom_rename ? 0 : hd->homunculus.rename_flag) | (hd->homunculus.vaporize << 1) | (hd->homunculus.hp ? 0 : 4);
+	//Bit field, bit 0 : rename_flag (1 = already renamed), bit 1 : homunc vaporized (1 = true), bit 2 : homunc dead (1 = true)
+	WBUFB(buf,26) = (battle_config.hom_rename ? 0 : hd->homunculus.rename_flag)|(hd->homunculus.vaporize<<1)|(hd->homunculus.hp ? 0 : 4);
 	WBUFW(buf,27) = hd->homunculus.level;
 	WBUFW(buf,29) = hd->homunculus.hunger;
 	WBUFW(buf,31) = (unsigned short) (hd->homunculus.intimacy / 100) ;
-	WBUFW(buf,33) = 0; // Equip id
+	WBUFW(buf,33) = 0; //Equip id
 #ifdef RENEWAL
 	WBUFW(buf,35) = cap_value(status->rhw.atk2, 0, INT16_MAX);
 #else
@@ -1596,7 +1596,7 @@ void clif_hominfo(struct map_session_data *sd, struct homun_data *hd, int flag)
 	WBUFW(buf,37) = cap_value(status->matk_max, 0, INT16_MAX);
 	WBUFW(buf,39) = status->hit;
 	if (battle_config.hom_setting&HOMSET_DISPLAY_LUK)
-		WBUFW(buf,41) = status->luk / 3 + 1; // Crit is a +1 decimal value! Just display purpose.[Vicious]
+		WBUFW(buf,41) = status->luk / 3 + 1; //Crit is a +1 decimal value! Just display purpose.[Vicious]
 	else
 		WBUFW(buf,41) = status->cri / 10;
 #ifdef RENEWAL
@@ -1652,11 +1652,11 @@ void clif_hominfo(struct map_session_data *sd, struct homun_data *hd, int flag)
 ///     3 = accessory?
 ///     ? = ignored
 void clif_send_homdata(struct map_session_data *sd, int state, int param)
-{	//[orn]
+{ //[orn]
 	int fd = sd->fd;
 
-	if ( (state == SP_INTIMATE) && (param >= 910) && (sd->hd->homunculus.class_ == sd->hd->homunculusDB->evo_class) )
-		hom_calc_skilltree(sd->hd, 0);
+	if ((state == SP_INTIMATE) && (param >= 910) && (sd->hd->homunculus.class_ == sd->hd->homunculusDB->evo_class))
+		hom_calc_skilltree(sd->hd,0);
 
 	WFIFOHEAD(fd,packet_len(0x230));
 	WFIFOW(fd,0) = 0x230;
@@ -1677,24 +1677,24 @@ int clif_homskillinfoblock(struct map_session_data *sd)
 	WFIFOHEAD(fd,4 + 37 * MAX_HOMUNSKILL);
 
 	hd = sd->hd;
-	if ( !hd )
+	if (!hd)
 		return 0 ;
 
 	WFIFOW(fd,0) = 0x235;
-	for ( i = 0; i < MAX_HOMUNSKILL; i++) {
+	for (i = 0; i < MAX_HOMUNSKILL; i++) {
 		int id = hd->homunculus.hskill[i].id;
 
-		if( id != 0 ) {
+		if (id != 0) {
 			int combo = (hd->homunculus.hskill[i].flag)&SKILL_FLAG_TMP_COMBO;
 
 			j = id - HM_SKILLBASE;
 			WFIFOW(fd,len) = id;
-			WFIFOW(fd,len + 2) = ((combo) ? INF_SELF_SKILL : skill_get_inf(id));
+			WFIFOW(fd,len + 2) = (combo ? INF_SELF_SKILL : skill_get_inf(id));
 			WFIFOW(fd,len + 4) = 0;
 			WFIFOW(fd,len + 6) = hd->homunculus.hskill[j].lv;
 			WFIFOW(fd,len + 8) = skill_get_sp(id,hd->homunculus.hskill[j].lv);
 			WFIFOW(fd,len + 10) = skill_get_range2(&sd->hd->bl, id,hd->homunculus.hskill[j].lv);
-			safestrncpy((char*)WFIFOP(fd,len + 12), skill_get_name(id), NAME_LENGTH);
+			safestrncpy((char *)WFIFOP(fd,len + 12), skill_get_name(id), NAME_LENGTH);
 			WFIFOB(fd,len + 36) = (hd->homunculus.level < hom_skill_get_min_level(hd->homunculus.class_, id) ||
 				hd->homunculus.hskill[j].lv >= hom_skill_tree_get_max(id, hd->homunculus.class_)) ? 0 : 1;
 			len += 37;
@@ -1707,11 +1707,11 @@ int clif_homskillinfoblock(struct map_session_data *sd)
 }
 
 void clif_homskillup(struct map_session_data *sd, uint16 skill_id)
-{	//[orn]
+{ //[orn]
 	struct homun_data *hd;
-	int fd, idx;
+	int fd, idx = skill_id - HM_SKILLBASE;
+
 	nullpo_retv(sd);
-	idx = skill_id - HM_SKILLBASE;
 
 	fd = sd->fd;
 	hd = sd->hd;
@@ -1727,9 +1727,10 @@ void clif_homskillup(struct map_session_data *sd, uint16 skill_id)
 	WFIFOSET(fd,packet_len(0x239));
 }
 
-int clif_hom_food(struct map_session_data *sd,int foodid,int fail) //[orn]
-{
+int clif_hom_food(struct map_session_data *sd, int foodid, int fail)
+{ //[orn]
 	int fd = sd->fd;
+
 	WFIFOHEAD(fd,packet_len(0x22f));
 	WFIFOW(fd,0) = 0x22f;
 	WFIFOB(fd,2) = fail;
@@ -14549,7 +14550,7 @@ void clif_feel_req(int fd, struct map_session_data *sd, uint16 skill_lv)
 /// 0231 <name>.24B
 void clif_parse_ChangeHomunculusName(int fd, struct map_session_data *sd)
 {
-	hom_change_name(sd,(char*)RFIFOP(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]));
+	hom_change_name(sd,(char *)RFIFOP(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]));
 }
 
 

@@ -1891,10 +1891,10 @@ int intif_parse_ChangeNameOk(int fd)
 		case 0: //Players [NOT SUPPORTED YET]
 			break;
 		case 1: //Pets
-			pet_change_name_ack(sd, (char*)RFIFOP(fd,12), RFIFOB(fd,11));
+			pet_change_name_ack(sd, (char *)RFIFOP(fd,12), RFIFOB(fd,11));
 			break;
 		case 2: //Hom
-			hom_change_name_ack(sd, (char*)RFIFOP(fd,12), RFIFOB(fd,11));
+			hom_change_name_ack(sd, (char *)RFIFOP(fd,12), RFIFOB(fd,11));
 			break;
 	}
 	return 1;

@@ -321,10 +321,10 @@ enum e_item_ammo {
 
 struct item_combo {
 	struct script_code *script;
-	unsigned short *nameid; /* nameid array */
+	unsigned short *nameid; //nameid array
 	unsigned char count;
-	unsigned short id; /* id of this combo */
-	bool isRef; /* Whether this struct is a reference or the master */
+	unsigned short id; //id of this combo
+	bool isRef; //Whether this struct is a reference or the master
 };
 
 //Struct of item group entry

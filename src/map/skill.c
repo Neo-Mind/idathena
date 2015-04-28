@@ -406,7 +406,7 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 #endif
 			if( sd && ((skill = pc_checkskill(sd, HP_MEDITATIO)) > 0) )
 				hp += hp * skill * 2 / 100;
-			else if( src->type == BL_HOM && (skill = hom_checkskill(((TBL_HOM*)src), HLIF_BRAIN)) > 0 )
+			else if( src->type == BL_HOM && (skill = hom_checkskill(((TBL_HOM *)src), HLIF_BRAIN)) > 0 )
 				hp += hp * skill * 2 / 100;
 			if( sd && tsd && sd->status.partner_id == tsd->status.char_id && (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && !sd->status.sex )
 				hp *= 2;
@@ -7480,7 +7480,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					if(sp < 1)
 						sp = 1;
 					status_heal(bl,0,sp,2);
-					status_percent_damage(bl,src,0,-20,false); //20% max SP damage
+					status_percent_damage(bl,src,0,-20,false); //20% MaxSP damage
 				} else {
 					struct unit_data *ud = unit_bl2ud(bl);
 					int bl_skill_id = 0, bl_skill_lv = 0, hp = 0;
