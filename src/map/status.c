@@ -3925,7 +3925,7 @@ int status_calc_homunculus_(struct homun_data *hd, enum e_status_calc_opt opt)
 
 	if( (skill_lv = hom_checkskill(hd, HLIF_BRAIN)) > 0 ) {
 		status->max_sp += (1 + skill_lv / 2 - skill_lv / 4 + skill_lv / 5) * status->max_sp / 100;
-		status->max_sp = min(status->max_sp, battle_config.max_homunculus_hp);
+		status->max_sp = min(status->max_sp, battle_config.max_homunculus_sp);
 	}
 
 	if( opt&SCO_FIRST ) {
