@@ -27,6 +27,7 @@
 #define MAX_PC_FEELHATE 3 //Max feel hate info
 #define DAMAGELOG_SIZE_PC 100 //Damage log
 #define MAX_DEVOTION 5 //Max Devotion slots
+#define BANK_VAULT_VAR "#BANKVAULT"
 
 //Update this max as necessary. 85 is the value needed for Expanded Super Novice
 #define MAX_SKILL_TREE 85
@@ -628,6 +629,7 @@ struct map_session_data {
 
 	short last_addeditem_index; //Index of latest item added
 	int autotrade_tid;
+	int bank_vault; //Bank vault
 #ifdef PACKET_OBFUSCATION
 	unsigned int cryptKey; //Packet obfuscation key to be used for the next received packet
 #endif
@@ -992,10 +994,13 @@ bool pc_setregstr(struct map_session_data *sd,int reg,const char *str);
 #define pc_setaccountreg2(sd,reg,val) pc_setregistry(sd,reg,val,1)
 #define pc_readaccountreg2str(sd,reg) pc_readregistry_str(sd,reg,1)
 #define pc_setaccountreg2str(sd,reg,val) pc_setregistry_str(sd,reg,val,1)
-int pc_readregistry(struct map_session_data*,const char*,int);
-bool pc_setregistry(struct map_session_data*,const char*,int,int);
-char *pc_readregistry_str(struct map_session_data*,const char*,int);
-bool pc_setregistry_str(struct map_session_data*,const char*,const char*,int);
+int pc_readregistry(struct map_session_data *,const char *,int);
+bool pc_setregistry(struct map_session_data *,const char *,int,int);
+char *pc_readregistry_str(struct map_session_data *,const char *,int);
+bool pc_setregistry_str(struct map_session_data *,const char *,const char *,int);
+
+bool pc_setreg2(struct map_session_data *sd, const char *reg, int val);
+int pc_readreg2(struct map_session_data *sd, const char *reg);
 
 bool pc_addeventtimer(struct map_session_data *sd,int tick,const char *name);
 bool pc_deleventtimer(struct map_session_data *sd,const char *name);

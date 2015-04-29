@@ -6773,7 +6773,7 @@ void clif_Bank_Check(struct map_session_data* sd) {
 		return; //Version as packet disable
 	//sd->state.banking = 1; //Mark opening and closing
 	WBUFW(buf,0) = cmd;
-	WBUFQ(buf,info->pos[0]) = sd->status.bank_vault; //Testing value
+	WBUFQ(buf,info->pos[0]) = sd->bank_vault; //Value
 	WBUFW(buf,info->pos[1]) = 0; //Reason
 	clif_send(buf,len,&sd->bl,SELF);
 }
@@ -6821,8 +6821,8 @@ void clif_bank_deposit(struct map_session_data *sd, enum e_BANKING_DEPOSIT_ACK r
 		return; //Version as packet disable
 	WBUFW(buf,0) = cmd;
 	WBUFW(buf,info->pos[0]) = (short)reason;
-	WBUFQ(buf,info->pos[1]) = sd->status.bank_vault; /* Money in the bank */
-	WBUFL(buf,info->pos[2]) = sd->status.zeny; /* How much zeny char has after operation */
+	WBUFQ(buf,info->pos[1]) = sd->bank_vault; //Money in the bank
+	WBUFL(buf,info->pos[2]) = sd->status.zeny; //How much zeny char has after operation
 	clif_send(buf,len,&sd->bl,SELF);
 }
 
@@ -6874,8 +6874,8 @@ void clif_bank_withdraw(struct map_session_data *sd,enum e_BANKING_WITHDRAW_ACK 
 		return; //Version as packet disable
 	WBUFW(buf,0) = cmd;
 	WBUFW(buf,info->pos[0]) = (short)reason;
-	WBUFQ(buf,info->pos[1]) = sd->status.bank_vault;/* Money in the bank */
-	WBUFL(buf,info->pos[2]) = sd->status.zeny; /* How much zeny char has after operation */
+	WBUFQ(buf,info->pos[1]) = sd->bank_vault; //Money in the bank
+	WBUFL(buf,info->pos[2]) = sd->status.zeny; //How much zeny char has after operation
 	clif_send(buf,len,&sd->bl,SELF);
 }
 

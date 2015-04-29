@@ -450,7 +450,6 @@ CREATE TABLE IF NOT EXISTS `login` (
   `character_slots` tinyint(3) unsigned NOT NULL default '0',
   `pincode` varchar(4) NOT NULL default '',
   `pincode_change` int(11) unsigned NOT NULL default '0',
-  `bank_vault` int(11) NOT NULL default '0',
   `vip_time` int(11) unsigned NOT NULL default '0',
   `old_group` tinyint(3) NOT NULL default '0',
   PRIMARY KEY  (`account_id`),
@@ -699,6 +698,7 @@ INSERT INTO `sql_updates` (`timestamp`) VALUES (1392832626);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1395789302);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1396893866);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1398477600);
+INSERT INTO `sql_updates` (`timestamp`) VALUES (1400256139);
 
 --
 -- Table structure for table `sstatus`

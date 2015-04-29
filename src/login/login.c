@@ -428,7 +428,6 @@ int chrif_send_accdata(int fd, uint32 aid) {
 	int group_id = 0;
 	char birthdate[10 + 1] = "";
 	char pincode[PINCODE_LENGTH + 1];
-	int bank_vault = 0;
 	char isvip = false;
 	uint8 char_slots = MIN_CHARS, char_vip = 0;
 
@@ -442,7 +441,6 @@ int chrif_send_accdata(int fd, uint32 aid) {
 
 		safestrncpy(birthdate, acc.birthdate, sizeof(birthdate));
 		safestrncpy(pincode, acc.pincode, sizeof(pincode));
-		bank_vault = acc.bank_vault;
 #ifdef VIP_ENABLE
 		char_vip = login_config.vip_sys.char_increase;
 		if( acc.vip_time > time(NULL) ) {
@@ -453,21 +451,20 @@ int chrif_send_accdata(int fd, uint32 aid) {
 #endif
 	}
 
-	WFIFOHEAD(fd,79);
+	WFIFOHEAD(fd,75);
 	WFIFOW(fd,0) = 0x2717;
 	WFIFOL(fd,2) = aid;
-	safestrncpy((char*)WFIFOP(fd,6), email, 40);
+	safestrncpy((char *)WFIFOP(fd,6), email, 40);
 	WFIFOL(fd,46) = (uint32)expiration_time;
 	WFIFOB(fd,50) = (unsigned char)group_id;
 	WFIFOB(fd,51) = char_slots;
-	safestrncpy((char*)WFIFOP(fd,52), birthdate, 10 + 1);
-	safestrncpy((char*)WFIFOP(fd,63), pincode, 4 + 1 );
+	safestrncpy((char *)WFIFOP(fd,52), birthdate, 10 + 1);
+	safestrncpy((char *)WFIFOP(fd,63), pincode, 4 + 1 );
 	WFIFOL(fd,68) = (uint32)acc.pincode_change;
-	WFIFOL(fd,72) = bank_vault;
-	WFIFOB(fd,76) = isvip;
-	WFIFOB(fd,77) = char_vip;
-	WFIFOB(fd,78) = MAX_CHAR_BILLING; //@TODO: Create a config for this
-	WFIFOSET(fd,79);
+	WFIFOB(fd,72) = isvip;
+	WFIFOB(fd,73) = char_vip;
+	WFIFOB(fd,74) = MAX_CHAR_BILLING; //@TODO: Create a config for this
+	WFIFOSET(fd,75);
 	return 0;
 }
 
@@ -1000,36 +997,6 @@ int parse_fromchar(int fd) {
 				}
 				break;
 
-			case 0x2740: //Req upd bank_vault
-				if( RFIFOREST(fd) < 11 )
-					return 0;
-				else {
-					struct mmo_account acc;
-					int account_id = RFIFOL(fd,2);
-					char type = RFIFOB(fd,6);
-					int32 data = RFIFOL(fd,7);
-
-					RFIFOSKIP(fd,11);
-					if( !accounts->load_num(accounts, &acc, account_id) )
-						ShowNotice("Char-server '%s': Error on banking  (account: %d not found, ip: %s).\n", server[id].name, account_id, ip);
-					else {
-						unsigned char buf[12];
-
-						if( type == 2 ) { //Upd and Save
-							acc.bank_vault = data;
-							accounts->save(accounts, &acc);
-							WBUFB(buf,10) = 1;
-						} else
-							WBUFB(buf,10) = 0;
-						//Announce to other servers
-						WBUFW(buf,0) = 0x2741;
-						WBUFL(buf,2) = account_id;
-						WBUFL(buf,6) = acc.bank_vault;
-						charif_sendallwos(-1, buf, 11);
-					}
-				}
-				break;
-
 			case 0x2742: chrif_parse_reqvipdata(fd); break; //Vip sys
 
 			case 0x2744: // Accinfo request forwarded by charserver on mapserver's account
@@ -1042,22 +1009,22 @@ int parse_fromchar(int fd) {
 					if( accounts->load_num(accounts, &acc, account_id) ) {
 						WFIFOHEAD(fd,183);
 						WFIFOW(fd,0) = 0x2738;
-						safestrncpy((char*)WFIFOP(fd,2), acc.userid, NAME_LENGTH);
+						safestrncpy((char *)WFIFOP(fd,2), acc.userid, NAME_LENGTH);
 						if( u_group >= acc.group_id )
-							safestrncpy((char*)WFIFOP(fd,26), acc.pass, 33);
+							safestrncpy((char *)WFIFOP(fd,26), acc.pass, 33);
 						else
 							memset(WFIFOP(fd,26), '\0', 33);
-						safestrncpy((char*)WFIFOP(fd,59), acc.email, 40);
-						safestrncpy((char*)WFIFOP(fd,99), acc.last_ip, 16);
+						safestrncpy((char *)WFIFOP(fd,59), acc.email, 40);
+						safestrncpy((char *)WFIFOP(fd,99), acc.last_ip, 16);
 						WFIFOL(fd,115) = acc.group_id;
-						safestrncpy((char*)WFIFOP(fd,119), acc.lastlogin, 24);
+						safestrncpy((char *)WFIFOP(fd,119), acc.lastlogin, 24);
 						WFIFOL(fd,143) = acc.logincount;
 						WFIFOL(fd,147) = acc.state;
 						if( u_group >= acc.group_id )
-							safestrncpy((char*)WFIFOP(fd,151), acc.pincode, 5);
+							safestrncpy((char *)WFIFOP(fd,151), acc.pincode, 5);
 						else
 							memset(WFIFOP(fd,151), '\0', 5);
-						safestrncpy((char*)WFIFOP(fd,156), acc.birthdate, 11);
+						safestrncpy((char *)WFIFOP(fd,156), acc.birthdate, 11);
 						WFIFOL(fd,167) = map_fd;
 						WFIFOL(fd,171) = u_fd;
 						WFIFOL(fd,175) = u_aid;
@@ -1130,7 +1097,6 @@ int mmo_auth_new(const char* userid, const char* pass, const char sex, const cha
 	safestrncpy(acc.pincode, "", sizeof(acc.pincode));
 	acc.pincode_change = 0;
 	acc.char_slots = MIN_CHARS;
-	acc.bank_vault = 0;
 #ifdef VIP_ENABLE
 	acc.vip_time = 0;
 	acc.old_group = 0;

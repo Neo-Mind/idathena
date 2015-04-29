@@ -156,7 +156,6 @@ struct char_session_data {
 	uint16 pincode_try;
 	// Addon system
 	unsigned int char_moves[MAX_CHARS]; // Character moves left
-	int bank_vault;
 	uint8 isvip;
 	time_t unban_time[MAX_CHARS];
 	int charblock_timer;
@@ -211,14 +210,10 @@ bool char_move_enabled = true;
 bool char_movetoused = true;
 bool char_moves_unlimited = false;
 
-void moveCharSlot( int fd, struct char_session_data* sd, unsigned short from, unsigned short to );
-void moveCharSlotReply( int fd, struct char_session_data* sd, unsigned short index, short reason );
+void moveCharSlot(int fd, struct char_session_data* sd, unsigned short from, unsigned short to);
+void moveCharSlotReply(int fd, struct char_session_data* sd, unsigned short index, short reason);
 
-int loginif_BankingReq(int32 account_id, int8 type, int32 data);
-int loginif_parse_BankingAck(int fd);
-int mapif_BankingAck(int32 account_id, int32 bank_vault);
-
-// Custom limits for the fame lists. [Skotlex]
+// Custom limits for the fame lists [Skotlex]
 int fame_list_size_chemist = MAX_FAME_LIST;
 int fame_list_size_smith = MAX_FAME_LIST;
 int fame_list_size_taekwon = MAX_FAME_LIST;
@@ -229,8 +224,8 @@ struct fame_list chemist_fame_list[MAX_FAME_LIST];
 struct fame_list taekwon_fame_list[MAX_FAME_LIST];
 
 // Bonus Script
-void bonus_script_get(int fd); //Get bonus_script data
-void bonus_script_save(int fd); //Save bonus_script data
+void bonus_script_get(int fd); // Get bonus_script data
+void bonus_script_save(int fd); // Save bonus_script data
 
 // Check for exit signal
 // 0 is saving complete
@@ -2239,57 +2234,6 @@ int send_accounts_tologin(int tid, unsigned int tick, int id, intptr_t data);
 void mapif_server_reset(int id);
 
 /**
- * Send to login-serv the request of banking operation from map
- * HA 0x2740<aid>L <type>B <data>L
- * @param account_id
- * @param type : 0 = select, 1 = update
- * @param data
- * @return
- */
-int loginif_BankingReq(int32 account_id, int8 type, int32 data) {
-	loginif_check(-1);
-
-	WFIFOHEAD(login_fd,11);
-	WFIFOW(login_fd,0) = 0x2740;
-	WFIFOL(login_fd,2) = account_id;
-	WFIFOB(login_fd,6) = type;
-	WFIFOL(login_fd,7) = data;
-	WFIFOSET(login_fd,11);
-	return 0;
-}
-
-/**
- * Received the banking data from login and transmit it to all map-serv
- * AH 0x2741<aid>L <bank_vault>L <not_fw>B
- * HZ 0x2b29 <aid>L <bank_vault>L
- */
-int loginif_parse_BankingAck(int fd) {
-	if (RFIFOREST(fd) < 11)
-		return 0;
-	else {
-		uint32 aid = RFIFOL(fd,2);
-		int32 bank_vault = RFIFOL(fd,6);
-		char not_fw = RFIFOB(fd,10);
-
-		RFIFOSKIP(fd,11);
-		if (not_fw == 0)
-			mapif_BankingAck(aid, bank_vault);
-	}
-	return 1;
-}
-
-//HZ 0x2b29 <aid>L <bank_vault>L
-int mapif_BankingAck(int32 account_id, int32 bank_vault) {
-	unsigned char buf[11];
-
-	WBUFW(buf,0) = 0x2b29;
-	WBUFL(buf,2) = account_id;
-	WBUFL(buf,6) = bank_vault;
-	mapif_sendall(buf, 10); //Inform all maps-attached
-	return 1;
-}
-
-/**
  * HZ 0x2b2b
  * Transmist vip data to mapserv
  */
@@ -2531,28 +2475,27 @@ int parse_fromlogin(int fd) {
 				break;
 
 			case 0x2717: // Account data
-				if( RFIFOREST(fd) < 79 )
+				if( RFIFOREST(fd) < 75 )
 					return 0;
 
 				// Find the authenticated session with this account id
-				ARR_FIND( 0, fd_max, i, session[i] && (sd = (struct char_session_data*)session[i]->session_data) && sd->auth && sd->account_id == RFIFOL(fd,2) );
+				ARR_FIND( 0, fd_max, i, session[i] && (sd = (struct char_session_data *)session[i]->session_data) && sd->auth && sd->account_id == RFIFOL(fd,2) );
 				if( i < fd_max ) {
 					memcpy(sd->email, RFIFOP(fd,6), 40);
 					sd->expiration_time = (time_t)RFIFOL(fd,46);
 					sd->group_id = RFIFOB(fd,50);
 					sd->char_slots = RFIFOB(fd,51);
 					if( sd->char_slots > MAX_CHARS ) {
-						ShowError("Account '%d' `character_slots` column is higher than supported MAX_CHARS (%d), update MAX_CHARS in mmo.h! capping to MAX_CHARS...\n",sd->account_id,sd->char_slots);
+						ShowError("Account '%d' `character_slots` column is higher than supported MAX_CHARS (%d), update MAX_CHARS in mmo.h! capping to MAX_CHARS...\n", sd->account_id, sd->char_slots);
 						sd->char_slots = MAX_CHARS; // Cap to maximum
 					} else if ( sd->char_slots <= 0 ) // No value aka 0 in sql
 						sd->char_slots = MIN_CHARS; // Cap to minimum
-					safestrncpy(sd->birthdate, (const char*)RFIFOP(fd,52), sizeof(sd->birthdate));
-					safestrncpy(sd->pincode, (const char*)RFIFOP(fd,63), sizeof(sd->pincode));
+					safestrncpy(sd->birthdate, (const char *)RFIFOP(fd,52), sizeof(sd->birthdate));
+					safestrncpy(sd->pincode, (const char *)RFIFOP(fd,63), sizeof(sd->pincode));
 					sd->pincode_change = (time_t)RFIFOL(fd,68);
-					sd->bank_vault = RFIFOL(fd,72);
-					sd->isvip = RFIFOB(fd,76);
-					sd->chars_vip = RFIFOB(fd,77);
-					sd->chars_billing = RFIFOB(fd,78);
+					sd->isvip = RFIFOB(fd,72);
+					sd->chars_vip = RFIFOB(fd,73);
+					sd->chars_billing = RFIFOB(fd,74);
 					// Continued from char_auth_ok
 					if( (max_connect_user == 0 && sd->group_id != gm_allow_group) ||
 						(max_connect_user > 0 && count_users() >= max_connect_user && sd->group_id != gm_allow_group) ) {
@@ -2563,7 +2506,7 @@ int parse_fromlogin(int fd) {
 						loginif_parse_reqpincode(i,sd);
 					}
 				}
-				RFIFOSKIP(fd,79);
+				RFIFOSKIP(fd,75);
 				break;
 
 			// Login-server alive packet
@@ -2775,8 +2718,6 @@ int parse_fromlogin(int fd) {
 					(char*)RFIFOP(fd,156), RFIFOL(fd,115), RFIFOL(fd,143), RFIFOL(fd,147));
 				RFIFOSKIP(fd,183);
 				break;
-
-			case 0x2741: loginif_parse_BankingAck(fd); break;
 
 			case 0x2743: loginif_parse_vipack(fd); break;
 
@@ -3173,20 +3114,19 @@ int mapif_parse_reqcharunban(int fd) {
  * @param fd: link to mapserv
  */
 int mapif_parse_req_alter_acc(int fd) {
-	if( RFIFOREST(fd) < 44 )
+	if( RFIFOREST(fd) < 40 )
 		return 0;
 	else {
 		int result = 0; //0-login-server request done, 1-player not found, 2-gm level too low, 3-login-server offline
 		char esc_name[NAME_LENGTH * 2 + 1];
 		char answer = true;
 		int aid = RFIFOL(fd,2); //account_id of who ask (-1 if server itself made this request)
-		const char* name = (char*)RFIFOP(fd,6); //Name of the target character
-		int operation = RFIFOW(fd,30); //Type of operation: 1-block, 2-ban, 3-unblock, 4-unban, 5-changesex, 6-vip, 7-bank
+		const char *name = (char *)RFIFOP(fd,6); //Name of the target character
+		int operation = RFIFOW(fd,30); //Type of operation: 1-block, 2-ban, 3-unblock, 4-unban, 5-changesex, 6-vip
 		int32 timediff = RFIFOL(fd,32);
 		int val1 = RFIFOL(fd,36);
-		int val2 = RFIFOL(fd,40);
 
-		RFIFOSKIP(fd,44);
+		RFIFOSKIP(fd,40);
 		Sql_EscapeStringLen(sql_handle, esc_name, name, strnlen(name, NAME_LENGTH));
 		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `account_id` FROM `%s` WHERE `name` = '%s'", char_db, esc_name) )
 			Sql_ShowDebug(sql_handle);
@@ -3197,7 +3137,7 @@ int mapif_parse_req_alter_acc(int fd) {
 			result = 1;
 		} else {
 			int t_aid; //Target account id
-			char* data;
+			char *data;
 
 			Sql_GetData(sql_handle, 0, &data, NULL); t_aid = atoi(data);
 			Sql_FreeResult(sql_handle);
@@ -3205,10 +3145,10 @@ int mapif_parse_req_alter_acc(int fd) {
 			if( !loginif_isconnected() ) //6-7 operation doesn't send to login
 				result = 3; //3-login-server offline
 			//FIXME: need to move this check to login server [ultramage]
-			//	if( acc != -1 && isGM(acc) < isGM(t_aid) )
-			//		result = 2; // 2-gm level too low
+				//if( acc != -1 && isGM(acc) < isGM(t_aid) )
+					//result = 2; // 2-gm level too low
 			else {
-				switch( operation ) {
+				switch( operation ) { //NOTE: See src/map/chrif.h::enum chrif_req_op for the number
 					case 1: //Block
 						WFIFOHEAD(login_fd,10);
 						WFIFOW(login_fd,0) = 0x2724;
@@ -3247,10 +3187,6 @@ int mapif_parse_req_alter_acc(int fd) {
 						answer = (val1&4); //vip_req val1 = type, &1 login send return, &2 upd timestamp &4 map send answer
 						loginif_reqvipdata(t_aid, val1, timediff, fd);
 						break;
-					case 7:
-						answer = (val1&1); //val&1 request answer, val1&2 save data
-						loginif_BankingReq(aid, val1, val2);
-						break;
 				} //End switch operation
 			} //Login is connected
 		}
@@ -3260,7 +3196,7 @@ int mapif_parse_req_alter_acc(int fd) {
 			WFIFOHEAD(fd,34);
 			WFIFOW(fd,0) = 0x2b0f;
 			WFIFOL(fd,2) = aid;
-			safestrncpy((char*)WFIFOP(fd,6), name, NAME_LENGTH);
+			safestrncpy((char *)WFIFOP(fd,6), name, NAME_LENGTH);
 			WFIFOW(fd,30) = operation;
 			WFIFOW(fd,32) = result;
 			WFIFOSET(fd,34);
@@ -3656,7 +3592,7 @@ int parse_frommap(int fd)
 					int fame = RFIFOL(fd,6);
 					char type = RFIFOB(fd,10);
 					int size;
-					struct fame_list* list;
+					struct fame_list *list;
 					int player_pos;
 					int fame_pos;
 

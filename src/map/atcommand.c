@@ -2826,7 +2826,7 @@ ACMD_FUNC(char_block)
 		return -1;
 	}
 
-	chrif_req_login_operation(sd->status.account_id, atcmd_player_name, CHRIF_OP_LOGIN_BLOCK, 0, 0, 0);
+	chrif_req_login_operation(sd->status.account_id, atcmd_player_name, CHRIF_OP_LOGIN_BLOCK, 0, 0);
 	sprintf(atcmd_output, msg_txt(88), "login"); // Sending request to %s server...
 	clif_displaymessage(fd, atcmd_output);
 
@@ -2887,7 +2887,7 @@ ACMD_FUNC(char_ban)
 	if (bantype == CHRIF_OP_BAN)
 		chrif_req_charban(sd->status.account_id, atcmd_player_name, timediff);
 	else
-		chrif_req_login_operation(sd->status.account_id, atcmd_player_name, bantype, timediff, 0, 0);
+		chrif_req_login_operation(sd->status.account_id, atcmd_player_name, bantype, timediff, 0);
 
 	safesnprintf(output, sizeof(output), msg_txt(88), (bantype == CHRIF_OP_BAN ? "char" : "login")); // Sending request to %s server...
 	clif_displaymessage(fd, output);
@@ -2911,7 +2911,7 @@ ACMD_FUNC(char_unblock)
 	}
 
 	// Send answer to login server via char-server
-	chrif_req_login_operation(sd->status.account_id, atcmd_player_name, CHRIF_OP_LOGIN_UNBLOCK, 0, 0, 0);
+	chrif_req_login_operation(sd->status.account_id, atcmd_player_name, CHRIF_OP_LOGIN_UNBLOCK, 0, 0);
 	sprintf(atcmd_output, msg_txt(88), "login"); // Sending request to %s server...
 	clif_displaymessage(fd, atcmd_output);
 
@@ -2946,7 +2946,7 @@ ACMD_FUNC(char_unban) {
 	if (unbantype == CHRIF_OP_UNBAN)
 		chrif_req_charunban(sd->status.account_id, atcmd_player_name);
 	else
-		chrif_req_login_operation(sd->status.account_id, atcmd_player_name, unbantype, 0, 0, 0);
+		chrif_req_login_operation(sd->status.account_id, atcmd_player_name, unbantype, 0, 0);
 
 	sprintf(atcmd_output, msg_txt(88), (unbantype == CHRIF_OP_UNBAN ? "char" : "login")); // Sending request to %s server...
 	clif_displaymessage(fd, atcmd_output);
@@ -9384,7 +9384,7 @@ ACMD_FUNC(vip) {
 		}
 	}
 
-	chrif_req_login_operation(pl_sd->status.account_id, pl_sd->status.name, CHRIF_OP_LOGIN_VIP, vipdifftime, 7, 0);
+	chrif_req_login_operation(pl_sd->status.account_id, pl_sd->status.name, CHRIF_OP_LOGIN_VIP, vipdifftime, 7);
 
 	return 0;
 }
