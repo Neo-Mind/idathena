@@ -529,7 +529,7 @@ char itemdb_isidentified(unsigned short nameid)
 /** Search by name for the override flags available items (Give item another sprite)
  * Structure: <nameid>,<sprite>
  */
-static bool itemdb_read_itemavail(char* str[], int columns, int current)
+static bool itemdb_read_itemavail(char *str[], int columns, int current)
 {
 	unsigned short nameid;
 	int sprite;
@@ -558,7 +558,7 @@ static int itemdb_group_free(DBKey key, DBData *data, va_list ap);
 /** Read item group data
  * Structure: GroupID,ItemID,Rate{,Amount,isMust,isAnnounced,Duration,GUID,isBound,isNamed}
  */
-static void itemdb_read_itemgroup_sub(const char* filename)
+static void itemdb_read_itemgroup_sub(const char *filename)
 {
 	FILE *fp;
 	int ln = 0, entries = 0;
@@ -723,7 +723,7 @@ static void itemdb_read_itemgroup(void)
 /** Read item forbidden by mapflag (can't equip item)
  * Structure: <nameid>,<mode>
  */
-static bool itemdb_read_noequip(char* str[], int columns, int current)
+static bool itemdb_read_noequip(char *str[], int columns, int current)
 {
 	unsigned short nameid;
 	struct item_data *id;
@@ -743,7 +743,7 @@ static bool itemdb_read_noequip(char* str[], int columns, int current)
 /** Reads item trade restrictions [Skotlex]
  * Structure: <nameid>,<mask>,<gm level>
  */
-static bool itemdb_read_itemtrade(char* str[], int columns, int current)
+static bool itemdb_read_itemtrade(char *str[], int columns, int current)
 {
 	unsigned short nameid;
 	int flag, gmlv;
@@ -779,7 +779,7 @@ static bool itemdb_read_itemtrade(char* str[], int columns, int current)
 /** Reads item delay amounts [Paradox924X]
  * Structure: <nameid>,<delay>
  */
-static bool itemdb_read_itemdelay(char* str[], int columns, int current)
+static bool itemdb_read_itemdelay(char *str[], int columns, int current)
 {
 	unsigned short nameid;
 	int delay;
@@ -807,7 +807,7 @@ static bool itemdb_read_itemdelay(char* str[], int columns, int current)
 /** Reads item stacking restrictions
  * Structure: <item id>,<stack limit amount>,<type>
  */
-static bool itemdb_read_stack(char* fields[], int columns, int current)
+static bool itemdb_read_stack(char *fields[], int columns, int current)
 {
 	unsigned short nameid, amount;
 	unsigned int type;
@@ -843,7 +843,7 @@ static bool itemdb_read_stack(char* fields[], int columns, int current)
 /** Reads items allowed to be sold in buying stores
  * Structure: <nameid>
  */
-static bool itemdb_read_buyingstore(char* fields[], int columns, int current)
+static bool itemdb_read_buyingstore(char *fields[], int columns, int current)
 {
 	unsigned short nameid;
 	struct item_data* id;
@@ -868,7 +868,7 @@ static bool itemdb_read_buyingstore(char* fields[], int columns, int current)
 /** Item usage restriction (item_nouse.txt)
  * Structure: <nameid>,<flag>,<override>
  */
-static bool itemdb_read_nouse(char* fields[], int columns, int current)
+static bool itemdb_read_nouse(char *fields[], int columns, int current)
 {
 	unsigned short nameid;
 	int flag, override;
@@ -896,7 +896,7 @@ static bool itemdb_read_nouse(char* fields[], int columns, int current)
  * &2 - As item container
  * &4 - GUID item, cannot be stacked even same or stackable item
  */
-static bool itemdb_read_flag(char* fields[], int columns, int current) {
+static bool itemdb_read_flag(char *fields[], int columns, int current) {
 	unsigned short nameid = atoi(fields[0]);
 	uint8 flag;
 	bool set;
@@ -1137,7 +1137,7 @@ static void itemdb_re_split_atoi(char *str, int *atk, int *matk) {
 /**
  * Processes one itemdb entry
  */
-static bool itemdb_parse_dbrow(char** str, const char* source, int line, int scriptopt) {
+static bool itemdb_parse_dbrow(char** str, const char *source, int line, int scriptopt) {
 	/*
 		+----+--------------+---------------+------+-----------+------------+--------+--------+---------+-------+-------+------------+-------------+---------------+-----------------+--------------+-------------+------------+------+--------+--------------+----------------+
 		| 00 |      01      |       02      |  03  |     04    |     05     |   06   |   07   |    08   |   09  |   10  |     11     |      12     |       13      |        14       |      15      |      16     |     17     |  18  |   19   |      20      |        21      |
@@ -1271,7 +1271,7 @@ static bool itemdb_parse_dbrow(char** str, const char* source, int line, int scr
  */
 static int itemdb_readdb(void)
 {
-	const char* filename[] = {
+	const char *filename[] = {
 		DBPATH"item_db.txt",
 		"item_db2.txt"
 	};
@@ -1408,7 +1408,7 @@ static int itemdb_readdb(void)
  */
 static int itemdb_read_sqldb(void) {
 
-	const char* item_db_name[] = {
+	const char *item_db_name[] = {
 #ifdef RENEWAL
 		item_db_re_db,
 #else
@@ -1429,8 +1429,8 @@ static int itemdb_read_sqldb(void) {
 
 		//Process rows one by one
 		while (SQL_SUCCESS == Sql_NextRow(mmysql_handle)) { //Wrap the result into a TXT-compatible format
-			char* str[22];
-			char* dummy = "";
+			char *str[22];
+			char *dummy = "";
 			int i;
 			++lines;
 			for (i = 0; i < 22; ++i) {
@@ -1590,7 +1590,7 @@ static int itemdb_group_free(DBKey key, DBData *data, va_list ap) {
 void itemdb_reload(void)
 {
 	struct s_mapiterator* iter;
-	struct map_session_data* sd;
+	struct map_session_data *sd;
 	int i, d, k;
 
 	itemdb_group->clear(itemdb_group, itemdb_group_free);
@@ -1632,7 +1632,7 @@ void itemdb_reload(void)
 
 	//Read just itemdb pointer cache for each player
 	iter = mapit_geteachpc();
-	for( sd = (struct map_session_data*)mapit_first(iter); mapit_exists(iter); sd = (struct map_session_data*)mapit_next(iter) ) {
+	for( sd = (struct map_session_data *)mapit_first(iter); mapit_exists(iter); sd = (struct map_session_data *)mapit_next(iter) ) {
 		memset(sd->item_delay, 0, sizeof(sd->item_delay)); //Reset item delays
 		pc_setinventorydata(sd);
 		pc_check_available_item(sd); //Check for invalid(ated) items

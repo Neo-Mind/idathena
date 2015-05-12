@@ -26,7 +26,7 @@ extern char item_cash_db2_db[32];
  *  0 = failure
  *  1 = success
  */
-static int cashshop_parse_dbrow( char** str, const char* source, int line ){
+static int cashshop_parse_dbrow( char** str, const char *source, int line ){
 	unsigned short nameid = atoi( str[1] );
 
 	if( itemdb_exists( nameid ) ){
@@ -70,7 +70,7 @@ static int cashshop_parse_dbrow( char** str, const char* source, int line ){
  * TODO: Change to sv_readdb
  */
 static void cashshop_read_db_txt( void ){
-	const char* filename[] = {
+	const char *filename[] = {
 		DBPATH"item_cash_db.txt",
 		"item_cash_db2.txt"
 	};
@@ -143,7 +143,7 @@ static void cashshop_read_db_txt( void ){
  * parses line and sends them to parse_dbrow.
  */
 static int cashshop_read_db_sql( void ){
-	const char* cash_db_name[] = { item_cash_db_db, item_cash_db2_db };
+	const char *cash_db_name[] = { item_cash_db_db, item_cash_db2_db };
 	int fi;
 
 	for( fi = 0; fi < ARRAYLENGTH( cash_db_name ); ++fi ){
@@ -155,7 +155,7 @@ static int cashshop_read_db_sql( void ){
 		}
 
 		while( SQL_SUCCESS == Sql_NextRow( mmysql_handle ) ){
-			char* str[3];
+			char *str[3];
 			int i;
 
 			++lines;
@@ -202,7 +202,7 @@ static void cashshop_read_db( void ){
  * @param item_list Array of item ID
  * @return true: success, false: fail
  */
-bool cashshop_buylist( struct map_session_data* sd, uint32 kafrapoints, int n, uint16* item_list ){
+bool cashshop_buylist( struct map_session_data *sd, uint32 kafrapoints, int n, uint16* item_list ){
 	uint32 totalcash = 0;
 	uint32 totalweight = 0;
 	int i, new_;

@@ -31,8 +31,8 @@
 #include <string.h>
 
 
-static DBMap* party_db; // int party_id -> struct party_data* (releases data)
-static DBMap* party_booking_db; // int char_id -> struct party_booking_ad_info* (releases data) // Party Booking [Spiria]
+static DBMap *party_db; // int party_id -> struct party_data* (releases data)
+static DBMap *party_booking_db; // int char_id -> struct party_booking_ad_info* (releases data) // Party Booking [Spiria]
 static unsigned long party_booking_nextid = 1;
 
 int party_send_xy_timer(int tid, unsigned int tick, int id, intptr_t data);
@@ -42,7 +42,7 @@ int party_create_byscript;
  * Fills the given party_member structure according to the sd provided.
  * Used when creating/adding people to a party. [Skotlex]
  *------------------------------------------*/
-static void party_fill_member(struct party_member* member, struct map_session_data* sd, unsigned int leader)
+static void party_fill_member(struct party_member* member, struct map_session_data *sd, unsigned int leader)
 {
   	member->account_id = sd->status.account_id;
 	member->char_id    = sd->status.char_id;
@@ -57,7 +57,7 @@ static void party_fill_member(struct party_member* member, struct map_session_da
 
 /// Get the member_id of a party member.
 /// Return -1 if not in party.
-int party_getmemberid(struct party_data* p, struct map_session_data* sd)
+int party_getmemberid(struct party_data* p, struct map_session_data *sd)
 {
 	int member_id;
 	nullpo_retr(-1, p);
@@ -75,7 +75,7 @@ int party_getmemberid(struct party_data* p, struct map_session_data* sd)
 /*==========================================
  * Request an available sd of this party
  *------------------------------------------*/
-struct map_session_data* party_getavailablesd(struct party_data *p)
+struct map_session_data *party_getavailablesd(struct party_data *p)
 {
 	int i;
 	nullpo_retr(NULL, p);
@@ -132,7 +132,7 @@ struct party_data* party_search(int party_id)
 }
 
 /// Party data lookup using party name.
-struct party_data* party_searchname(const char* str)
+struct party_data* party_searchname(const char *str)
 {
 	struct party_data* p;
 
@@ -267,7 +267,7 @@ int party_recv_info(struct party* sp, int char_id)
 {
 	struct party_data* p;
 	struct party_member* member;
-	struct map_session_data* sd;
+	struct map_session_data *sd;
 	int removed[MAX_PARTY]; // Member_id in old data
 	int removed_count = 0;
 	int added[MAX_PARTY]; // Member_id in new data
@@ -410,7 +410,7 @@ int party_invite(struct map_session_data *sd,struct map_session_data *tsd)
 
 int party_reply_invite(struct map_session_data *sd,int party_id,int flag)
 {
-	struct map_session_data* tsd;
+	struct map_session_data *tsd;
 	struct party_member member;
 
 	if( sd->party_invite != party_id ) { // Forged
@@ -515,7 +515,7 @@ int party_member_added(int party_id,int account_id,int char_id, int flag)
 }
 
 /// Party member 'sd' requesting kick of member with <account_id, name>.
-int party_removemember(struct map_session_data* sd, int account_id, char* name)
+int party_removemember(struct map_session_data *sd, int account_id, char *name)
 {
 	struct party_data *p;
 	int i;
@@ -588,7 +588,7 @@ int party_leave(struct map_session_data *sd)
 /// Invoked (from char-server) when a party member leaves the party.
 int party_member_withdraw(int party_id, int account_id, int char_id)
 {
-	struct map_session_data* sd = map_id2sd(account_id);
+	struct map_session_data *sd = map_id2sd(account_id);
 	struct party_data* p = party_search(party_id);
 
 	if( p ) {
@@ -947,7 +947,7 @@ int party_send_xy_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		//For each member of this party
 		for( i = 0; i < MAX_PARTY; i++ ) {
-			struct map_session_data* sd = p->data[i].sd;
+			struct map_session_data *sd = p->data[i].sd;
 
 			if( !sd )
 				continue;
@@ -985,9 +985,9 @@ int party_send_xy_clear(struct party_data *p)
 }
 
 //Exp share and added zeny share [Valaris]
-int party_exp_share(struct party_data* p, struct block_list* src, unsigned int base_exp, unsigned int job_exp, int zeny)
+int party_exp_share(struct party_data* p, struct block_list *src, unsigned int base_exp, unsigned int job_exp, int zeny)
 {
-	struct map_session_data* sd[MAX_PARTY];
+	struct map_session_data *sd[MAX_PARTY];
 	unsigned int i, c;
 #ifdef RENEWAL_EXP
 	uint32 base_exp_bonus, job_exp_bonus;
@@ -1046,7 +1046,7 @@ int party_exp_share(struct party_data* p, struct block_list* src, unsigned int b
 }
 
 //Does party loot. first_charid holds the charid of the player who has time priority to take the item
-int party_share_loot(struct party_data* p, struct map_session_data* sd, struct item* item, int first_charid)
+int party_share_loot(struct party_data* p, struct map_session_data *sd, struct item* item, int first_charid)
 {
 	TBL_PC* target = NULL;
 	int i;
@@ -1288,7 +1288,7 @@ void party_booking_search(struct map_session_data *sd, short level, short mapid,
 	int i, count = 0;
 	struct party_booking_ad_info* result_list[PARTY_BOOKING_RESULTS];
 	bool more_result = false;
-	DBIterator* iter = db_iterator(party_booking_db);
+	DBIterator *iter = db_iterator(party_booking_db);
 
 	memset(result_list, 0, sizeof(result_list));
 

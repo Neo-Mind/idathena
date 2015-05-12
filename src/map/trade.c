@@ -416,9 +416,9 @@ void trade_tradeadditem(struct map_session_data *sd, short index, short amount)
  * @param sd : Player who's adding zeny
  * @param amount : zeny amount
  */
-void trade_tradeaddzeny(struct map_session_data* sd, int amount)
+void trade_tradeaddzeny(struct map_session_data *sd, int amount)
 {
-	struct map_session_data* target_sd;
+	struct map_session_data *target_sd;
 
 	nullpo_retv(sd);
 

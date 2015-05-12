@@ -91,7 +91,7 @@ const struct sg_data sg_info[MAX_PC_FEELHATE] = {
  * to keep cooldowns in memory between player log-ins.
  * All cooldowns are reset when server is restarted.
  */
-DBMap* itemcd_db = NULL; // char_id -> struct item_cd
+DBMap *itemcd_db = NULL; // char_id -> struct item_cd
 struct item_cd {
 	unsigned int tick[MAX_ITEMDELAYS]; //tick
 	unsigned short nameid[MAX_ITEMDELAYS]; //item id
@@ -144,7 +144,7 @@ static int pc_invincible_timer(int tid, unsigned int tick, int id, intptr_t data
 	return 0;
 }
 
-void pc_setinvincibletimer(struct map_session_data* sd, int val)
+void pc_setinvincibletimer(struct map_session_data *sd, int val)
 {
 	nullpo_retv(sd);
 
@@ -153,7 +153,7 @@ void pc_setinvincibletimer(struct map_session_data* sd, int val)
 	sd->invincible_timer = add_timer(gettick() + val,pc_invincible_timer,sd->bl.id,0);
 }
 
-void pc_delinvincibletimer(struct map_session_data* sd)
+void pc_delinvincibletimer(struct map_session_data *sd)
 {
 	nullpo_retv(sd);
 
@@ -294,7 +294,7 @@ static int pc_check_banding(struct block_list *bl, va_list ap) {
 	struct status_change *sc;
 
 	nullpo_ret(bl);
-	nullpo_ret(tsd = (struct map_session_data*)bl);
+	nullpo_ret(tsd = (struct map_session_data *)bl);
 	nullpo_ret(src = va_arg(ap,struct block_list *));
 
 	c = va_arg(ap,int *);
@@ -1504,7 +1504,7 @@ void pc_reg_received(struct map_session_data *sd)
 	}
 }
 
-static int pc_calc_skillpoint(struct map_session_data* sd)
+static int pc_calc_skillpoint(struct map_session_data *sd)
 {
 	uint16 i, skill_point = 0;
 
@@ -1935,7 +1935,7 @@ int pc_disguise(struct map_session_data *sd, int class_)
 			clif_updatestatus(sd, SP_CARTINFO);
 		}
 		if (sd->chatID) {
-			struct chat_data* cd = (struct chat_data*)map_id2bl(sd->chatID);
+			struct chat_data *cd = (struct chat_data *)map_id2bl(sd->chatID);
 
 			if (cd)
 				clif_dispchat(cd, 0);
@@ -2160,7 +2160,7 @@ bool pc_addautobonus(struct s_autobonus *bonus,char max,const char *script,short
 	return true;
 }
 
-void pc_delautobonus(struct map_session_data* sd, struct s_autobonus *autobonus,char max,bool restore)
+void pc_delautobonus(struct map_session_data *sd, struct s_autobonus *autobonus,char max,bool restore)
 {
 	int i;
 
@@ -3891,7 +3891,7 @@ int pc_skill(TBL_PC* sd, int id, int level, int flag)
 /*==========================================
  * Append a card to an item ?
  *------------------------------------------*/
-int pc_insert_card(struct map_session_data* sd, int idx_card, int idx_equip)
+int pc_insert_card(struct map_session_data *sd, int idx_card, int idx_equip)
 {
 	int i;
 	unsigned short nameid;
@@ -4947,7 +4947,7 @@ void pc_putitemtocart(struct map_session_data *sd, int idx, int amount)
  *	-1 = itemid not found or no amount found
  *	x = remaining itemid on cart after get
  *------------------------------------------*/
-int pc_cartitem_amount(struct map_session_data* sd, int idx, int amount)
+int pc_cartitem_amount(struct map_session_data *sd, int idx, int amount)
 {
 	struct item* item_data;
 
@@ -5162,7 +5162,7 @@ int pc_steal_coin(struct map_session_data *sd,struct block_list *target)
  * @param clrtype
  * @return 0 - Success; 1 - Invalid map index; 2 - Map not in this map-server, and failed to locate alternate map-server.
  */
-char pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y, clr_type clrtype)
+char pc_setpos(struct map_session_data *sd, unsigned short mapindex, int x, int y, clr_type clrtype)
 {
 	int16 m;
 
@@ -5378,7 +5378,7 @@ char pc_randomwarp(struct map_session_data *sd, clr_type type)
  * Records a memo point at sd's current position
  * pos - entry to replace, (-1: shift oldest entry out)
  *------------------------------------------*/
-bool pc_memo(struct map_session_data* sd, int pos)
+bool pc_memo(struct map_session_data *sd, int pos)
 {
 	uint16 skill;
 
@@ -5835,7 +5835,7 @@ int pc_mapid2jobid(unsigned short class_, int sex)
 /*====================================================
  * This function return the name of the job (by [Yor])
  *----------------------------------------------------*/
-const char* job_name(int class_)
+const char *job_name(int class_)
 {
 	switch (class_) {
 		case JOB_NOVICE:
@@ -6414,7 +6414,7 @@ unsigned int pc_thisjobexp(struct map_session_data *sd) {
 }
 
 /// Returns the value of the specified stat.
-static int pc_getstat(struct map_session_data* sd, int type)
+static int pc_getstat(struct map_session_data *sd, int type)
 {
 	nullpo_retr(-1, sd);
 
@@ -6432,7 +6432,7 @@ static int pc_getstat(struct map_session_data* sd, int type)
 
 /// Sets the specified stat to the specified value.
 /// Returns the new value.
-static int pc_setstat(struct map_session_data* sd, int type, int val)
+static int pc_setstat(struct map_session_data *sd, int type, int val)
 {
 	nullpo_retr(-1, sd);
 
@@ -6470,7 +6470,7 @@ int pc_gets_status_point(int level)
 /// Returns the number of stat points needed to change the specified stat by val.
 /// If val is negative, returns the number of stat points that would be needed to
 /// raise the specified stat from (current value - val) to current value.
-int pc_need_status_point(struct map_session_data* sd, int type, int val)
+int pc_need_status_point(struct map_session_data *sd, int type, int val)
 {
 	int low, high, sp = 0, max = 0;
 
@@ -6502,7 +6502,7 @@ int pc_need_status_point(struct map_session_data* sd, int type, int val)
  * @param type Stat to verify.
  * @return Maximum value the stat could grow by.
  */
-int pc_maxparameterincrease(struct map_session_data* sd, int type)
+int pc_maxparameterincrease(struct map_session_data *sd, int type)
 {
 	int base, final_value, status_points, max_param;
 
@@ -6534,7 +6534,7 @@ int pc_maxparameterincrease(struct map_session_data* sd, int type)
  * @return true  if the stat was increased by any amount.
  * @return false if there were no changes.
  */
-bool pc_statusup(struct map_session_data* sd, int type, int increase)
+bool pc_statusup(struct map_session_data *sd, int type, int increase)
 {
 	int max_increase = 0, current = 0, needed_points = 0, final_value = 0;
 
@@ -6592,7 +6592,7 @@ bool pc_statusup(struct map_session_data* sd, int type, int increase)
  * @return the stat increase amount.
  * @return 0 if no changes were made.
  */
-int pc_statusup2(struct map_session_data* sd, int type, int val)
+int pc_statusup2(struct map_session_data *sd, int type, int val)
 {
 	int max, need;
 
@@ -6731,7 +6731,7 @@ int pc_allskillup(struct map_session_data *sd)
 /*==========================================
  * /resetlvl
  *------------------------------------------*/
-int pc_resetlvl(struct map_session_data* sd,int type)
+int pc_resetlvl(struct map_session_data *sd,int type)
 {
 	int  i;
 
@@ -6817,7 +6817,7 @@ int pc_resetlvl(struct map_session_data* sd,int type)
 /*==========================================
  * /resetstate
  *------------------------------------------*/
-int pc_resetstate(struct map_session_data* sd)
+int pc_resetstate(struct map_session_data *sd)
 {
 	nullpo_ret(sd);
 
@@ -6881,7 +6881,7 @@ int pc_resetstate(struct map_session_data* sd)
  * if flag&2, just count total amount of skill points used by player, do not really reset.
  * if flag&4, just reset the skills if the player class is a bard/dancer type (for changesex.)
  *------------------------------------------*/
-int pc_resetskill(struct map_session_data* sd, int flag)
+int pc_resetskill(struct map_session_data *sd, int flag)
 {
 	int i, skill_point = 0;
 
@@ -6987,7 +6987,7 @@ int pc_resetskill(struct map_session_data* sd, int flag)
 /*==========================================
  * /resetfeel [Komurka]
  *------------------------------------------*/
-int pc_resetfeel(struct map_session_data* sd)
+int pc_resetfeel(struct map_session_data *sd)
 {
 	int i;
 
@@ -7002,7 +7002,7 @@ int pc_resetfeel(struct map_session_data* sd)
 	return 0;
 }
 
-int pc_resethate(struct map_session_data* sd)
+int pc_resethate(struct map_session_data *sd)
 {
 	int i;
 	
@@ -7059,7 +7059,7 @@ int pc_skillheal2_bonus(struct map_session_data *sd, uint16 skill_id) {
 	return bonus;
 }
 
-void pc_respawn(struct map_session_data* sd, clr_type clrtype)
+void pc_respawn(struct map_session_data *sd, clr_type clrtype)
 {
 	if( !pc_isdead(sd) )
 		return; // Not applicable
@@ -7522,7 +7522,7 @@ void pc_revive(struct map_session_data *sd,unsigned int hp, unsigned int sp)
 /*==========================================
  * script reading pc status registry
  *------------------------------------------*/
-int pc_readparam(struct map_session_data* sd,int type)
+int pc_readparam(struct map_session_data *sd,int type)
 {
 	int val = 0;
 
@@ -8506,7 +8506,7 @@ bool pc_candrop(struct map_session_data *sd, struct item *item)
  * Read ram register for player sd
  * get val (int) from reg for player sd
  *------------------------------------------*/
-int pc_readreg(struct map_session_data* sd, int reg)
+int pc_readreg(struct map_session_data *sd, int reg)
 {
 	int i;
 
@@ -8520,7 +8520,7 @@ int pc_readreg(struct map_session_data* sd, int reg)
  * Set ram register for player sd
  * memo val(int) at reg for player sd
  *------------------------------------------*/
-bool pc_setreg(struct map_session_data* sd, int reg, int val)
+bool pc_setreg(struct map_session_data *sd, int reg, int val)
 {
 	int i;
 
@@ -8547,7 +8547,7 @@ bool pc_setreg(struct map_session_data* sd, int reg, int val)
  * Read ram register for player sd
  * get val (str) from reg for player sd
  *------------------------------------------*/
-char* pc_readregstr(struct map_session_data* sd, int reg)
+char *pc_readregstr(struct map_session_data *sd, int reg)
 {
 	int i;
 
@@ -8561,7 +8561,7 @@ char* pc_readregstr(struct map_session_data* sd, int reg)
  * Set ram register for player sd
  * memo val(str) at reg for player sd
  *------------------------------------------*/
-bool pc_setregstr(struct map_session_data* sd, int reg, const char* str)
+bool pc_setregstr(struct map_session_data *sd, int reg, const char *str)
 {
 	int i;
 
@@ -8629,7 +8629,7 @@ int pc_readregistry(struct map_session_data *sd,const char *reg,int type)
 	return (i < max) ? atoi(sd_reg[i].value) : 0;
 }
 
-char* pc_readregistry_str(struct map_session_data *sd,const char *reg,int type)
+char *pc_readregistry_str(struct map_session_data *sd,const char *reg,int type)
 {
 	struct global_reg *sd_reg;
 	int i, max;
@@ -8931,7 +8931,7 @@ bool pc_addeventtimer(struct map_session_data *sd,int tick,const char *name)
  *------------------------------------------*/
 bool pc_deleventtimer(struct map_session_data *sd,const char *name)
 {
-	char* p = NULL;
+	char *p = NULL;
 	int i;
 
 	nullpo_retr(false,sd);
@@ -9914,7 +9914,7 @@ static int pc_autosave(int tid, unsigned int tick, int id, intptr_t data)
 {
 	int interval;
 	struct s_mapiterator* iter;
-	struct map_session_data* sd;
+	struct map_session_data *sd;
 	static int last_save_id = 0, save_flag = 0;
 
 	if(save_flag == 2) //Someone was saved on last call, normal cycle
@@ -9923,7 +9923,7 @@ static int pc_autosave(int tid, unsigned int tick, int id, intptr_t data)
 		save_flag = 1; //Noone was saved, so save first found char.
 
 	iter = mapit_getallusers();
-	for(sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter)) {
+	for(sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC *)mapit_next(iter)) {
 		if(sd->bl.id == last_save_id && save_flag != 1) {
 			save_flag = 1;
 			continue;
@@ -10267,7 +10267,7 @@ int pc_split_str(char *str, char **val, int num)
 	return i;
 }
 
-int pc_split_atoi(char* str, int* val, char sep, int max)
+int pc_split_atoi(char *str, int* val, char sep, int max)
 {
 	int i, j;
 
@@ -10284,7 +10284,7 @@ int pc_split_atoi(char* str, int* val, char sep, int max)
 	return i;
 }
 
-int pc_split_atoui(char* str, unsigned int* val, char sep, int max)
+int pc_split_atoui(char *str, unsigned int* val, char sep, int max)
 {
 	static int warning = 0;
 	int i, j;
@@ -10318,7 +10318,7 @@ int pc_split_atoui(char* str, unsigned int* val, char sep, int max)
  * sub DB reading.
  * Function used to read skill_tree.txt
  *------------------------------------------*/
-static bool pc_readdb_skilltree(char* fields[], int columns, int current)
+static bool pc_readdb_skilltree(char *fields[], int columns, int current)
 {
 	unsigned char joblv = 0, skill_lv;
 	uint16 skill_id;
@@ -10359,7 +10359,7 @@ static bool pc_readdb_skilltree(char* fields[], int columns, int current)
 	return true;
 }
 #if defined(RENEWAL_DROP) || defined(RENEWAL_EXP)
-static bool pc_readdb_levelpenalty(char* fields[], int columns, int current)
+static bool pc_readdb_levelpenalty(char *fields[], int columns, int current)
 {
 	int type, class_, diff;
 
@@ -10405,7 +10405,7 @@ static unsigned int pc_calc_basehp(uint16 level, uint16 class_idx) {
 }
 
 //Reading job_db1.txt line, (class,weight,HPFactor,HPMultiplicator,SPFactor,aspd/lvl...)
-static bool pc_readdb_job1(char* fields[], int columns, int current) {
+static bool pc_readdb_job1(char *fields[], int columns, int current) {
 	int idx, class_;
 	unsigned int i;
 
@@ -10433,7 +10433,7 @@ static bool pc_readdb_job1(char* fields[], int columns, int current) {
 }
 
 //Reading job_db2.txt line (class,JobLv1,JobLv2,JobLv3,...)
-static bool pc_readdb_job2(char* fields[], int columns, int current)
+static bool pc_readdb_job2(char *fields[], int columns, int current)
 {
 	int idx, class_, i;
 
@@ -10453,7 +10453,7 @@ static bool pc_readdb_job2(char* fields[], int columns, int current)
 
 //Reading job_exp.txt line
 //Max Level,Class list,Type (0 - Base Exp; 1 - Job Exp),Exp/lvl...
-static bool pc_readdb_job_exp(char* fields[], int columns, int current)
+static bool pc_readdb_job_exp(char *fields[], int columns, int current)
 {
 	int idx, i, type;
 	int job_id, job_count, jobs[CLASS_COUNT];
@@ -10521,7 +10521,7 @@ static bool pc_readdb_job_exp(char* fields[], int columns, int current)
 * startlvl,endlvl,class,type,values...
 */
 #ifdef HP_SP_TABLES
-static bool pc_readdb_job_basehpsp(char* fields[], int columns, int current)
+static bool pc_readdb_job_basehpsp(char *fields[], int columns, int current)
 {
 	int i, startlvl, endlvl;
 	int job_count,jobs[CLASS_COUNT];
@@ -10605,7 +10605,7 @@ static bool pc_readdb_job_basehpsp(char* fields[], int columns, int current)
 /** [Cydh]
  * Reads 'job_param_db.txt' to check max. param each job and store them to job_info[].max_param.*
  */
-static bool pc_readdb_job_param(char* fields[], int columns, int current)
+static bool pc_readdb_job_param(char *fields[], int columns, int current)
 {
 	int idx, class_;
 	uint16 str, agi, vit, int_, dex, luk;
@@ -10806,7 +10806,7 @@ int pc_read_motd(void)
 		unsigned int entries = 0;
 
 		while( entries < MOTD_LINE_SIZE && fgets(motd_text[entries], sizeof(motd_text[entries]), fp) ) {
-			char* buf = motd_text[entries];
+			char *buf = motd_text[entries];
 			unsigned int lines = 0;
 			size_t len;
 
@@ -10823,7 +10823,7 @@ int pc_read_motd(void)
 				len--;
 
 			if( len ) {
-				char* ptr;
+				char *ptr;
 
 				buf[len] = 0;
 
@@ -11004,11 +11004,11 @@ int pc_autotrade_timer(int tid, unsigned int tick, int id, intptr_t data) {
 /* It loops thru online players once an hour to check whether a new < 24h is available */
 int pc_global_expiration_timer(int tid, unsigned int tick, int id, intptr_t data) {
 	struct s_mapiterator* iter;
-	struct map_session_data* sd;
+	struct map_session_data *sd;
 
 	iter = mapit_getallusers();
 
-	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) )
+	for( sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC *)mapit_next(iter) )
 		if( sd->expiration_time )
 			pc_expire_check(sd);
 
@@ -11361,7 +11361,7 @@ short pc_maxaspd(struct map_session_data *sd) {
  * @param nameid Item ID
  * @return Heal rate
  */
-short pc_get_itemgroup_bonus(struct map_session_data* sd, unsigned short nameid) {
+short pc_get_itemgroup_bonus(struct map_session_data *sd, unsigned short nameid) {
 	short bonus = 0;
 	uint8 i;
 
@@ -11391,7 +11391,7 @@ short pc_get_itemgroup_bonus(struct map_session_data* sd, unsigned short nameid)
  * @param group_id Item Group ID
  * @return Heal rate
  */
-short pc_get_itemgroup_bonus_group(struct map_session_data* sd, uint16 group_id) {
+short pc_get_itemgroup_bonus_group(struct map_session_data *sd, uint16 group_id) {
 	short bonus = 0;
 	uint8 i;
 

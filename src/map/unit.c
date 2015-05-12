@@ -64,13 +64,13 @@ struct unit_data* unit_bl2ud(struct block_list *bl)
 	if( bl == NULL )
 		return NULL;
 	switch( bl->type ) {
-		case BL_PC: return &((struct map_session_data*)bl)->ud;
-		case BL_MOB: return &((struct mob_data*)bl)->ud;
-		case BL_PET: return &((struct pet_data*)bl)->ud;
-		case BL_NPC: return &((struct npc_data*)bl)->ud;
-		case BL_HOM: return &((struct homun_data*)bl)->ud;
-		case BL_MER: return &((struct mercenary_data*)bl)->ud;
-		case BL_ELEM: return &((struct elemental_data*)bl)->ud;
+		case BL_PC: return &((struct map_session_data *)bl)->ud;
+		case BL_MOB: return &((struct mob_data *)bl)->ud;
+		case BL_PET: return &((struct pet_data *)bl)->ud;
+		case BL_NPC: return &((struct npc_data *)bl)->ud;
+		case BL_HOM: return &((struct homun_data *)bl)->ud;
+		case BL_MER: return &((struct mercenary_data *)bl)->ud;
+		case BL_ELEM: return &((struct elemental_data *)bl)->ud;
 		default : return NULL;
 	}
 }
@@ -127,7 +127,7 @@ int unit_walktoxy_sub(struct block_list *bl)
 
 	if( bl->type == BL_PC ) {
 		((TBL_PC *)bl)->head_dir = 0;
-		clif_walkok((TBL_PC*)bl);
+		clif_walkok((TBL_PC *)bl);
 	}
 	clif_move(ud);
 
@@ -591,7 +591,7 @@ int unit_delay_walktobl_timer(int tid, unsigned int tick, int id, intptr_t data)
 int unit_walktoxy(struct block_list *bl, short x, short y, unsigned char flag)
 {
 	struct unit_data* ud = NULL;
-	struct status_change* sc = NULL;
+	struct status_change *sc = NULL;
 	struct walkpath_data wpd;
 	TBL_PC *sd = NULL;
 
@@ -673,9 +673,9 @@ int unit_walktoxy(struct block_list *bl, short x, short y, unsigned char flag)
  * @param bl: Mob to set state on
  * @param flag: Whether to set state or not
  */
-static inline void set_mobstate(struct block_list* bl, int flag)
+static inline void set_mobstate(struct block_list *bl, int flag)
 {
-	struct mob_data* md = BL_CAST(BL_MOB,bl);
+	struct mob_data *md = BL_CAST(BL_MOB,bl);
 
 	if( md && flag )
 		md->state.skillstate = (md->state.aggressive ? MSS_FOLLOW : MSS_RUSH);
@@ -941,7 +941,7 @@ int unit_movepos(struct block_list *bl, short dst_x, short dst_y, int easy, bool
 
 		if( sd->status.pet_id > 0 && sd->pd && sd->pd->pet.intimate > 0 ) { //Check if pet needs to be teleported [Skotlex]
 			int flag = 0;
-			struct block_list* bl = &sd->pd->bl;
+			struct block_list *bl = &sd->pd->bl;
 
 			if( !checkpath && !path_search(NULL, bl->m, bl->x, bl->y, dst_x, dst_y, 0, CELL_CHKNOPASS) )
 				flag = 1;
@@ -1005,11 +1005,11 @@ uint8 unit_getdir(struct block_list *bl)
  * @param flag: &1 Whether or not to send position packet updates
  * @return count (can be modified due to map cell restrictions)
  */
-int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)
+int unit_blown(struct block_list *bl, int dx, int dy, int count, int flag)
 {
 	if (count) {
-		struct map_session_data* sd;
-		struct skill_unit* su = NULL;
+		struct map_session_data *sd;
+		struct skill_unit *su = NULL;
 		int nx, ny, result;
 
 		sd = BL_CAST(BL_PC, bl);
@@ -1077,7 +1077,7 @@ int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)
  *  5 - Target is in Basilica area
  *  6 - Target is trap that can't be knocked back
  */
-int unit_blown_immune(struct block_list* bl, int flag)
+int unit_blown_immune(struct block_list *bl, int flag)
 {
 	if ((flag&0x1) && (map_flag_gvg2(bl->m) || map[bl->m].flag.battleground) &&
 		!(battle_config.skill_trap_type&0x1))
@@ -1085,7 +1085,7 @@ int unit_blown_immune(struct block_list* bl, int flag)
 
 	switch (bl->type) {
 		case BL_MOB: {
-				struct mob_data* md = BL_CAST(BL_MOB, bl);
+				struct mob_data *md = BL_CAST(BL_MOB, bl);
 
 				if (md->mob_id == MOBID_EMPERIUM)
 					return 2; //Emperium can't be knocked back
@@ -1104,7 +1104,7 @@ int unit_blown_immune(struct block_list* bl, int flag)
 			}
 			break;
 		case BL_SKILL: {
-				struct skill_unit* su = (struct skill_unit *)bl;
+				struct skill_unit *su = (struct skill_unit *)bl;
 
 				if (su && su->group) {
 					switch (su->group->unit_id) {
@@ -1179,7 +1179,7 @@ int unit_warp(struct block_list *bl,short m,short x,short y,clr_type type)
 	}
 
 	if (bl->type == BL_PC) //Use pc_setpos
-		return pc_setpos((TBL_PC*)bl, map_id2index(m), x, y, type);
+		return pc_setpos((TBL_PC *)bl, map_id2index(m), x, y, type);
 
 	if (!unit_remove_map(bl, type))
 		return 3;
@@ -1490,7 +1490,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 			case WE_FEMALE:
 				if( !sd->status.partner_id )
 					return 0;
-				target = (struct block_list*)map_charid2sd(sd->status.partner_id);
+				target = (struct block_list *)map_charid2sd(sd->status.partner_id);
 				if( !target ) {
 					clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0, 0);
 					return 0;
@@ -2055,7 +2055,7 @@ int unit_set_target(struct unit_data* ud, int target_id)
 
 	if( ud->target != target_id ) {
 		struct unit_data* ux;
-		struct block_list* target;
+		struct block_list *target;
 
 		if( ud->target && (target = map_id2bl(ud->target)) && (ux = unit_bl2ud(target)) && ux->target_count > 0 )
 			ux->target_count --;
@@ -2131,9 +2131,9 @@ int unit_unattackable(struct block_list *bl)
 	}
 
 	if(bl->type == BL_MOB)
-		mob_unlocktarget((struct mob_data*)bl, gettick());
+		mob_unlocktarget((struct mob_data *)bl, gettick());
 	else if(bl->type == BL_PET)
-		pet_unlocktarget((struct pet_data*)bl);
+		pet_unlocktarget((struct pet_data *)bl);
 	return 0;
 }
 
@@ -2161,10 +2161,10 @@ int unit_attack(struct block_list *src,int target_id,int continuous)
 	}
 
 	if(src->type == BL_PC) {
-		TBL_PC* sd = (TBL_PC*)src;
+		TBL_PC* sd = (TBL_PC *)src;
 
 		if(target->type == BL_NPC) { //Monster npcs [Valaris]
-			npc_click(sd, (TBL_NPC*)target); //Submitted by leinsirk10 [Celest]
+			npc_click(sd, (TBL_NPC *)target); //Submitted by leinsirk10 [Celest]
 			return 0;
 		}
 		if(pc_is90overweight(sd) || pc_isridingwug(sd)) { //Overweight or mounted on warg - stop attacking
@@ -2377,7 +2377,7 @@ int unit_calc_pos(struct block_list *bl, int tx, int ty, uint8 dir)
  * @param tick: Current tick
  * @return Attackable(1); Unattackable(0);
  */
-static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int tick)
+static int unit_attack_timer_sub(struct block_list *src, int tid, unsigned int tick)
 {
 	struct block_list *target;
 	struct unit_data *ud;
@@ -2482,7 +2482,7 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 				map_foreachinrange(mob_linksearch,src,md->db->range2,BL_MOB,md->mob_id,target,tick);
 			}
 		}
-		if( src->type == BL_PET && pet_attackskill((TBL_PET*)src,target->id) )
+		if( src->type == BL_PET && pet_attackskill((TBL_PET *)src,target->id) )
 			return 1;
 
 		map_freeblock_lock();
@@ -2506,7 +2506,7 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 	if( ud->state.attack_continue ) {
 		unit_setdir(src,map_calc_dir(src,target->x,target->y));
 		if( src->type == BL_PC )
-			((TBL_PC*)src)->idletime = last_tick;
+			((TBL_PC *)src)->idletime = last_tick;
 		ud->attacktimer = add_timer(ud->attackabletime,unit_attack_timer,src->id,0);
 	}
 
@@ -2627,7 +2627,7 @@ void unit_dataset(struct block_list *bl)
  * @param bl: Object to check amount of targets
  * @return number of targets or 0
  */
-int unit_counttargeted(struct block_list* bl)
+int unit_counttargeted(struct block_list *bl)
 {
 	struct unit_data* ud;
 
@@ -2649,7 +2649,7 @@ int unit_changeviewsize(struct block_list *bl,short size)
 	size = (size < 0) ? -1 : (size > 0) ? 1 : 0;
 
 	if (bl->type == BL_PC)
-		((TBL_PC*)bl)->state.size = size;
+		((TBL_PC *)bl)->state.size = size;
 	else if (bl->type == BL_MOB)
 		((TBL_MOB*)bl)->special_state.size = size;
 	else
@@ -2669,7 +2669,7 @@ int unit_changeviewsize(struct block_list *bl,short size)
  * @param file, line, func: Call information for debug purposes
  * @return Success(1); Couldn't be removed or bl was free'd(0)
  */
-int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, int line, const char* func)
+int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char *file, int line, const char *func)
 {
 	struct unit_data *ud = unit_bl2ud(bl);
 	struct status_change *sc = status_get_sc(bl);
@@ -2958,7 +2958,7 @@ int unit_free(struct block_list *bl, clr_type clrtype)
 
 	switch( bl->type ) {
 		case BL_PC: {
-				struct map_session_data *sd = (struct map_session_data*)bl;
+				struct map_session_data *sd = (struct map_session_data *)bl;
 				int i;
 
 				if( status_isdead(bl) )
@@ -3074,7 +3074,7 @@ int unit_free(struct block_list *bl, clr_type clrtype)
 			}
 			break;
 		case BL_MOB: {
-				struct mob_data *md = (struct mob_data*)bl;
+				struct mob_data *md = (struct mob_data *)bl;
 
 				if( md->spawn_timer != INVALID_TIMER ) {
 					delete_timer(md->spawn_timer,mob_delayspawn);
@@ -3123,7 +3123,7 @@ int unit_free(struct block_list *bl, clr_type clrtype)
 			}
 			break;
 		case BL_HOM: {
-				struct homun_data *hd = (TBL_HOM*)bl;
+				struct homun_data *hd = (TBL_HOM *)bl;
 				struct map_session_data *sd = hd->master;
 
 				hom_hungry_timer_delete(hd);
@@ -3139,7 +3139,7 @@ int unit_free(struct block_list *bl, clr_type clrtype)
 			}
 			break;
 		case BL_MER: {
-				struct mercenary_data *md = (TBL_MER*)bl;
+				struct mercenary_data *md = (TBL_MER *)bl;
 				struct map_session_data *sd = md->master;
 
 				if( mercenary_get_lifetime(md) > 0 )
@@ -3156,7 +3156,7 @@ int unit_free(struct block_list *bl, clr_type clrtype)
 			}
 			break;
 		case BL_ELEM: {
-				struct elemental_data *ed = (TBL_ELEM*)bl;
+				struct elemental_data *ed = (TBL_ELEM *)bl;
 				struct map_session_data *sd = ed->master;
 
 				if( elemental_get_lifetime(ed) > 0 )

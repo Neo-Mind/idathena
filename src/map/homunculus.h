@@ -165,6 +165,7 @@ int hom_evolution(struct homun_data *hd);
 int hom_mutate(struct homun_data *hd, int homun_id);
 void hom_heal(struct homun_data *hd);
 int hom_vaporize(struct map_session_data *sd, int flag);
+int hom_delete(struct homun_data *hd, int emote);
 int hom_ressurect(struct map_session_data *sd, unsigned char per, short x, short y);
 void hom_revive(struct homun_data *hd, unsigned int hp, unsigned int sp);
 void hom_reset_stats(struct homun_data *hd);

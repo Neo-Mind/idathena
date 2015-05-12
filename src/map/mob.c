@@ -279,9 +279,9 @@ int mob_parse_dataset(struct spawn_data *data)
 /*==========================================
  * Generates the basic mob data using the spawn_data provided.
  *------------------------------------------*/
-struct mob_data* mob_spawn_dataset(struct spawn_data *data)
+struct mob_data *mob_spawn_dataset(struct spawn_data *data)
 {
-	struct mob_data *md = (struct mob_data*)aCalloc(1, sizeof(struct mob_data));
+	struct mob_data *md = (struct mob_data *)aCalloc(1, sizeof(struct mob_data));
 
 	md->bl.id = npc_get_new_npc_id();
 	md->bl.type = BL_MOB;
@@ -480,9 +480,9 @@ struct mob_data *mob_once_spawn_sub(struct block_list *bl, int16 m, int16 x, int
 /*==========================================
  * Spawn a single mob on the specified coordinates.
  *------------------------------------------*/
-int mob_once_spawn(struct map_session_data* sd, int16 m, int16 x, int16 y, const char* mobname, int mob_id, int amount, const char* event, unsigned int size, unsigned int ai)
+int mob_once_spawn(struct map_session_data *sd, int16 m, int16 x, int16 y, const char *mobname, int mob_id, int amount, const char *event, unsigned int size, unsigned int ai)
 {
-	struct mob_data* md = NULL;
+	struct mob_data *md = NULL;
 	int count, lv;
 	bool no_guardian_data = false;
 
@@ -533,7 +533,7 @@ int mob_once_spawn(struct map_session_data* sd, int16 m, int16 x, int16 y, const
 /*==========================================
  * Spawn mobs in the specified area.
  *------------------------------------------*/
-int mob_once_spawn_area(struct map_session_data* sd, int16 m, int16 x0, int16 y0, int16 x1, int16 y1, const char* mobname, int mob_id, int amount, const char* event, unsigned int size, unsigned int ai)
+int mob_once_spawn_area(struct map_session_data *sd, int16 m, int16 x0, int16 y0, int16 x1, int16 y1, const char *mobname, int mob_id, int amount, const char *event, unsigned int size, unsigned int ai)
 {
 	int i, max, id = 0;
 	int lx = -1, ly = -1;
@@ -591,8 +591,8 @@ int mob_once_spawn_area(struct map_session_data* sd, int16 m, int16 x0, int16 y0
  */
 static int mob_spawn_guardian_sub(int tid, unsigned int tick, int id, intptr_t data)
 { //Needed because the guild data may not be available at guardian spawn time.
-	struct block_list* bl = map_id2bl(id);
-	struct mob_data* md;
+	struct block_list *bl = map_id2bl(id);
+	struct mob_data *md;
 	struct guild* g;
 
 	if (bl == NULL) //It is possible mob was already removed from map when the castle has no owner. [Skotlex]
@@ -603,7 +603,7 @@ static int mob_spawn_guardian_sub(int tid, unsigned int tick, int id, intptr_t d
 		return 0;
 	}
 	
-	md = (struct mob_data*)bl;
+	md = (struct mob_data *)bl;
 	nullpo_ret(md->guardian_data);
 	g = guild_search((int)data);
 
@@ -633,7 +633,7 @@ static int mob_spawn_guardian_sub(int tid, unsigned int tick, int id, intptr_t d
 /*==========================================
  * Summoning Guardians [Valaris]
  *------------------------------------------*/
-int mob_spawn_guardian(const char* mapname, short x, short y, const char* mobname, int mob_id, const char* event, int guardian, bool has_index)
+int mob_spawn_guardian(const char *mapname, short x, short y, const char *mobname, int mob_id, const char *event, int guardian, bool has_index)
 {
 	struct mob_data *md = NULL;
 	struct spawn_data data;
@@ -732,7 +732,7 @@ int mob_spawn_guardian(const char* mapname, short x, short y, const char* mobnam
 /*==========================================
  * Summoning BattleGround [Zephyrus]
  *------------------------------------------*/
-int mob_spawn_bg(const char* mapname, short x, short y, const char* mobname, int mob_id, const char* event, unsigned int bg_id)
+int mob_spawn_bg(const char *mapname, short x, short y, const char *mobname, int mob_id, const char *event, unsigned int bg_id)
 {
 	struct mob_data *md = NULL;
 	struct spawn_data data;
@@ -832,8 +832,8 @@ int mob_linksearch(struct block_list *bl, va_list ap)
  *------------------------------------------*/
 int mob_delayspawn(int tid, unsigned int tick, int id, intptr_t data)
 {
-	struct block_list* bl = map_id2bl(id);
-	struct mob_data* md = BL_CAST(BL_MOB, bl);
+	struct block_list *bl = map_id2bl(id);
+	struct mob_data *md = BL_CAST(BL_MOB, bl);
 
 	if( md ) {
 		if( md->spawn_timer != tid ) {
@@ -992,7 +992,7 @@ int mob_spawn(struct mob_data *md)
 /*==========================================
  * Determines if the mob can change target. [Skotlex]
  *------------------------------------------*/
-static int mob_can_changetarget(struct mob_data* md, struct block_list* target, int mode)
+static int mob_can_changetarget(struct mob_data *md, struct block_list *target, int mode)
 {
 	//If the monster was provoked ignore the above rule [celest]
 	if(md->state.provoke_flag) {
@@ -1147,7 +1147,7 @@ static int mob_ai_sub_hard_bg_ally(struct block_list *bl,va_list ap) {
  *------------------------------------------*/
 static int mob_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 {
-	struct mob_data* md;
+	struct mob_data *md;
 	struct block_list **target;
 	int dist;
 
@@ -1654,7 +1654,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 
 static int mob_ai_sub_hard_timer(struct block_list *bl,va_list ap)
 {
-	struct mob_data *md = (struct mob_data*)bl;
+	struct mob_data *md = (struct mob_data *)bl;
 	unsigned int tick = va_arg(ap, unsigned int);
 
 	if(mob_ai_sub_hard(md, tick)) { //Hard AI triggered
@@ -1841,8 +1841,8 @@ static void mob_item_drop(struct mob_data *md, struct item_drop_list *dlist, str
 
 int mob_timer_delete(int tid, unsigned int tick, int id, intptr_t data)
 {
-	struct block_list* bl = map_id2bl(id);
-	struct mob_data* md = BL_CAST(BL_MOB, bl);
+	struct block_list *bl = map_id2bl(id);
+	struct mob_data *md = BL_CAST(BL_MOB, bl);
 
 	if( md ) {
 		if( md->deletetimer != tid ) {
@@ -1909,7 +1909,7 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 
 	switch( src->type ) {
 		case BL_PC: {
-				struct map_session_data *sd = (TBL_PC*)src;
+				struct map_session_data *sd = (TBL_PC *)src;
 
 				char_id = sd->status.char_id;
 				if( damage )
@@ -1917,7 +1917,7 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 			}
 			break;
 		case BL_HOM: {
-				struct homun_data *hd = (TBL_HOM*)src;
+				struct homun_data *hd = (TBL_HOM *)src;
 
 				flag = MDLF_HOMUN;
 				if( hd->master )
@@ -1927,7 +1927,7 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 			}
 			break;
 		case BL_MER: {
-				struct mercenary_data *mer = (TBL_MER*)src;
+				struct mercenary_data *mer = (TBL_MER *)src;
 
 				if( mer->master )
 					char_id = mer->master->status.char_id;
@@ -1936,7 +1936,7 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 			}
 			break;
 		case BL_PET: {
-				struct pet_data *pd = (TBL_PET*)src;
+				struct pet_data *pd = (TBL_PET *)src;
 
 				flag = MDLF_PET;
 				if( pd->master ) {
@@ -1947,10 +1947,10 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 			}
 			break;
 		case BL_MOB: {
-				struct mob_data* md2 = (TBL_MOB*)src;
+				struct mob_data *md2 = (TBL_MOB *)src;
 
 				if( md2->special_state.ai && md2->master_id ) {
-					struct map_session_data* msd = map_id2sd(md2->master_id);
+					struct map_session_data *msd = map_id2sd(md2->master_id);
 
 					if( msd )
 						char_id = msd->status.char_id;
@@ -1965,7 +1965,7 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 			}
 			break;
 		case BL_ELEM: {
-				struct elemental_data *ele = (TBL_ELEM*)src;
+				struct elemental_data *ele = (TBL_ELEM *)src;
 
 				if( ele->master )
 					char_id = ele->master->status.char_id;
@@ -1975,6 +1975,7 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 			break;
 		default: //For all unhandled types
 			md->attacked_id = src->id;
+			break;
 	}
 	
 	if( char_id ) { //Log damage
@@ -1990,7 +1991,7 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 				md->dmglog[i].flag = flag;
 
 				if( md->db->mexp )
-					pc_damage_log_add(map_charid2sd(char_id),md->bl.id);
+					pc_damage_log_add(map_charid2sd(char_id), md->bl.id);
 				break;
 			}
 			if( md->dmglog[i].dmg < mindmg && i ) { //Never overwrite first hit slot (he gets double exp bonus)
@@ -2006,7 +2007,7 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 			md->dmglog[minpos].dmg = damage;
 
 			if( md->db->mexp )
-				pc_damage_log_add(map_charid2sd(char_id),md->bl.id);
+				pc_damage_log_add(map_charid2sd(char_id), md->bl.id);
 		}
 	}
 }
@@ -2014,46 +2015,46 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 //Call when a mob has received damage
 void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 {
-	if (damage > 0) { //Store total damage
-		if (UINT_MAX - (unsigned int)damage > md->tdmg)
+	if( damage > 0 ) { //Store total damage
+		if( UINT_MAX - (unsigned int)damage > md->tdmg )
 			md->tdmg += damage;
-		else if (md->tdmg == UINT_MAX)
+		else if( md->tdmg == UINT_MAX )
 			damage = 0; //Stop recording damage once the cap has been reached
 		else { //Cap damage log.
 			damage = (int)(UINT_MAX - md->tdmg);
 			md->tdmg = UINT_MAX;
 		}
-		if (md->state.aggressive) { //No longer aggressive, change to retaliate AI
+		if( md->state.aggressive ) { //No longer aggressive, change to retaliate AI
 			md->state.aggressive = 0;
-			if (md->state.skillstate == MSS_ANGRY)
+			if( md->state.skillstate == MSS_ANGRY )
 				md->state.skillstate = MSS_BERSERK;
-			if (md->state.skillstate == MSS_FOLLOW)
+			if( md->state.skillstate == MSS_FOLLOW )
 				md->state.skillstate = MSS_RUSH;
 		}
-		if (src) //Log damage
+		if( src ) //Log damage
 			mob_log_damage(md, src, damage);
 		md->dmgtick = gettick();
 	}
 
-	if (battle_config.show_mob_info&3)
+	if( battle_config.show_mob_info&3 )
 		clif_charnameack(0, &md->bl);
 
-	if (!src)
+	if( !src )
 		return;
 
 #if PACKETVER >= 20120404
 #ifndef VISIBLE_MONSTER_HP
-	if (!(md->spawn && md->spawn->state.boss) &&
-		!(mob_is_battleground(md) || mob_is_gvg(md) || mob_is_treasure(md) || mob_is_guardian(md->mob_id)))
+	if( !(md->spawn && md->spawn->state.boss) &&
+		!(mob_is_battleground(md) || mob_is_gvg(md) || mob_is_treasure(md) || mob_is_guardian(md->mob_id)) )
 #endif
 	{
 		int i;
 
-		for (i = 0; i < DAMAGELOG_SIZE; i++) { //Must show hp bar to all char who already hit the mob.
-			if (md->dmglog[i].id) {
+		for( i = 0; i < DAMAGELOG_SIZE; i++ ) { //Must show hp bar to all char who already hit the mob.
+			if( md->dmglog[i].id ) {
 				struct map_session_data *sd = map_charid2sd(md->dmglog[i].id);
 
-				if (sd && check_distance_bl(&md->bl, &sd->bl, AREA_SIZE)) //Check if in range
+				if( sd && check_distance_bl(&md->bl, &sd->bl, AREA_SIZE) ) //Check if in range
 					clif_monster_hp_bar(md, sd->fd);
 			}
 		}
@@ -2108,7 +2109,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	//Filter out entries not eligible for exp distribution
 	memset(tmpsd, 0, sizeof(tmpsd));
 	for(i = 0, count = 0, mvp_damage = 0; i < DAMAGELOG_SIZE && md->dmglog[i].id; i++) {
-		struct map_session_data* tsd = map_charid2sd(md->dmglog[i].id);
+		struct map_session_data *tsd = map_charid2sd(md->dmglog[i].id);
 
 		if(tsd == NULL)
 			continue; //Skip empty entries
@@ -2833,7 +2834,7 @@ int mob_warpslave_sub(struct block_list *bl,va_list ap)
 	struct block_list *master;
 	short x, y, range = 0;
 
-	master = va_arg(ap, struct block_list*);
+	master = va_arg(ap, struct block_list *);
 	range = va_arg(ap, int);
 
 	if (md->master_id != master->id)
@@ -3090,7 +3091,7 @@ int mob_getfriendstatus_sub(struct block_list *bl,va_list ap)
 
 struct mob_data *mob_getfriendstatus(struct mob_data *md,int cond1,int cond2)
 {
-	struct mob_data* fr = NULL;
+	struct mob_data *fr = NULL;
 
 	nullpo_ret(md);
 
@@ -3871,14 +3872,14 @@ static bool mob_parse_dbrow(char** str)
 /*==========================================
  * mob_db.txt reading
  *------------------------------------------*/
-static bool mob_readdb_sub(char* fields[], int columns, int current)
+static bool mob_readdb_sub(char *fields[], int columns, int current)
 {
 	return mob_parse_dbrow(fields);
 }
 
 static void mob_readdb(void)
 {
-	const char* filename[] = {
+	const char *filename[] = {
 		DBPATH"mob_db.txt",
 		"mob_db2.txt" };
 	int fi;
@@ -3900,7 +3901,7 @@ static void mob_readdb(void)
  *------------------------------------------*/
 static int mob_read_sqldb(void)
 {
-	const char* mob_db_name[] = {
+	const char *mob_db_name[] = {
 #ifndef RENEWAL
 		mob_db_db,
 #else
@@ -3923,13 +3924,13 @@ static int mob_read_sqldb(void)
 		while( SQL_SUCCESS == Sql_NextRow(mmysql_handle) ) {
 			//Wrap the result into a TXT-compatible format
 			char line[1024];
-			char* str[31 + 2 * MAX_MVP_DROP + 2 * MAX_MOB_DROP];
-			char* p;
+			char *str[31 + 2 * MAX_MVP_DROP + 2 * MAX_MOB_DROP];
+			char *p;
 			int i;
 
 			lines++;
 			for( i = 0, p = line; i < 31 + 2 * MAX_MVP_DROP + 2 * MAX_MOB_DROP; i++ ) {
-				char* data;
+				char *data;
 				size_t len;
 
 				Sql_GetData(mmysql_handle, i, &data, &len);
@@ -3955,7 +3956,7 @@ static int mob_read_sqldb(void)
 /*==========================================
  * MOB display graphic change data reading
  *------------------------------------------*/
-static bool mob_readdb_mobavail(char* str[], int columns, int current)
+static bool mob_readdb_mobavail(char *str[], int columns, int current)
 {
 	int mob_id, sprite_id;
 
@@ -3997,7 +3998,7 @@ static bool mob_readdb_mobavail(char* str[], int columns, int current)
 static int mob_read_randommonster(void)
 {
 	int i;
-	const char* mobfile[] = {
+	const char *mobfile[] = {
 		DBPATH"mob_branch.txt",
 		DBPATH"mob_poring.txt",
 		DBPATH"mob_boss.txt",
@@ -4061,9 +4062,9 @@ static int mob_read_randommonster(void)
 
 //processes one mob_chat_db entry [SnakeDrak]
 //db struct: Line_ID,Color_Code,Dialog
-static bool mob_parse_row_chatdb(char* fields[], int columns, int current)
+static bool mob_parse_row_chatdb(char *fields[], int columns, int current)
 {
-	char* msg;
+	char *msg;
 	struct mob_chat *ms;
 	int msg_id;
 	size_t len;
@@ -4345,7 +4346,7 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
  * mob_skill_db.txt reading
  *------------------------------------------*/
 static void mob_readskilldb(void) {
-	const char* filename[] = {
+	const char *filename[] = {
 		DBPATH"mob_skill_db.txt",
 		"mob_skill_db2.txt" };
 	int fi;
@@ -4375,7 +4376,7 @@ static void mob_readskilldb(void) {
  */
 static int mob_read_sqlskilldb(void)
 {
-	const char* mob_skill_db_name[] = {
+	const char *mob_skill_db_name[] = {
 #ifndef RENEWAL
 		mob_skill_db_db,
 #else
@@ -4402,8 +4403,8 @@ static int mob_read_sqlskilldb(void)
 		//Process rows one by one
 		while( SQL_SUCCESS == Sql_NextRow(mmysql_handle) ) {
 			// wrap the result into a TXT-compatible format
-			char* str[19];
-			char* dummy = "";
+			char *str[19];
+			char *dummy = "";
 			int i;
 			++lines;
 			for( i = 0; i < 19; ++i ) {
@@ -4428,7 +4429,7 @@ static int mob_read_sqlskilldb(void)
 /*==========================================
  * mob_race2_db.txt reading
  *------------------------------------------*/
-static bool mob_readdb_race2(char* fields[], int columns, int current)
+static bool mob_readdb_race2(char *fields[], int columns, int current)
 {
 	int race, i;
 
@@ -4454,7 +4455,7 @@ static bool mob_readdb_race2(char* fields[], int columns, int current)
 /**
  * Read mob_item_ratio.txt
  */
-static bool mob_readdb_itemratio(char* str[], int columns, int current)
+static bool mob_readdb_itemratio(char *str[], int columns, int current)
 {
 	unsigned short nameid;
 	int ratio, i;
@@ -4502,7 +4503,7 @@ static int mob_item_drop_ratio_free(DBKey key, DBData *data, va_list ap) {
 	return 0;
 }
 
-static bool mob_readdb_effect(char* str[], int columns, int current)
+static bool mob_readdb_effect(char *str[], int columns, int current)
 {
 	int mob_id = atoi(str[0]),
 		effect_id = atoi(str[1]);

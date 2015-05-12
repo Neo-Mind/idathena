@@ -101,9 +101,9 @@ int battle_delay_damage(unsigned int tick, int amotion, struct block_list *src, 
 enum damage_lv battle_weapon_attack(struct block_list *bl,struct block_list *target,unsigned int tick,int flag);
 
 //Accessors
-struct block_list* battle_get_master(struct block_list *src);
-struct block_list* battle_gettargeted(struct block_list *target);
-struct block_list* battle_getenemy(struct block_list *target, int type, int range);
+struct block_list *battle_get_master(struct block_list *src);
+struct block_list *battle_gettargeted(struct block_list *target);
+struct block_list *battle_getenemy(struct block_list *target, int type, int range);
 int battle_gettarget(struct block_list *bl);
 int battle_getcurrentskill(struct block_list *bl);
 
@@ -605,10 +605,10 @@ void do_final_battle(void);
 extern int battle_config_read(const char *cfgName);
 extern void battle_validate_conf(void);
 extern void battle_set_defaults(void);
-int battle_set_value(const char* w1, const char* w2);
-int battle_get_value(const char* w1);
+int battle_set_value(const char *w1, const char *w2);
+int battle_get_value(const char *w1);
 
-struct block_list* battle_getenemyarea(struct block_list *src, int x, int y, int range, int type, int ignore_id);
+struct block_list *battle_getenemyarea(struct block_list *src, int x, int y, int range, int type, int ignore_id);
 int battle_damage_area(struct block_list *bl, va_list ap);
 
 #endif /* _BATTLE_H_ */

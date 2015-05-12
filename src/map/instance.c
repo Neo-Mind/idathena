@@ -629,7 +629,7 @@ static bool instance_db_free_sub(struct instance_db *db);
 /*==========================================
  * Read the instance_db.txt file
  *------------------------------------------*/
-static bool instance_readdb_sub(char* str[], int columns, int current)
+static bool instance_readdb_sub(char *str[], int columns, int current)
 {
 	uint8 i;
 	int id = atoi(str[0]);
@@ -777,7 +777,7 @@ void do_reload_instance(void)
 
 	// Reset player to instance beginning
 	iter = mapit_getallusers();
-	for(sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter)) {
+	for(sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC *)mapit_next(iter)) {
 		if(sd && map[sd->bl.m].instance_id) {
 			struct party_data *p;
 

@@ -22,7 +22,7 @@
 #include <string.h>
 #include <stdio.h>
 
-static DBMap* bg_team_db; // int bg_id -> struct battleground_data*
+static DBMap *bg_team_db; // int bg_id -> struct battleground_data*
 static unsigned int bg_team_counter = 0; // Next bg_id
 
 struct battleground_data* bg_team_search(int bg_id)
@@ -31,7 +31,7 @@ struct battleground_data* bg_team_search(int bg_id)
 	return (struct battleground_data *)idb_get(bg_team_db, bg_id);
 }
 
-struct map_session_data* bg_getavailablesd(struct battleground_data *bg)
+struct map_session_data *bg_getavailablesd(struct battleground_data *bg)
 {
 	int i;
 	nullpo_retr(NULL, bg);
@@ -180,10 +180,10 @@ int bg_team_get_id(struct block_list *bl)
 
 	switch( bl->type ) {
 		case BL_PC:
-			return ((TBL_PC*)bl)->bg_id;
+			return ((TBL_PC *)bl)->bg_id;
 		case BL_PET:
-			if( ((TBL_PET*)bl)->master )
-				return ((TBL_PET*)bl)->master->bg_id;
+			if( ((TBL_PET *)bl)->master )
+				return ((TBL_PET *)bl)->master->bg_id;
 			break;
 		case BL_MOB: {
 				struct map_session_data *msd;
@@ -194,15 +194,15 @@ int bg_team_get_id(struct block_list *bl)
 				return md->bg_id;
 			}
 		case BL_HOM:
-			if( ((TBL_HOM*)bl)->master )
-				return ((TBL_HOM*)bl)->master->bg_id;
+			if( ((TBL_HOM *)bl)->master )
+				return ((TBL_HOM *)bl)->master->bg_id;
 			break;
 		case BL_MER:
-			if( ((TBL_MER*)bl)->master )
-				return ((TBL_MER*)bl)->master->bg_id;
+			if( ((TBL_MER *)bl)->master )
+				return ((TBL_MER *)bl)->master->bg_id;
 			break;
 		case BL_SKILL:
-			return ((TBL_SKILL*)bl)->group->bg_id;
+			return ((TBL_SKILL *)bl)->group->bg_id;
 	}
 
 	return 0;

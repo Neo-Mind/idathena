@@ -1999,7 +1999,7 @@ int status_damage(struct block_list *src,struct block_list *target,int64 hp,int6
 //Define for standard HP/SP damage triggers
 #define status_zap(bl, hp, sp) status_damage(NULL, bl, hp, sp, 0, 1)
 //Define for standard HP/SP skill-related cost triggers (mobs require no HP/SP to use skills)
-int status_charge(struct block_list* bl, int64 hp, int64 sp);
+int status_charge(struct block_list *bl, int64 hp, int64 sp);
 int status_percent_change(struct block_list *src,struct block_list *target,signed char hp_rate, signed char sp_rate, int flag);
 //Easier handling of status_percent_change
 #define status_percent_heal(bl, hp_rate, sp_rate) status_percent_change(NULL, bl, -(hp_rate), -(sp_rate), 0)
@@ -2114,9 +2114,9 @@ struct s_refine_info { //Bonus values and upgrade chances for refining equipment
 } refine_info[REFINE_TYPE_MAX];
 
 void status_calc_bl_(struct block_list *bl, enum scb_flag flag, enum e_status_calc_opt opt);
-int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt);
+int status_calc_mob_(struct mob_data *md, enum e_status_calc_opt opt);
 void status_calc_pet_(struct pet_data* pd, enum e_status_calc_opt opt);
-int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt);
+int status_calc_pc_(struct map_session_data *sd, enum e_status_calc_opt opt);
 int status_calc_homunculus_(struct homun_data *hd, enum e_status_calc_opt opt);
 int status_calc_mercenary_(struct mercenary_data *md, enum e_status_calc_opt opt);
 int status_calc_elemental_(struct elemental_data *ed, enum e_status_calc_opt opt);

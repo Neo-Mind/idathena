@@ -144,7 +144,7 @@ static bool should_log_item(unsigned short nameid, int amount, int refine)
 
 
 /// logs items, that summon monsters
-void log_branch(struct map_session_data* sd)
+void log_branch(struct map_session_data *sd)
 {
 	nullpo_retv(sd);
 
@@ -226,7 +226,7 @@ void log_pick(int id, int16 m, e_log_pick_type type, int amount, struct item* it
 }
 
 /// logs item transactions (players)
-void log_pick_pc(struct map_session_data* sd, e_log_pick_type type, int amount, struct item* itm)
+void log_pick_pc(struct map_session_data *sd, e_log_pick_type type, int amount, struct item* itm)
 {
 	nullpo_retv(sd);
 	log_pick(sd->status.char_id, sd->bl.m, type, amount, itm);
@@ -234,14 +234,14 @@ void log_pick_pc(struct map_session_data* sd, e_log_pick_type type, int amount, 
 
 
 /// logs item transactions (monsters)
-void log_pick_mob(struct mob_data* md, e_log_pick_type type, int amount, struct item* itm)
+void log_pick_mob(struct mob_data *md, e_log_pick_type type, int amount, struct item* itm)
 {
 	nullpo_retv(md);
 	log_pick(md->mob_id, md->bl.m, type, amount, itm);
 }
 
 /// logs zeny transactions
-void log_zeny(struct map_session_data* sd, e_log_pick_type type, struct map_session_data* src_sd, int amount)
+void log_zeny(struct map_session_data *sd, e_log_pick_type type, struct map_session_data *src_sd, int amount)
 {
 	nullpo_retv(sd);
 
@@ -279,7 +279,7 @@ void log_zeny(struct map_session_data* sd, e_log_pick_type type, struct map_sess
 
 
 /// logs MVP monster rewards
-void log_mvpdrop(struct map_session_data* sd, int monster_id, unsigned int* log_mvp)
+void log_mvpdrop(struct map_session_data *sd, int monster_id, unsigned int* log_mvp)
 {
 	nullpo_retv(sd);
 
@@ -317,7 +317,7 @@ void log_mvpdrop(struct map_session_data* sd, int monster_id, unsigned int* log_
 
 
 /// logs used atcommands
-void log_atcommand(struct map_session_data* sd, const char* message)
+void log_atcommand(struct map_session_data *sd, const char *message)
 {
 	nullpo_retv(sd);
 
@@ -337,7 +337,7 @@ void log_atcommand(struct map_session_data* sd, const char* message)
 		stmt = SqlStmt_Malloc(logmysql_handle);
 		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, LOG_QUERY " INTO `%s` (`atcommand_date`, `account_id`, `char_id`, `char_name`, `map`, `command`) VALUES (NOW(), '%d', '%d', ?, '%s', ?)", log_config.log_gm, sd->status.account_id, sd->status.char_id, mapindex_id2name(sd->mapindex) )
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, sd->status.name, strnlen(sd->status.name, NAME_LENGTH))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (char*)message, safestrnlen(message, 255))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (char *)message, safestrnlen(message, 255))
 		||  SQL_SUCCESS != SqlStmt_Execute(stmt) )
 		{
 			SqlStmt_ShowDebug(stmt);
@@ -362,7 +362,7 @@ void log_atcommand(struct map_session_data* sd, const char* message)
 
 
 /// logs messages passed to script command 'logmes'
-void log_npc(struct map_session_data* sd, const char* message)
+void log_npc(struct map_session_data *sd, const char *message)
 {
 	nullpo_retv(sd);
 
@@ -380,7 +380,7 @@ void log_npc(struct map_session_data* sd, const char* message)
 		stmt = SqlStmt_Malloc(logmysql_handle);
 		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, LOG_QUERY " INTO `%s` (`npc_date`, `account_id`, `char_id`, `char_name`, `map`, `mes`) VALUES (NOW(), '%d', '%d', ?, '%s', ?)", log_config.log_npc, sd->status.account_id, sd->status.char_id, mapindex_id2name(sd->mapindex) )
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, sd->status.name, strnlen(sd->status.name, NAME_LENGTH))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (char*)message, safestrnlen(message, 255))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (char *)message, safestrnlen(message, 255))
 		||  SQL_SUCCESS != SqlStmt_Execute(stmt) )
 		{
 			SqlStmt_ShowDebug(stmt);
@@ -405,7 +405,7 @@ void log_npc(struct map_session_data* sd, const char* message)
 
 
 /// logs chat
-void log_chat(e_log_chat_type type, int type_id, int src_charid, int src_accid, const char* map, int x, int y, const char* dst_charname, const char* message)
+void log_chat(e_log_chat_type type, int type_id, int src_charid, int src_accid, const char *map, int x, int y, const char *dst_charname, const char *message)
 {
 	if( ( log_config.chat&type ) == 0 ) { // disabled
 		return;
@@ -426,8 +426,8 @@ void log_chat(e_log_chat_type type, int type_id, int src_charid, int src_accid, 
 
 		stmt = SqlStmt_Malloc(logmysql_handle);
 		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, LOG_QUERY " INTO `%s` (`time`, `type`, `type_id`, `src_charid`, `src_accountid`, `src_map`, `src_map_x`, `src_map_y`, `dst_charname`, `message`) VALUES (NOW(), '%c', '%d', '%d', '%d', '%s', '%d', '%d', ?, ?)", log_config.log_chat, log_chattype2char(type), type_id, src_charid, src_accid, map, x, y)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, (char*)dst_charname, safestrnlen(dst_charname, NAME_LENGTH))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (char*)message, safestrnlen(message, CHAT_SIZE_MAX))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, (char *)dst_charname, safestrnlen(dst_charname, NAME_LENGTH))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (char *)message, safestrnlen(message, CHAT_SIZE_MAX))
 		||  SQL_SUCCESS != SqlStmt_Execute(stmt) )
 		{
 			SqlStmt_ShowDebug(stmt);
@@ -452,7 +452,7 @@ void log_chat(e_log_chat_type type, int type_id, int src_charid, int src_accid, 
 
 
 /// logs cash transactions
-void log_cash( struct map_session_data* sd, e_log_pick_type type, e_log_cash_type cash_type, int amount ) {
+void log_cash( struct map_session_data *sd, e_log_pick_type type, e_log_cash_type cash_type, int amount ) {
 	nullpo_retv( sd );
 
 	if( !log_config.cash )
@@ -500,7 +500,7 @@ void log_set_defaults(void)
 }
 
 
-int log_config_read(const char* cfgName)
+int log_config_read(const char *cfgName)
 {
 	static int count = 0;
 	char line[1024], w1[1024], w2[1024];
@@ -578,7 +578,7 @@ int log_config_read(const char* cfgName)
 	fclose(fp);
 
 	if( --count == 0 ) { // report final logging state
-		const char* target = log_config.sql_logs ? "table" : "file";
+		const char *target = log_config.sql_logs ? "table" : "file";
 
 		if( log_config.enable_logs && log_config.filter ) {
 			ShowInfo("Logging item transactions to %s '%s'.\n", target, log_config.log_pick);

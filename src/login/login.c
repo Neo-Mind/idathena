@@ -26,7 +26,7 @@
 #include <string.h>
 
 #define LOGIN_MAX_MSG 30 // Max number predefined in msg_conf
-static char* msg_table[LOGIN_MAX_MSG]; // Login Server messages_conf
+static char *msg_table[LOGIN_MAX_MSG]; // Login Server messages_conf
 struct Login_Config login_config; // Configuration of login-serv
 
 int login_fd; // Login server socket
@@ -34,8 +34,8 @@ struct mmo_char_server server[MAX_SERVERS]; // Char server data
 
 // Account engines available
 static struct{
-	AccountDB* (*constructor)(void);
-	AccountDB* db;
+	AccountDB *(*constructor)(void);
+	AccountDB *db;
 } account_engines[] = {
 	{account_db_sql, NULL},
 #ifdef ACCOUNTDB_ENGINE_0
@@ -57,7 +57,7 @@ static struct{
 	{NULL, NULL}
 };
 // account database
-AccountDB* accounts = NULL;
+AccountDB *accounts = NULL;
 
 //Account registration flood protection [Kevin]
 int allowed_regs = 1;
@@ -72,7 +72,7 @@ struct s_subnet {
 
 int subnet_count = 0;
 
-int mmo_auth_new(const char* userid, const char* pass, const char sex, const char* last_ip);
+int mmo_auth_new(const char *userid, const char *pass, const char sex, const char *last_ip);
 
 //-----------------------------------------------------
 // Auth database
@@ -88,7 +88,7 @@ struct auth_node {
 	uint8 clienttype;
 	int group_id;
 };
-static DBMap* auth_db; // int account_id -> struct auth_node*
+static DBMap *auth_db; // int account_id -> struct auth_node*
 
 
 //-----------------------------------------------------
@@ -99,7 +99,7 @@ struct online_login_data {
 	int waiting_disconnect;
 	int char_server;
 };
-static DBMap* online_db; // int account_id -> struct online_login_data*
+static DBMap *online_db; // int account_id -> struct online_login_data*
 
 static int waiting_disconnect_timer(int tid, unsigned int tick, int id, intptr_t data);
 
@@ -216,7 +216,7 @@ static int online_data_cleanup(int tid, unsigned int tick, int id, intptr_t data
 //--------------------------------------------------------------------
 // Packet send to all char-servers, except one (wos: without our self)
 //--------------------------------------------------------------------
-int charif_sendallwos(int sfd, uint8* buf, size_t len)
+int charif_sendallwos(int sfd, uint8 *buf, size_t len)
 {
 	int i, c;
 
@@ -287,7 +287,7 @@ static int sync_ip_addresses(int tid, unsigned int tick, int id, intptr_t data)
 //-----------------------------------------------------
 // encrypted/unencrypted password check (from eApp)
 //-----------------------------------------------------
-bool check_encrypted(const char* str1, const char* str2, const char* passwd)
+bool check_encrypted(const char *str1, const char *str2, const char *passwd)
 {
 	char tmpstr[64 + 1], md5str[32 + 1];
 
@@ -297,7 +297,7 @@ bool check_encrypted(const char* str1, const char* str2, const char* passwd)
 	return (0 == strcmp(passwd, md5str));
 }
 
-bool check_password(const char* md5key, int passwdenc, const char* passwd, const char* refpass)
+bool check_password(const char *md5key, int passwdenc, const char *passwd, const char *refpass)
 {
 	if(passwdenc == 0)
 		return (0 == strcmp(passwd, refpass));
@@ -368,7 +368,7 @@ int login_lan_config_read(const char *lancfgName)
 //-----------------------
 // Console Command Parser [Wizputer]
 //-----------------------
-int parse_console(const char* buf) {
+int parse_console(const char *buf) {
 	char type[64];
 	char command[64];
 	int n = 0;
@@ -583,7 +583,7 @@ int parse_fromchar(int fd) {
 				if( RFIFOREST(fd) < 23 )
 					return 0;
 				else {
-					struct auth_node* node;
+					struct auth_node *node;
 					int account_id = RFIFOL(fd,2);
 					uint32 login_id1 = RFIFOL(fd,6);
 					uint32 login_id2 = RFIFOL(fd,10);
@@ -592,7 +592,7 @@ int parse_fromchar(int fd) {
 					int request_id = RFIFOL(fd,19);
 					RFIFOSKIP(fd,23);
 
-					node = (struct auth_node*)idb_get(auth_db, account_id);
+					node = (struct auth_node *)idb_get(auth_db, account_id);
 					if( runflag == LOGINSERVER_ST_RUNNING &&
 						node != NULL &&
 						node->account_id == account_id &&
@@ -660,7 +660,7 @@ int parse_fromchar(int fd) {
 					char email[40];
 					int account_id = RFIFOL(fd,2);
 
-					safestrncpy(email, (char*)RFIFOP(fd,6), 40); remove_control_chars(email);
+					safestrncpy(email, (char *)RFIFOP(fd,6), 40); remove_control_chars(email);
 					RFIFOSKIP(fd,46);
 					if( e_mail_check(email) == 0 )
 						ShowNotice("Char-server '%s': Attempt to create an e-mail on an account with a default e-mail REFUSED - e-mail is invalid (account: %d, ip: %s)\n", server[id].name, account_id, ip);
@@ -694,8 +694,8 @@ int parse_fromchar(int fd) {
 					char new_email[40];
 
 					int account_id = RFIFOL(fd,2);
-					safestrncpy(actual_email, (char*)RFIFOP(fd,6), 40);
-					safestrncpy(new_email, (char*)RFIFOP(fd,46), 40);
+					safestrncpy(actual_email, (char *)RFIFOP(fd,6), 40);
+					safestrncpy(new_email, (char *)RFIFOP(fd,46), 40);
 					RFIFOSKIP(fd, 86);
 
 					if( e_mail_check(actual_email) == 0 )
@@ -842,10 +842,10 @@ int parse_fromchar(int fd) {
 
 						ShowNotice("char-server '%s': receiving (from the char-server) of account_reg2 (account: %d, ip: %s).\n", server[id].name, account_id, ip);
 						for( j = 0, p = 13; j < ACCOUNT_REG2_NUM && p < RFIFOW(fd,2); ++j ){
-							sscanf((char*)RFIFOP(fd,p), "%31c%n", acc.account_reg2[j].str, &len);
+							sscanf((char *)RFIFOP(fd,p), "%31c%n", acc.account_reg2[j].str, &len);
 							acc.account_reg2[j].str[len]='\0';
 							p += len + 1; //+1 to skip the '\0' between strings.
-							sscanf((char*)RFIFOP(fd,p), "%255c%n", acc.account_reg2[j].value, &len);
+							sscanf((char *)RFIFOP(fd,p), "%255c%n", acc.account_reg2[j].value, &len);
 							acc.account_reg2[j].value[len]='\0';
 							p += len + 1;
 							remove_control_chars(acc.account_reg2[j].str);
@@ -939,8 +939,8 @@ int parse_fromchar(int fd) {
 					if( accounts->load_num(accounts, &acc, account_id) ) {
 						for( j = 0; j < acc.account_reg2_num; j++ ) {
 							if( acc.account_reg2[j].str[0] != '\0' ) {
-								off += sprintf((char*)WFIFOP(fd,off), "%s", acc.account_reg2[j].str)+1; //We add 1 to consider the '\0' in place.
-								off += sprintf((char*)WFIFOP(fd,off), "%s", acc.account_reg2[j].value)+1;
+								off += sprintf((char *)WFIFOP(fd,off), "%s", acc.account_reg2[j].str)+1; //We add 1 to consider the '\0' in place.
+								off += sprintf((char *)WFIFOP(fd,off), "%s", acc.account_reg2[j].value)+1;
 							}
 						}
 					}
@@ -970,7 +970,7 @@ int parse_fromchar(int fd) {
 					struct mmo_account acc;
 
 					if( accounts->load_num(accounts, &acc, RFIFOL(fd,4) ) ) {
-						strncpy(acc.pincode, (char*)RFIFOP(fd,8), PINCODE_LENGTH + 1);
+						strncpy(acc.pincode, (char *)RFIFOP(fd,8), PINCODE_LENGTH + 1);
 						acc.pincode_change = time(NULL);
 						accounts->save(accounts, &acc);
 					}
@@ -1057,7 +1057,7 @@ int parse_fromchar(int fd) {
 //-------------------------------------
 // Make new account
 //-------------------------------------
-int mmo_auth_new(const char* userid, const char* pass, const char sex, const char* last_ip) {
+int mmo_auth_new(const char *userid, const char *pass, const char sex, const char *last_ip) {
 	static int num_regs = 0; // registration counter
 	static unsigned int new_reg_tick = 0;
 	unsigned int tick = gettick();
@@ -1130,8 +1130,8 @@ int mmo_auth(struct login_session_data* sd, bool isServer) {
 	if( login_config.use_dnsbl ) {
 		char r_ip[16];
 		char ip_dnsbl[256];
-		char* dnsbl_serv;
-		uint8* sin_addr = (uint8*)&session[sd->fd]->client_addr;
+		char *dnsbl_serv;
+		uint8 *sin_addr = (uint8*)&session[sd->fd]->client_addr;
 
 		sprintf(r_ip, "%u.%u.%u.%u", sin_addr[0], sin_addr[1], sin_addr[2], sin_addr[3]);
 
@@ -1266,7 +1266,7 @@ void login_auth_ok(struct login_session_data* sd)
 
 	uint8 server_num, n;
 	uint32 subnet_char_ip;
-	struct auth_node* node;
+	struct auth_node *node;
 	int i;
 
 	if( runflag != LOGINSERVER_ST_RUNNING ) {
@@ -1439,7 +1439,7 @@ void login_auth_failed(struct login_session_data* sd, int result)
 	else { // 6 = Your are Prohibited to log in until %s
 		struct mmo_account acc;
 		time_t unban_time = ( accounts->load_str(accounts, &acc, sd->userid) ) ? acc.unban_time : 0;
-		timestamp2string((char*)WFIFOP(fd,6), 20, unban_time, login_config.date_format);
+		timestamp2string((char *)WFIFOP(fd,6), 20, unban_time, login_config.date_format);
 	}
 	WFIFOSET(fd,26);
 #else
@@ -1451,7 +1451,7 @@ void login_auth_failed(struct login_session_data* sd, int result)
 	else { // 6 = Your are Prohibited to log in until %s
 		struct mmo_account acc;
 		time_t unban_time = ( accounts->load_str(accounts, &acc, sd->userid) ) ? acc.unban_time : 0;
-		timestamp2string((char*)WFIFOP(fd,3), 20, unban_time, login_config.date_format);
+		timestamp2string((char *)WFIFOP(fd,3), 20, unban_time, login_config.date_format);
 	}
 	WFIFOSET(fd,23);
 #endif
@@ -1565,9 +1565,9 @@ int parse_login(int fd)
 						clienttype = RFIFOB(fd, 8);
 					} else {
 						version = RFIFOL(fd,2);
-						safestrncpy(username, (const char*)RFIFOP(fd,6), NAME_LENGTH);
+						safestrncpy(username, (const char *)RFIFOP(fd,6), NAME_LENGTH);
 						if( israwpass ) {
-							safestrncpy(password, (const char*)RFIFOP(fd,30), NAME_LENGTH);
+							safestrncpy(password, (const char *)RFIFOP(fd,30), NAME_LENGTH);
 							clienttype = RFIFOB(fd,54);
 						} else {
 							memcpy(passhash, RFIFOP(fd,30), 16);
@@ -1631,15 +1631,15 @@ int parse_login(int fd)
 					uint16 type;
 					uint16 new_;
 
-					safestrncpy(sd->userid, (char*)RFIFOP(fd,2), NAME_LENGTH);
-					safestrncpy(sd->passwd, (char*)RFIFOP(fd,26), NAME_LENGTH);
+					safestrncpy(sd->userid, (char *)RFIFOP(fd,2), NAME_LENGTH);
+					safestrncpy(sd->passwd, (char *)RFIFOP(fd,26), NAME_LENGTH);
 					if( login_config.use_md5_passwds )
 						MD5_String(sd->passwd, sd->passwd);
 					sd->passwdenc = 0;
 					sd->version = login_config.client_version_to_connect; // hack to skip version check
 					server_ip = ntohl(RFIFOL(fd,54));
 					server_port = ntohs(RFIFOW(fd,58));
-					safestrncpy(server_name, (char*)RFIFOP(fd,60), 20);
+					safestrncpy(server_name, (char *)RFIFOP(fd,60), 20);
 					type = RFIFOW(fd,82);
 					new_ = RFIFOW(fd,84);
 					RFIFOSKIP(fd,86);
@@ -1731,7 +1731,7 @@ void login_set_defaults() {
 //-----------------------------------
 // Reading main configuration file
 //-----------------------------------
-int login_config_read(const char* cfgName)
+int login_config_read(const char *cfgName)
 {
 	char line[1024], w1[32], w2[1024];
 	FILE* fp = fopen(cfgName, "r");
@@ -1853,7 +1853,7 @@ int login_config_read(const char* cfgName)
 			int i;
 
 			for( i = 0; account_engines[i].constructor; ++i ) {
-				AccountDB* db = account_engines[i].db;
+				AccountDB *db = account_engines[i].db;
 				if( db && db->set_property(db, w1, w2) )
 					break;
 			}
@@ -1869,7 +1869,7 @@ int login_config_read(const char* cfgName)
 
 /// Get the engine selected in the config settings.
 /// Updates the config setting with the selected engine if 'auto'.
-static AccountDB* get_account_engine(void)
+static AccountDB *get_account_engine(void)
 {
 	int i;
 	bool get_first = (strcmp(login_config.account_engine,"auto") == 0);
@@ -1877,7 +1877,7 @@ static AccountDB* get_account_engine(void)
 	for( i = 0; account_engines[i].constructor; ++i )
 	{
 		char name[sizeof(login_config.account_engine)];
-		AccountDB* db = account_engines[i].db;
+		AccountDB *db = account_engines[i].db;
 		if( db && db->get_property(db, "engine.name", name, sizeof(name)) &&
 			(get_first || strcmp(name, login_config.account_engine) == 0) )
 		{
@@ -1913,7 +1913,7 @@ void do_final(void)
 	ipban_final();
 
 	for( i = 0; account_engines[i].constructor; ++i ) { // destroy all account engines
-		AccountDB* db = account_engines[i].db;
+		AccountDB *db = account_engines[i].db;
 		if( db ) {
 			db->destroy(db);
 			account_engines[i].db = NULL;
@@ -2062,7 +2062,7 @@ int do_init(int argc, char** argv)
 int login_msg_config_read(char *cfgName) {
 	return _msg_config_read(cfgName,LOGIN_MAX_MSG,msg_table);
 }
-const char* login_msg_txt(int msg_number) {
+const char *login_msg_txt(int msg_number) {
 	return _msg_txt(msg_number,LOGIN_MAX_MSG,msg_table);
 }
 void login_do_final_msg(void) {

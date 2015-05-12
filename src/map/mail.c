@@ -136,7 +136,7 @@ bool mail_setattachment(struct map_session_data *sd, struct mail_message *msg)
 	return true;
 }
 
-void mail_getattachment(struct map_session_data* sd, int zeny, struct item* item)
+void mail_getattachment(struct map_session_data *sd, int zeny, struct item* item)
 {
 	if( item->nameid > 0 && item->amount > 0 ) {
 		pc_additem(sd, item, item->amount, LOG_TYPE_MAIL);
@@ -221,14 +221,14 @@ void mail_send(struct map_session_data *sd, const char *dest_name, const char *t
 	msg.send_id = sd->status.char_id;
 	msg.dest_id = 0; //Will attempt to resolve name
 	safestrncpy(msg.send_name, sd->status.name, NAME_LENGTH);
-	safestrncpy(msg.dest_name, (char*)dest_name, NAME_LENGTH);
-	safestrncpy(msg.title, (char*)title, MAIL_TITLE_LENGTH);
+	safestrncpy(msg.dest_name, (char *)dest_name, NAME_LENGTH);
+	safestrncpy(msg.title, (char *)title, MAIL_TITLE_LENGTH);
 
 	if( msg.title[0] == '\0' )
 		return; //Message has no length and somehow client verification was skipped.
 
 	if( body_len )
-		safestrncpy(msg.body, (char*)body_msg, body_len + 1);
+		safestrncpy(msg.body, (char *)body_msg, body_len + 1);
 	else
 		memset(msg.body, 0x00, MAIL_BODY_LENGTH);
 

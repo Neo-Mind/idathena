@@ -308,23 +308,23 @@ struct view_data* mob_get_viewdata(int mob_id);
 struct mob_data *mob_once_spawn_sub(struct block_list *bl, int16 m,
 	short x, short y, const char *mobname, int mob_id, const char *event, unsigned int size, unsigned int ai);
 
-int mob_once_spawn(struct map_session_data* sd, int16 m, int16 x, int16 y,
-	const char* mobname, int mob_id, int amount, const char* event, unsigned int size, unsigned int ai);
+int mob_once_spawn(struct map_session_data *sd, int16 m, int16 x, int16 y,
+	const char *mobname, int mob_id, int amount, const char *event, unsigned int size, unsigned int ai);
 
-int mob_once_spawn_area(struct map_session_data* sd, int16 m,
-	int16 x0, int16 y0, int16 x1, int16 y1, const char* mobname, int mob_id, int amount, const char* event, unsigned int size, unsigned int ai);
+int mob_once_spawn_area(struct map_session_data *sd, int16 m,
+	int16 x0, int16 y0, int16 x1, int16 y1, const char *mobname, int mob_id, int amount, const char *event, unsigned int size, unsigned int ai);
 
 bool mob_ksprotected(struct block_list *src, struct block_list *target);
 
-int mob_spawn_guardian(const char* mapname, int16 x, int16 y, const char* mobname, int mob_id, const char* event, int guardian, bool has_index); //Spawning Guardians [Valaris]
-int mob_spawn_bg(const char* mapname, int16 x, int16 y, const char* mobname, int mob_id, const char* event, unsigned int bg_id);
+int mob_spawn_guardian(const char *mapname, int16 x, int16 y, const char *mobname, int mob_id, const char *event, int guardian, bool has_index); //Spawning Guardians [Valaris]
+int mob_spawn_bg(const char *mapname, int16 x, int16 y, const char *mobname, int mob_id, const char *event, unsigned int bg_id);
 int mob_guardian_guildchange(struct mob_data *md); //Change Guardian's ownership [Skotlex]
 
 int mob_randomwalk(struct mob_data *md, unsigned int tick);
 int mob_warpchase(struct mob_data *md, struct block_list *target);
 int mob_target(struct mob_data *md, struct block_list *bl, int dist);
 int mob_unlocktarget(struct mob_data *md, unsigned int tick);
-struct mob_data* mob_spawn_dataset(struct spawn_data *data);
+struct mob_data *mob_spawn_dataset(struct spawn_data *data);
 int mob_spawn(struct mob_data *md);
 int mob_delayspawn(int tid, unsigned int tick, int id, intptr_t data);
 int mob_setdelayspawn(struct mob_data *md);

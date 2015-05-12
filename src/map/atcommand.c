@@ -53,7 +53,7 @@
 
 
 #define ATCOMMAND_LENGTH 50
-#define ACMD_FUNC(x) static int atcommand_ ## x (const int fd, struct map_session_data* sd, const char* command, const char* message)
+#define ACMD_FUNC(x) static int atcommand_ ## x (const int fd, struct map_session_data *sd, const char *command, const char *message)
 
 typedef struct AtCommandInfo AtCommandInfo;
 typedef struct AliasInfo AliasInfo;
@@ -70,8 +70,8 @@ enum e_atcmd_restict {
 struct AtCommandInfo {
 	char command[ATCOMMAND_LENGTH];
 	AtCommandFunc func;
-	char* at_groups; //Quick @commands "can-use" lookup
-	char* char_groups; //Quick @charcommands "can-use" lookup
+	char *at_groups; //Quick @commands "can-use" lookup
+	char *char_groups; //Quick @charcommands "can-use" lookup
 	uint8 restriction; //Restrictions see enum e_restict
 };
 
@@ -84,8 +84,8 @@ struct AliasInfo {
 char atcommand_symbol = '@'; //First char of the commands
 char charcommand_symbol = '#';
 
-static DBMap* atcommand_db = NULL; //Name -> AtCommandInfo
-static DBMap* atcommand_alias_db = NULL; //alias -> AtCommandInfo
+static DBMap *atcommand_db = NULL; //Name -> AtCommandInfo
+static DBMap *atcommand_alias_db = NULL; //alias -> AtCommandInfo
 static config_t atcommand_config;
 
 static char atcmd_output[CHAT_SIZE_MAX];
@@ -93,12 +93,12 @@ static char atcmd_player_name[NAME_LENGTH];
 const char *parent_cmd;
 
 static AtCommandInfo* get_atcommandinfo_byname(const char *name); //@help
-static const char* atcommand_checkalias(const char *aliasname); //@help
-static void atcommand_get_suggestions(struct map_session_data* sd, const char *name, bool atcommand); //@help
-static void warp_get_suggestions(struct map_session_data* sd, const char *name); //@rura, @warp, @mapmove
+static const char *atcommand_checkalias(const char *aliasname); //@help
+static void atcommand_get_suggestions(struct map_session_data *sd, const char *name, bool atcommand); //@help
+static void warp_get_suggestions(struct map_session_data *sd, const char *name); //@rura, @warp, @mapmove
 
 //@commands (script-based)
-struct atcmd_binding_data* get_atcommandbind_byname(const char* name) {
+struct atcmd_binding_data* get_atcommandbind_byname(const char *name) {
 	int i = 0;
 	
 	if( *name == atcommand_symbol || *name == charcommand_symbol )
@@ -365,7 +365,7 @@ ACMD_FUNC(send)
  *
  * @author Euphy
  */
-static void warp_get_suggestions(struct map_session_data* sd, const char *name) {
+static void warp_get_suggestions(struct map_session_data *sd, const char *name) {
 	char buffer[512];
 	int i, count = 0;
 
@@ -647,7 +647,7 @@ ACMD_FUNC(who)
 	StringBuf_Init(&buf);
 
 	iter = mapit_getallusers();
-	for (pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter))	{
+	for (pl_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC *)mapit_next(iter))	{
 		if (!((pc_has_permission(pl_sd, PC_PERM_HIDE_SESSION) || (pl_sd->sc.option&OPTION_INVISIBLE)) && pc_get_group_level(pl_sd) > level)) { // you can look only lower or same level
 			if (stristr(pl_sd->status.name, player_name) == NULL || // Search with no case sensitive
 				(map_id >= 0 && pl_sd->bl.m != map_id))
@@ -716,7 +716,7 @@ ACMD_FUNC(who)
  *------------------------------------------*/
 ACMD_FUNC(whogm)
 {
-	struct map_session_data* pl_sd;
+	struct map_session_data *pl_sd;
 	struct s_mapiterator* iter;
 	int j, count;
 	int level;
@@ -740,7 +740,7 @@ ACMD_FUNC(whogm)
 	level = pc_get_group_level(sd);
 
 	iter = mapit_getallusers();
-	for (pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter)) {
+	for (pl_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC *)mapit_next(iter)) {
 		int pl_level = pc_get_group_level(pl_sd);
 
 		if (!pl_level)
@@ -1544,7 +1544,7 @@ ACMD_FUNC(help)
 	clif_displaymessage(fd, atcmd_output);
 
 	{   // Display aliases
-		DBIterator* iter;
+		DBIterator *iter;
 		AtCommandInfo *command_info;
 		AliasInfo *alias_info = NULL;
 		StringBuf buf;
@@ -1589,7 +1589,7 @@ static int atcommand_stopattack(struct block_list *bl,va_list ap)
  *------------------------------------------*/
 static int atcommand_pvpoff_sub(struct block_list *bl,va_list ap)
 {
-	TBL_PC* sd = (TBL_PC*)bl;
+	TBL_PC* sd = (TBL_PC *)bl;
 
 	clif_pvpset(sd, 0, 0, 2);
 	if (sd->pvp_timer != INVALID_TIMER) {
@@ -1625,7 +1625,7 @@ ACMD_FUNC(pvpoff)
  *------------------------------------------*/
 static int atcommand_pvpon_sub(struct block_list *bl,va_list ap)
 {
-	TBL_PC* sd = (TBL_PC*)bl;
+	TBL_PC* sd = (TBL_PC *)bl;
 
 	if (sd->pvp_timer == INVALID_TIMER) {
 		sd->pvp_timer = add_timer(gettick() + 200, pc_calc_pvprank_timer, sd->bl.id, 0);
@@ -2446,7 +2446,7 @@ ACMD_FUNC(param)
 {
 	uint8 i;
 	int value = 0;
-	const char* param[] = { "str", "agi", "vit", "int", "dex", "luk" };
+	const char *param[] = { "str", "agi", "vit", "int", "dex", "luk" };
 	short new_value, *status[6], max_status[6];
  	// We don't use direct initialization because it isn't part of the c standard.
 	nullpo_retr(-1, sd);
@@ -2993,13 +2993,13 @@ ACMD_FUNC(day)
  *------------------------------------------*/
 ACMD_FUNC(doom)
 {
-	struct map_session_data* pl_sd;
+	struct map_session_data *pl_sd;
 	struct s_mapiterator* iter;
 
 	nullpo_retr(-1, sd);
 
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
+	for( pl_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC *)mapit_next(iter) ) {
 		if (pl_sd->fd != fd && pc_get_group_level(sd) >= pc_get_group_level(pl_sd)) {
 			status_kill(&pl_sd->bl);
 			clif_specialeffect(&pl_sd->bl,450,AREA);
@@ -3018,13 +3018,13 @@ ACMD_FUNC(doom)
  *------------------------------------------*/
 ACMD_FUNC(doommap)
 {
-	struct map_session_data* pl_sd;
+	struct map_session_data *pl_sd;
 	struct s_mapiterator* iter;
 
 	nullpo_retr(-1, sd);
 
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
+	for( pl_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC *)mapit_next(iter) ) {
 		if (pl_sd->fd != fd && sd->bl.m == pl_sd->bl.m && pc_get_group_level(sd) >= pc_get_group_level(pl_sd)) {
 			status_kill(&pl_sd->bl);
 			clif_specialeffect(&pl_sd->bl,450,AREA);
@@ -3041,7 +3041,7 @@ ACMD_FUNC(doommap)
 /*==========================================
  *
  *------------------------------------------*/
-static void atcommand_raise_sub(struct map_session_data* sd) {
+static void atcommand_raise_sub(struct map_session_data *sd) {
 	
 	status_revive(&sd->bl, 100, 100);
 	
@@ -3054,13 +3054,13 @@ static void atcommand_raise_sub(struct map_session_data* sd) {
  *------------------------------------------*/
 ACMD_FUNC(raise)
 {
-	struct map_session_data* pl_sd;
+	struct map_session_data *pl_sd;
 	struct s_mapiterator* iter;
 		
 	nullpo_retr(-1, sd);
 
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
+	for( pl_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC *)mapit_next(iter) )
 		if( pc_isdead(pl_sd) )
 			atcommand_raise_sub(pl_sd);
 	mapit_free(iter);
@@ -3075,13 +3075,13 @@ ACMD_FUNC(raise)
  *------------------------------------------*/
 ACMD_FUNC(raisemap)
 {
-	struct map_session_data* pl_sd;
+	struct map_session_data *pl_sd;
 	struct s_mapiterator* iter;
 
 	nullpo_retr(-1, sd);
 
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
+	for( pl_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC *)mapit_next(iter) )
 		if (sd->bl.m == pl_sd->bl.m && pc_isdead(pl_sd) )
 			atcommand_raise_sub(pl_sd);
 	mapit_free(iter);
@@ -3126,12 +3126,12 @@ ACMD_FUNC(kick)
  *------------------------------------------*/
 ACMD_FUNC(kickall)
 {
-	struct map_session_data* pl_sd;
+	struct map_session_data *pl_sd;
 	struct s_mapiterator* iter;
 	nullpo_retr(-1, sd);
 
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
+	for( pl_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC *)mapit_next(iter) ) {
 		if (pc_get_group_level(sd) >= pc_get_group_level(pl_sd)) // You can kick only lower or same gm level
 			if (sd->status.account_id != pl_sd->status.account_id)
 				clif_GM_kick(NULL, pl_sd);
@@ -3468,7 +3468,7 @@ ACMD_FUNC(idsearch)
  *------------------------------------------*/
 ACMD_FUNC(recallall)
 {
-	struct map_session_data* pl_sd;
+	struct map_session_data *pl_sd;
 	struct s_mapiterator* iter;
 	int count;
 	nullpo_retr(-1, sd);
@@ -3482,7 +3482,7 @@ ACMD_FUNC(recallall)
 
 	count = 0;
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
+	for( pl_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC *)mapit_next(iter) ) {
 		if (sd->status.account_id != pl_sd->status.account_id && pc_get_group_level(sd) >= pc_get_group_level(pl_sd)) {
 			if (pl_sd->bl.m == sd->bl.m && pl_sd->bl.x == sd->bl.x && pl_sd->bl.y == sd->bl.y)
 				continue; // Don't waste time warping the character to the same place.
@@ -3513,7 +3513,7 @@ ACMD_FUNC(recallall)
  *------------------------------------------*/
 ACMD_FUNC(guildrecall)
 {
-	struct map_session_data* pl_sd;
+	struct map_session_data *pl_sd;
 	struct s_mapiterator* iter;
 	int count;
 	char guild_name[NAME_LENGTH];
@@ -3543,7 +3543,7 @@ ACMD_FUNC(guildrecall)
 	count = 0;
 
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
+	for( pl_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC *)mapit_next(iter) ) {
 		if (sd->status.account_id != pl_sd->status.account_id && pl_sd->status.guild_id == g->guild_id) {
 			if (pc_get_group_level(pl_sd) > pc_get_group_level(sd) || (pl_sd->bl.m == sd->bl.m && pl_sd->bl.x == sd->bl.x && pl_sd->bl.y == sd->bl.y))
 				continue; //Skip GMs greater than you.
@@ -3570,7 +3570,7 @@ ACMD_FUNC(guildrecall)
  *------------------------------------------*/
 ACMD_FUNC(partyrecall)
 {
-	struct map_session_data* pl_sd;
+	struct map_session_data *pl_sd;
 	struct s_mapiterator* iter;
 	char party_name[NAME_LENGTH];
 	struct party_data *p;
@@ -3600,7 +3600,7 @@ ACMD_FUNC(partyrecall)
 	count = 0;
 
 	iter = mapit_getallusers();
-	for (pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter)) {
+	for (pl_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC *)mapit_next(iter)) {
 		if (sd->status.account_id != pl_sd->status.account_id && pl_sd->status.party_id == p->party.party_id) {
 			if (pc_get_group_level(pl_sd) > pc_get_group_level(sd) || (pl_sd->bl.m == sd->bl.m && pl_sd->bl.x == sd->bl.x && pl_sd->bl.y == sd->bl.y))
 				continue; //Skip GMs greater than you.
@@ -3730,12 +3730,12 @@ ACMD_FUNC(reload)
 		clif_displaymessage(fd, msg_txt(268));
 	} else if (strstr(command, "script") || strncmp(message, "script", 3) == 0) {
 		struct s_mapiterator* iter;
-		struct map_session_data* pl_sd;
+		struct map_session_data *pl_sd;
 		//atcommand_broadcast( fd, sd, "@broadcast", "Server is reloading scripts..." );
 		//atcommand_broadcast( fd, sd, "@broadcast", "You will feel a bit of lag at this point !" );
 
 		iter = mapit_getallusers();
-		for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
+		for( pl_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC *)mapit_next(iter) )
 			pc_close_npc(pl_sd,2);
 		mapit_free(iter);
 
@@ -3793,7 +3793,7 @@ ACMD_FUNC(partysharelvl) {
  *------------------------------------------*/
 ACMD_FUNC(mapinfo)
 {
-	struct map_session_data* pl_sd;
+	struct map_session_data *pl_sd;
 	struct s_mapiterator* iter;
 	struct chat_data *cd = NULL;
 	char direction[12];
@@ -3831,11 +3831,11 @@ ACMD_FUNC(mapinfo)
 	// Count chats (for initial message)
 	chat_num = 0;
 	iter = mapit_getallusers();
-	for (pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter)) {
+	for (pl_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC *)mapit_next(iter)) {
 		if (pl_sd->mapindex == m_index) {
 			if (pl_sd->state.vending)
 				vend_num++;
-			else if ((cd = (struct chat_data*)map_id2bl(pl_sd->chatID)) != NULL && cd->usersd[0] == pl_sd)
+			else if ((cd = (struct chat_data *)map_id2bl(pl_sd->chatID)) != NULL && cd->usersd[0] == pl_sd)
 				chat_num++;
 		}
 	}
@@ -4031,7 +4031,7 @@ ACMD_FUNC(mapinfo)
 		case 1:
 			clif_displaymessage(fd, msg_txt(480)); // ----- Players in Map -----
 			iter = mapit_getallusers();
-			for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
+			for( pl_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC *)mapit_next(iter) ) {
 				if (pl_sd->mapindex == m_index) {
 					sprintf(atcmd_output, msg_txt(481), // Player '%s' (session #%d) | Location: %d,%d
 							pl_sd->status.name, pl_sd->fd, pl_sd->bl.x, pl_sd->bl.y);
@@ -4069,8 +4069,8 @@ ACMD_FUNC(mapinfo)
 		case 3:
 			clif_displaymessage(fd, msg_txt(483)); // ----- Chats in Map -----
 			iter = mapit_getallusers();
-			for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
-				if ((cd = (struct chat_data*)map_id2bl(pl_sd->chatID)) != NULL &&
+			for( pl_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC *)mapit_next(iter) ) {
+				if ((cd = (struct chat_data *)map_id2bl(pl_sd->chatID)) != NULL &&
 					pl_sd->mapindex == m_index &&
 					cd->usersd[0] == pl_sd)
 				{
@@ -4450,7 +4450,7 @@ ACMD_FUNC(unloadnpc)
 /*==========================================
  * time in txt for time command (by [Yor])
  *------------------------------------------*/
-char* txt_time(unsigned int duration)
+char *txt_time(unsigned int duration)
 {
 	int days, hours, minutes, seconds;
 	static char temp1[CHAT_SIZE_MAX];
@@ -4808,7 +4808,7 @@ ACMD_FUNC(disguiseall)
 	}
 
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
+	for( pl_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC *)mapit_next(iter) )
 		pc_disguise(pl_sd, mob_id);
 	mapit_free(iter);
 
@@ -4894,7 +4894,7 @@ ACMD_FUNC(undisguiseall)
 	nullpo_retr(-1, sd);
 
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
+	for( pl_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC *)mapit_next(iter) )
 		if( pl_sd->disguise )
 			pc_disguise(pl_sd, 0);
 	mapit_free(iter);
@@ -5401,7 +5401,7 @@ ACMD_FUNC(clearcart)
 ACMD_FUNC(skillid)
 {
 	int skillen, i, found = 0;
-	DBIterator* iter;
+	DBIterator *iter;
 	DBKey key;
 	DBData *data;
 	char partials[MAX_SKILLID_PARTIAL_RESULTS][MAX_SKILLID_PARTIAL_RESULTS_LEN];
@@ -5565,7 +5565,7 @@ ACMD_FUNC(skilltree)
 }
 
 // Hand a ring with partners name on it to this char
-void getring(struct map_session_data* sd)
+void getring(struct map_session_data *sd)
 {
 	char flag = 0;
 	unsigned short item_id;
@@ -6400,7 +6400,7 @@ ACMD_FUNC(pettalk)
 	}
 
 	if (message[0] == '/') { // pet emotion processing
-		const char* emo[] = {
+		const char *emo[] = {
 			"/!", "/?", "/ho", "/lv", "/swt", "/ic", "/an", "/ag", "/$", "/...",
 			"/scissors", "/rock", "/paper", "/korea", "/lv2", "/thx", "/wah", "/sry", "/heh", "/swt2",
 			"/hmm", "/no1", "/??", "/omg", "/O", "/X", "/hlp", "/go", "/sob", "/gg",
@@ -6448,7 +6448,7 @@ ACMD_FUNC(users)
 	// Count users on each map
 	iter = mapit_getallusers();
 	for( ;; ) {
-		struct map_session_data* sd2 = (struct map_session_data*)mapit_next(iter);
+		struct map_session_data *sd2 = (struct map_session_data *)mapit_next(iter);
 
 		if( sd2 == NULL )
 			break; // No more users
@@ -6734,12 +6734,12 @@ ACMD_FUNC(refresh)
 
 ACMD_FUNC(refreshall)
 {
-	struct map_session_data* iter_sd;
+	struct map_session_data *iter_sd;
 	struct s_mapiterator* iter;
 	nullpo_retr(-1, sd);
 
 	iter = mapit_getallusers();
-	for (iter_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); iter_sd = (TBL_PC*)mapit_next(iter))
+	for (iter_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); iter_sd = (TBL_PC *)mapit_next(iter))
 		clif_refresh(iter_sd);
 	mapit_free(iter);
 	return 0;
@@ -7091,12 +7091,12 @@ ACMD_FUNC(showmobs)
  *------------------------------------------*/
 ACMD_FUNC(homlevel)
 {
-	TBL_HOM * hd;
+	TBL_HOM *hd;
 	int level = 0, m_class;
 
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message || ( level = atoi(message) ) < 1) {
+	if (!message || !*message || (level = atoi(message)) < 1) {
 		clif_displaymessage(fd, msg_txt(1253)); // Please enter a level adjustment (usage: @homlevel <number of levels>).
 		return -1;
 	}
@@ -7133,12 +7133,12 @@ ACMD_FUNC(homevolution)
 {
 	nullpo_retr(-1, sd);
 
-	if ( !hom_is_active(sd->hd) ) {
+	if (!hom_is_active(sd->hd)) {
 		clif_displaymessage(fd, msg_txt(1254)); // You do not have a homunculus.
 		return -1;
 	}
 
-	if ( !hom_evolution(sd->hd) ) {
+	if (!hom_evolution(sd->hd)) {
 		clif_displaymessage(fd, msg_txt(1255)); // Your homunculus doesn't evolve.
 		return -1;
 	}
@@ -7213,7 +7213,7 @@ ACMD_FUNC(homfriendly)
 	int friendly = 0;
 	nullpo_retr(-1, sd);
 
-	if ( !hom_is_active(sd->hd) ) {
+	if (!hom_is_active(sd->hd)) {
 		clif_displaymessage(fd, msg_txt(1254)); // You do not have a homunculus.
 		return -1;
 	}
@@ -7239,7 +7239,7 @@ ACMD_FUNC(homhungry)
 	int hungry = 0;
 	nullpo_retr(-1, sd);
 
-	if ( !hom_is_active(sd->hd) ) {
+	if (!hom_is_active(sd->hd)) {
 		clif_displaymessage(fd, msg_txt(1254)); // You do not have a homunculus.
 		return -1;
 	}
@@ -7265,16 +7265,16 @@ ACMD_FUNC(homtalk)
 	char mes[100],temp[100];
 	nullpo_retr(-1, sd);
 
-	if ( battle_config.min_chat_delay ) {
-		if( DIFF_TICK(sd->cantalk_tick, gettick()) > 0 )
+	if (battle_config.min_chat_delay) {
+		if (DIFF_TICK(sd->cantalk_tick, gettick()) > 0)
 			return 0;
 		sd->cantalk_tick = gettick() + battle_config.min_chat_delay;
 	}
 
 	if (sd->sc.cant.chat)
-		return -1; //no "chatting" while muted.
+		return -1; // No "chatting" while muted.
 
-	if ( !hom_is_active(sd->hd) ) {
+	if (!hom_is_active(sd->hd)) {
 		clif_displaymessage(fd, msg_txt(1254)); // You do not have a homunculus.
 		return -1;
 	}
@@ -7299,7 +7299,7 @@ ACMD_FUNC(hominfo)
 	struct status_data *status;
 	nullpo_retr(-1, sd);
 
-	if ( !hom_is_active(sd->hd) ) {
+	if (!hom_is_active(sd->hd)) {
 		clif_displaymessage(fd, msg_txt(1254)); // You do not have a homunculus.
 		return -1;
 	}
@@ -7337,7 +7337,7 @@ ACMD_FUNC(homstats)
 	int lv, min, max, evo;
 	nullpo_retr(-1, sd);
 
-	if ( !hom_is_active(sd->hd) ) {
+	if (!hom_is_active(sd->hd)) {
 		clif_displaymessage(fd, msg_txt(1254)); // You do not have a homunculus.
 		return -1;
 	}
@@ -7728,7 +7728,7 @@ ACMD_FUNC(sizeall)
 	size = cap_value(size,0,2);
 
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
+	for( pl_sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC *)mapit_next(iter) ) {
 		if( pl_sd->state.size != size ) {
 			if( pl_sd->state.size ) {
 				pl_sd->state.size = SZ_SMALL;
@@ -8396,7 +8396,7 @@ ACMD_FUNC(resetskill)
 ACMD_FUNC(itemlist)
 {
 	int i, j, count, counter;
-	const char* location;
+	const char *location;
 	const struct item* items;
 	int size;
 	StringBuf buf;
@@ -8574,7 +8574,7 @@ ACMD_FUNC(stats)
 	char output[CHAT_SIZE_MAX];
 	int i;
 	struct {
-		const char* format;
+		const char *format;
 		int value;
 	} output_table[] = {
 		{ "Base Level - %d", 0 },
@@ -8717,10 +8717,10 @@ ACMD_FUNC(font)
 /*==========================================
  * type: 1 = commands (@), 2 = charcommands (#)
  *------------------------------------------*/
-static void atcommand_commands_sub(struct map_session_data* sd, const int fd, AtCommandType type)
+static void atcommand_commands_sub(struct map_session_data *sd, const int fd, AtCommandType type)
 {
 	char line_buff[CHATBOX_SIZE];
-	char* cur = line_buff;
+	char *cur = line_buff;
 	AtCommandInfo* cmd;
 	DBIterator *iter = db_iterator(atcommand_db);
 	int count = 0;
@@ -9258,7 +9258,7 @@ ACMD_FUNC(fontcolor)
 }
 
 ACMD_FUNC(costume) {
-	const char* names[] = {
+	const char *names[] = {
 		"Wedding",
 		"Xmas",
 		"Summer",
@@ -9908,7 +9908,7 @@ void atcommand_basecommands(void) {
 /*==========================================
  * Command lookup functions
  *------------------------------------------*/
-bool atcommand_exists(const char* name)
+bool atcommand_exists(const char *name)
 {
 	return strdb_exists(atcommand_db, name);
 }
@@ -9920,7 +9920,7 @@ static AtCommandInfo* get_atcommandinfo_byname(const char *name)
 	return NULL;
 }
 
-static const char* atcommand_checkalias(const char *aliasname)
+static const char *atcommand_checkalias(const char *aliasname)
 {
 	AliasInfo *alias_info = NULL;
 	if ((alias_info = (AliasInfo*)strdb_get(atcommand_alias_db, aliasname)) != NULL)
@@ -9929,15 +9929,15 @@ static const char* atcommand_checkalias(const char *aliasname)
 }
 
 /// AtCommand suggestion
-static void atcommand_get_suggestions(struct map_session_data* sd, const char *name, bool atcommand) {
-	DBIterator* atcommand_iter;
-	DBIterator* alias_iter;
+static void atcommand_get_suggestions(struct map_session_data *sd, const char *name, bool atcommand) {
+	DBIterator *atcommand_iter;
+	DBIterator *alias_iter;
 	AtCommandInfo* command_info = NULL;
 	AliasInfo* alias_info = NULL;
 	AtCommandType type = atcommand ? COMMAND_ATCOMMAND : COMMAND_CHARCOMMAND;
-	char* full_match[MAX_SUGGESTIONS];
-	char* suggestions[MAX_SUGGESTIONS];
-	char* match;
+	char *full_match[MAX_SUGGESTIONS];
+	char *suggestions[MAX_SUGGESTIONS];
+	char *match;
 	int prefix_count = 0, full_count = 0;
 	bool can_use;
 
@@ -9980,7 +9980,7 @@ static void atcommand_get_suggestions(struct map_session_data* sd, const char *n
 
 		// Merge full match and prefix match results
 		if (prefix_count < MAX_SUGGESTIONS) {
-			memmove(&suggestions[prefix_count], full_match, sizeof(char*) * (MAX_SUGGESTIONS-prefix_count));
+			memmove(&suggestions[prefix_count], full_match, sizeof(char *) * (MAX_SUGGESTIONS-prefix_count));
 			prefix_count = min(prefix_count + full_count, MAX_SUGGESTIONS);
 		}
 
@@ -10011,7 +10011,7 @@ static void atcommand_get_suggestions(struct map_session_data* sd, const char *n
  *  2 : console (admin:@atcommand)
  *  3 : script call (useatcmd)
  */
-bool is_atcommand(const int fd, struct map_session_data* sd, const char* message, int type)
+bool is_atcommand(const int fd, struct map_session_data *sd, const char *message, int type)
 {
 	char charname[NAME_LENGTH], params[100];
 	char charname2[NAME_LENGTH];
@@ -10200,7 +10200,7 @@ bool is_atcommand(const int fd, struct map_session_data* sd, const char* message
 /*==========================================
  *
  *------------------------------------------*/
-static void atcommand_config_read(const char* config_filename)
+static void atcommand_config_read(const char *config_filename)
 {
 	config_setting_t *aliases = NULL, *help = NULL;
 	const char *symbol = NULL;

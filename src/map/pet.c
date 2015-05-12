@@ -495,14 +495,14 @@ int pet_catch_process1(struct map_session_data *sd,int target_class)
 	return 0;
 }
 
-int pet_catch_process2(struct map_session_data* sd, int target_id)
+int pet_catch_process2(struct map_session_data *sd, int target_id)
 {
-	struct mob_data* md;
+	struct mob_data *md;
 	int i = 0, pet_catch_rate = 0;
 
 	nullpo_retr(1, sd);
 
-	md = (struct mob_data*)map_id2bl(target_id);
+	md = (struct mob_data *)map_id2bl(target_id);
 	if(!md || md->bl.type != BL_MOB || md->bl.prev == NULL) { //Invalid inputs/state, abort capture.
 		clif_pet_roulette(sd,0);
 		sd->catch_target_class = -1;
@@ -658,7 +658,7 @@ int pet_change_name(struct map_session_data *sd,char *name)
 	return intif_rename_pet(sd, name);
 }
 
-int pet_change_name_ack(struct map_session_data *sd, char* name, int flag)
+int pet_change_name_ack(struct map_session_data *sd, char *name, int flag)
 {
 	struct pet_data *pd = sd->pd;
 
@@ -1225,7 +1225,7 @@ int pet_skill_support_timer(int tid, unsigned int tick, int id, intptr_t data)
  *------------------------------------------*/
 void read_petdb()
 {
-	char* filename[] = {
+	char *filename[] = {
 		DBPATH"pet_db.txt",
 		"pet_db2.txt"
 	};

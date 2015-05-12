@@ -17,7 +17,7 @@
 
 bool mercenary_owner_fromsql(int char_id, struct mmo_charstatus *status)
 {
-	char* data;
+	char *data;
 
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `merc_id`, `arch_calls`, `arch_faith`, `spear_calls`, `spear_faith`, `sword_calls`, `sword_faith` FROM `%s` WHERE `char_id` = '%d'", mercenary_owner_db, char_id) )
 	{
@@ -95,7 +95,7 @@ bool mapif_mercenary_save(struct s_mercenary* merc)
 
 bool mapif_mercenary_load(int merc_id, int char_id, struct s_mercenary *merc)
 {
-	char* data;
+	char *data;
 
 	memset(merc, 0, sizeof(struct s_mercenary));
 	merc->mercenary_id = merc_id;

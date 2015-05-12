@@ -18,7 +18,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-static DBMap* auction_db_ = NULL; // int auction_id -> struct auction_data*
+static DBMap *auction_db_ = NULL; // int auction_id -> struct auction_data*
 
 void auction_delete(struct auction_data *auction);
 static int auction_end_timer(int tid, unsigned int tick, int id, intptr_t data);
@@ -436,7 +436,7 @@ static void mapif_parse_Auction_bid(int fd)
 	}
 
 	auction->buyer_id = char_id;
-	safestrncpy(auction->buyer_name, (char*)RFIFOP(fd,16), NAME_LENGTH);
+	safestrncpy(auction->buyer_name, (char *)RFIFOP(fd,16), NAME_LENGTH);
 	auction->price = bid;
 
 	if( bid >= auction->buynow )

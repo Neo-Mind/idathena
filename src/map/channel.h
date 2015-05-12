@@ -53,7 +53,7 @@ struct Channel {
 	unsigned char msg_delay;	//delay in second if opt_msg_delay
 };
 
-DBMap* channel_get_db(void);
+DBMap *channel_get_db(void);
 
 struct Channel* channel_create(char *name, char *pass, unsigned char color, enum Channel_Type chantype, int val);
 int channel_delete(struct Channel *channel);

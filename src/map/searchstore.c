@@ -35,8 +35,8 @@ enum e_searchstore_effecttype {
 
 
 /// type for shop search function
-typedef bool (*searchstore_search_t)(struct map_session_data* sd, unsigned short nameid);
-typedef bool (*searchstore_searchall_t)(struct map_session_data* sd, const struct s_search_store_search* s);
+typedef bool (*searchstore_search_t)(struct map_session_data *sd, unsigned short nameid);
+typedef bool (*searchstore_searchall_t)(struct map_session_data *sd, const struct s_search_store_search *s);
 
 
 /// retrieves search function by type
@@ -62,7 +62,7 @@ static searchstore_searchall_t searchstore_getsearchallfunc(unsigned char type)
 
 
 /// checks if the player has a store by type
-static int searchstore_hasstore(struct map_session_data* sd, unsigned char type)
+static int searchstore_hasstore(struct map_session_data *sd, unsigned char type)
 {
 	switch( type ) {
 		case SEARCHTYPE_VENDING:      return sd->state.vending;
@@ -73,7 +73,7 @@ static int searchstore_hasstore(struct map_session_data* sd, unsigned char type)
 
 
 /// returns player's store id by type
-static int searchstore_getstoreid(struct map_session_data* sd, unsigned char type)
+static int searchstore_getstoreid(struct map_session_data *sd, unsigned char type)
 {
 	switch( type ) {
 		case SEARCHTYPE_VENDING:      return sd->vender_id;
@@ -83,7 +83,7 @@ static int searchstore_getstoreid(struct map_session_data* sd, unsigned char typ
 }
 
 
-bool searchstore_open(struct map_session_data* sd, unsigned int uses, unsigned short effect) {
+bool searchstore_open(struct map_session_data *sd, unsigned int uses, unsigned short effect) {
 	if( !battle_config.feature_search_stores || sd->searchstore.open )
 		return false;
 
@@ -100,11 +100,11 @@ bool searchstore_open(struct map_session_data* sd, unsigned int uses, unsigned s
 }
 
 
-void searchstore_query(struct map_session_data* sd, unsigned char type, unsigned int min_price, unsigned int max_price, const unsigned short* itemlist, unsigned int item_count, const unsigned short* cardlist, unsigned int card_count)
+void searchstore_query(struct map_session_data *sd, unsigned char type, unsigned int min_price, unsigned int max_price, const unsigned short* itemlist, unsigned int item_count, const unsigned short* cardlist, unsigned int card_count)
 {
 	unsigned int i;
-	struct map_session_data* pl_sd;
-	struct DBIterator* iter;
+	struct map_session_data *pl_sd;
+	struct DBIterator *iter;
 	struct s_search_store_search s;
 	searchstore_searchall_t store_searchall;
 	time_t querytime;
@@ -207,7 +207,7 @@ void searchstore_query(struct map_session_data* sd, unsigned char type, unsigned
 
 
 /// checks whether or not more results are available for the client
-bool searchstore_querynext(struct map_session_data* sd) {
+bool searchstore_querynext(struct map_session_data *sd) {
 	if( sd->searchstore.count && (sd->searchstore.count - 1) / SEARCHSTORE_RESULTS_PER_PAGE < sd->searchstore.pages )
 		return true;
 
@@ -215,7 +215,7 @@ bool searchstore_querynext(struct map_session_data* sd) {
 }
 
 
-void searchstore_next(struct map_session_data* sd) {
+void searchstore_next(struct map_session_data *sd) {
 	if( !battle_config.feature_search_stores || !sd->searchstore.open || sd->searchstore.count <= sd->searchstore.pages*SEARCHSTORE_RESULTS_PER_PAGE )
 		return; // Nothing (more) to display
 
@@ -227,7 +227,7 @@ void searchstore_next(struct map_session_data* sd) {
 }
 
 
-void searchstore_clear(struct map_session_data* sd) {
+void searchstore_clear(struct map_session_data *sd) {
 	searchstore_clearremote(sd);
 
 	if( sd->searchstore.items ) { // Release results
@@ -240,7 +240,7 @@ void searchstore_clear(struct map_session_data* sd) {
 }
 
 
-void searchstore_close(struct map_session_data* sd) {
+void searchstore_close(struct map_session_data *sd) {
 	if( sd->searchstore.open ) {
 		searchstore_clear(sd);
 
@@ -250,9 +250,9 @@ void searchstore_close(struct map_session_data* sd) {
 }
 
 
-void searchstore_click(struct map_session_data* sd, int account_id, int store_id, unsigned short nameid) {
+void searchstore_click(struct map_session_data *sd, int account_id, int store_id, unsigned short nameid) {
 	unsigned int i;
-	struct map_session_data* pl_sd;
+	struct map_session_data *pl_sd;
 	searchstore_search_t store_search;
 
 	if( !battle_config.feature_search_stores || !sd->searchstore.open || !sd->searchstore.count )
@@ -309,19 +309,19 @@ void searchstore_click(struct map_session_data* sd, int account_id, int store_id
 
 
 /// checks whether or not sd has opened account_id's shop remotely
-bool searchstore_queryremote(struct map_session_data* sd, int account_id) {
+bool searchstore_queryremote(struct map_session_data *sd, int account_id) {
 	return (bool)( sd->searchstore.open && sd->searchstore.count && sd->searchstore.remote_id == account_id );
 }
 
 
 /// removes range-check bypassing for remotely opened stores
-void searchstore_clearremote(struct map_session_data* sd) {
+void searchstore_clearremote(struct map_session_data *sd) {
 	sd->searchstore.remote_id = 0;
 }
 
 
 /// receives results from a store-specific callback
-bool searchstore_result(struct map_session_data* sd, int store_id, int account_id, const char* store_name, unsigned short nameid, unsigned short amount, unsigned int price, const unsigned short* card, unsigned char refine)
+bool searchstore_result(struct map_session_data *sd, int store_id, int account_id, const char *store_name, unsigned short nameid, unsigned short amount, unsigned int price, const unsigned short* card, unsigned char refine)
 {
 	struct s_search_store_info_item* ssitem;
 

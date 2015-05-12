@@ -31,7 +31,7 @@
 #define WISDATA_TTL (60 * 1000) //Wis data Time To Live (60 seconds)
 #define WISDELLIST_MAX 256 //Number of elements in the list Delete data Wis
 
-Sql* sql_handle = NULL; //Link to mysql db, connection FD
+Sql *sql_handle = NULL; //Link to mysql db, connection FD
 
 int char_server_port = 3306;
 char char_server_ip[32] = "127.0.0.1";
@@ -62,11 +62,11 @@ struct WisData {
 	unsigned long tick;
 	unsigned char src[24], dst[24], msg[512];
 };
-static DBMap* wis_db = NULL; // int wis_id -> struct WisData*
+static DBMap *wis_db = NULL; // int wis_id -> struct WisData*
 static int wis_dellist[WISDELLIST_MAX], wis_delnum;
 
 /* From pc.c due to @accinfo. any ideas to replace this crap are more than welcome. */
-const char* job_name(int class_) {
+const char *job_name(int class_) {
 	switch( class_ ) {
 		case JOB_NOVICE:
 		case JOB_SWORDMAN:
@@ -330,7 +330,7 @@ struct s_geoip {
 
 /* [Dekamaster/Nightroad] */
 /* WHY NOT A DBMAP: There are millions of entries in GeoIP and it has its own algorithm to go quickly through them, a DBMap wouldn't be efficient */
-const char* geoip_getcountry(uint32 ipnum) {
+const char *geoip_getcountry(uint32 ipnum) {
 	int depth;
 	unsigned int x;
 	unsigned int offset = 0;
@@ -448,7 +448,7 @@ void geoip_init(void) {
 
 /* Sends a mesasge to map server (fd) to a user (u_fd) although we use fd we keep aid for safe-check */
 /* Extremely handy I believe it will serve other uses in the near future */
-void inter_to_fd(int fd, int u_fd, int aid, char* msg, ...) {
+void inter_to_fd(int fd, int u_fd, int aid, char *msg, ...) {
 	char msg_out[512];
 	va_list ap;
 	int len = 1; /* Yes we start at 1 */
@@ -463,7 +463,7 @@ void inter_to_fd(int fd, int u_fd, int aid, char* msg, ...) {
 	WFIFOW(fd,2) = 12 + (unsigned short)len;
 	WFIFOL(fd,4) = u_fd;
 	WFIFOL(fd,8) = aid;
-	safestrncpy((char*)WFIFOP(fd,12), msg_out, len);
+	safestrncpy((char *)WFIFOP(fd,12), msg_out, len);
 
 	WFIFOSET(fd,12 + len);
 
@@ -476,7 +476,7 @@ void mapif_parse_accinfo(int fd) {
 	int account_id;
 	char *data;
 
-	safestrncpy(query, (char*) RFIFOP(fd,14), NAME_LENGTH);
+	safestrncpy(query, (char *) RFIFOP(fd,14), NAME_LENGTH);
 
 	Sql_EscapeString(sql_handle, query_esq, query);
 
@@ -650,7 +650,7 @@ int inter_accreg_tosql(int account_id, int char_id, struct accreg* reg, int type
 // Load account_reg from sql (type=2)
 int inter_accreg_fromsql(int account_id,int char_id, struct accreg *reg, int type)
 {
-	char* data;
+	char *data;
 	size_t len;
 	int i;
 
@@ -704,7 +704,7 @@ int inter_accreg_sql_init(void)
 /*==========================================
  * read config file
  *------------------------------------------*/
-static int inter_config_read(const char* cfgName)
+static int inter_config_read(const char *cfgName)
 {
 	char line[1024];
 	FILE* fp;
@@ -751,7 +751,7 @@ static int inter_config_read(const char* cfgName)
 }
 
 // Save interlog into sql
-int inter_log(char* fmt, ...)
+int inter_log(char *fmt, ...)
 {
 	char str[255];
 	char esc_str[sizeof(str)*2+1];// escaped str
@@ -840,7 +840,7 @@ int inter_mapif_init(int fd)
 // Broadcast sending
 int mapif_broadcast(unsigned char *mes, int len, unsigned long fontColor, short fontType, short fontSize, short fontAlign, short fontY, int sfd)
 {
-	unsigned char *buf = (unsigned char*)aMalloc((len) * sizeof(unsigned char));
+	unsigned char *buf = (unsigned char *)aMalloc((len) * sizeof(unsigned char));
 
 	if (buf == NULL) return 1;
 
@@ -912,8 +912,8 @@ int mapif_account_reg_reply(int fd,int account_id,int char_id, int type)
 	}else{
 		int i,p;
 		for (p=13,i = 0; i < reg->reg_num && p < 5000; i++) {
-			p+= sprintf((char*)WFIFOP(fd,p), "%s", reg->reg[i].str)+1; //We add 1 to consider the '\0' in place.
-			p+= sprintf((char*)WFIFOP(fd,p), "%s", reg->reg[i].value)+1;
+			p+= sprintf((char *)WFIFOP(fd,p), "%s", reg->reg[i].str)+1; //We add 1 to consider the '\0' in place.
+			p+= sprintf((char *)WFIFOP(fd,p), "%s", reg->reg[i].value)+1;
 		}
 		WFIFOW(fd,2)=p;
 		if (p>= 5000)
@@ -992,7 +992,7 @@ int mapif_parse_WisRequest(int fd)
 	struct WisData* wd;
 	char name[NAME_LENGTH];
 	char esc_name[NAME_LENGTH*2+1];// escaped name
-	char* data;
+	char *data;
 	size_t len;
 
 
@@ -1006,7 +1006,7 @@ int mapif_parse_WisRequest(int fd)
 		return 0;
 	}
 
-	safestrncpy(name, (char*)RFIFOP(fd,28), NAME_LENGTH); //Received name may be too large and not contain \0! [Skotlex]
+	safestrncpy(name, (char *)RFIFOP(fd,28), NAME_LENGTH); //Received name may be too large and not contain \0! [Skotlex]
 
 	Sql_EscapeStringLen(sql_handle, esc_name, name, strnlen(name, NAME_LENGTH));
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `name` FROM `%s` WHERE `name`='%s'", char_db, esc_name) )
@@ -1028,7 +1028,7 @@ int mapif_parse_WisRequest(int fd)
 		memset(name, 0, NAME_LENGTH);
 		memcpy(name, data, min(len, NAME_LENGTH));
 		// if source is destination, don't ask other servers.
-		if( strncmp((const char*)RFIFOP(fd,4), name, NAME_LENGTH) == 0 )
+		if( strncmp((const char *)RFIFOP(fd,4), name, NAME_LENGTH) == 0 )
 		{
 			uint8 buf[27];
 			WBUFW(buf, 0) = 0x3802;
@@ -1114,10 +1114,10 @@ int mapif_parse_Registry(int fd)
 			return 1;
 	}
 	for (j = 0, p = 13; j < max && p < RFIFOW(fd,2); j++) {
-		sscanf((char*)RFIFOP(fd,p),"%31c%n",reg->reg[j].str,&len);
+		sscanf((char *)RFIFOP(fd,p),"%31c%n",reg->reg[j].str,&len);
 		reg->reg[j].str[len] = '\0';
 		p += len + 1; //+1 to skip the '\0' between strings.
-		sscanf((char*)RFIFOP(fd,p),"%255c%n",reg->reg[j].value,&len);
+		sscanf((char *)RFIFOP(fd,p),"%255c%n",reg->reg[j].value,&len);
 		reg->reg[j].value[len] = '\0';
 		p += len + 1;
 	}
@@ -1158,13 +1158,13 @@ static void mapif_namechange_ack(int fd, int account_id, int char_id, int type, 
 int mapif_parse_NameChangeRequest(int fd)
 {
 	int account_id, char_id, type;
-	char* name;
+	char *name;
 	int i;
 
 	account_id = RFIFOL(fd,2);
 	char_id = RFIFOL(fd,6);
 	type = RFIFOB(fd,10);
-	name = (char*)RFIFOP(fd,11);
+	name = (char *)RFIFOP(fd,11);
 
 	// Check Authorised letters/symbols in the name
 	if (char_name_option == 1) { // only letters/symbols in char_name_letters are authorised

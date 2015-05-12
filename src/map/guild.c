@@ -31,10 +31,10 @@
 #include <string.h>
 
 
-static DBMap* guild_db; // int guild_id -> struct guild*
-static DBMap* castle_db; // int castle_id -> struct guild_castle*
-static DBMap* guild_expcache_db; // int char_id -> struct guild_expcache*
-static DBMap* guild_infoevent_db; // int guild_id -> struct eventlist*
+static DBMap *guild_db; // int guild_id -> struct guild*
+static DBMap *castle_db; // int castle_id -> struct guild_castle*
+static DBMap *guild_expcache_db; // int char_id -> struct guild_expcache*
+static DBMap *guild_infoevent_db; // int guild_id -> struct eventlist*
 
 struct eventlist {
 	char name[EVENT_NAME_LENGTH];
@@ -108,7 +108,7 @@ int guild_checkskill(struct guild *g, int id) {
 /*==========================================
  * guild_skill_tree.txt reading - from jA [Komurka]
  *------------------------------------------*/
-static bool guild_read_guildskill_tree_db(char* split[], int columns, int current)
+static bool guild_read_guildskill_tree_db(char *split[], int columns, int current)
 {// <skill id>,<max lv>,<req id1>,<req lv1>,<req id2>,<req lv2>,<req id3>,<req lv3>,<req id4>,<req lv4>,<req id5>,<req lv5>
 	int k, id, skill_id;
 
@@ -158,7 +158,7 @@ int guild_check_skill_require(struct guild *g,int id)
 	return 1;
 }
 
-static bool guild_read_castledb(char* str[], int columns, int current)
+static bool guild_read_castledb(char *str[], int columns, int current)
 { // <castle id>,<map name>,<castle name>,<castle event>[,<reserved/unused switch flag>]
 	struct guild_castle *gc;
 	int mapindex = mapindex_name2id(str[1]);
@@ -184,7 +184,7 @@ struct guild* guild_search(int guild_id)
 }
 
 /// lookup: guild name -> guild*
-struct guild* guild_searchname(char* str)
+struct guild* guild_searchname(char *str)
 {
 	struct guild* g;
 	DBIterator *iter = db_iterator(guild_db);
@@ -220,12 +220,12 @@ struct guild_castle* guild_mapindex2gc(short mapindex)
 }
 
 /// lookup: map name -> castle*
-struct guild_castle* guild_mapname2gc(const char* mapname)
+struct guild_castle* guild_mapname2gc(const char *mapname)
 {
 	return guild_mapindex2gc(mapindex_name2id(mapname));
 }
 
-struct map_session_data* guild_getavailablesd(struct guild* g)
+struct map_session_data *guild_getavailablesd(struct guild* g)
 {
 	int i;
 	nullpo_retr(NULL, g);
@@ -247,7 +247,7 @@ int guild_getindex(struct guild *g,int account_id,int char_id)
 }
 
 /// lookup: player sd -> member position
-int guild_getposition(struct guild* g, struct map_session_data* sd)
+int guild_getposition(struct guild* g, struct map_session_data *sd)
 {
 	int i;
 
@@ -333,7 +333,7 @@ int guild_send_xy_timer_sub(DBKey key, DBData *data, va_list ap)
 	}
 
 	for(i=0;i<g->max_member;i++) {
-		struct map_session_data* sd = g->member[i].sd;
+		struct map_session_data *sd = g->member[i].sd;
 		if( sd != NULL && sd->fd && (sd->guild_x != sd->bl.x || sd->guild_y != sd->bl.y) && !sd->bg_id ) {
 			clif_guild_xy(sd);
 			sd->guild_x = sd->bl.x;
@@ -463,7 +463,7 @@ int guild_check_member(struct guild *g)
 	nullpo_ret(g);
 
 	iter = mapit_getallusers();
-	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) ) {
+	for( sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC *)mapit_next(iter) ) {
 		if( sd->status.guild_id != g->guild_id )
 			continue;
 
@@ -487,7 +487,7 @@ int guild_recv_noinfo(int guild_id)
 	struct s_mapiterator* iter;
 
 	iter = mapit_getallusers();
-	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) ) {
+	for( sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC *)mapit_next(iter) ) {
 		if( sd->status.guild_id == guild_id )
 			sd->status.guild_id = 0; // Erase guild
 	}
@@ -637,9 +637,9 @@ int guild_invite(struct map_session_data *sd, struct map_session_data *tsd) {
 
 /// Guild invitation reply.
 /// flag: 0:rejected, 1:accepted
-int guild_reply_invite(struct map_session_data* sd, int guild_id, int flag)
+int guild_reply_invite(struct map_session_data *sd, int guild_id, int flag)
 {
-	struct map_session_data* tsd;
+	struct map_session_data *tsd;
 
 	nullpo_ret(sd);
 
@@ -770,7 +770,7 @@ int guild_member_added(int guild_id,int account_id,int char_id,int flag)
 /*==========================================
  * Player request leaving a given guild_id
  *----------------------------------------*/
-int guild_leave(struct map_session_data* sd, int guild_id, int account_id, int char_id, const char* mes)
+int guild_leave(struct map_session_data *sd, int guild_id, int account_id, int char_id, const char *mes)
 {
 	struct guild *g;
 
@@ -793,7 +793,7 @@ int guild_leave(struct map_session_data* sd, int guild_id, int account_id, int c
 /*==========================================
  * Request remove a player to a given guild_id
  *----------------------------------------*/
-int guild_expulsion(struct map_session_data* sd, int guild_id, int account_id, int char_id, const char* mes)
+int guild_expulsion(struct map_session_data *sd, int guild_id, int account_id, int char_id, const char *mes)
 {
 	struct map_session_data *tsd = map_id2sd(account_id);
 	struct guild *g;
@@ -837,12 +837,12 @@ int guild_expulsion(struct map_session_data* sd, int guild_id, int account_id, i
  * @param name
  * @param mes
  */
-int guild_member_withdraw(int guild_id, int account_id, int char_id, int flag, const char* name, const char* mes)
+int guild_member_withdraw(int guild_id, int account_id, int char_id, int flag, const char *name, const char *mes)
 {
 	int i;
 	struct guild* g = guild_search(guild_id);
-	struct map_session_data* sd = map_charid2sd(char_id);
-	struct map_session_data* online_member_sd;
+	struct map_session_data *sd = map_charid2sd(char_id);
+	struct map_session_data *online_member_sd;
 
 	if( g == NULL )
 		return 0; //No such guild (error!)
@@ -906,7 +906,7 @@ void guild_retrieveitembound(uint32 char_id, uint32 account_id, int guild_id)
 
 		j = pc_bound_chk(sd,BOUND_GUILD,idxlist);
 		if( j ) {
-			struct guild_storage* stor = gstorage_guild2storage(sd->status.guild_id);
+			struct guild_storage *stor = gstorage_guild2storage(sd->status.guild_id);
 			int i;
 
 			if( stor && stor->opened ) { //Close the storage first if someone open it
@@ -923,7 +923,7 @@ void guild_retrieveitembound(uint32 char_id, uint32 account_id, int guild_id)
 			gstorage_storageclose(sd); //Close and save the storage
 		}
 	} else { //Character is offline, ask char server to do the job
-		struct guild_storage* stor = gstorage_get_storage(guild_id);
+		struct guild_storage *stor = gstorage_get_storage(guild_id);
 		struct guild *g = guild_search(guild_id);
 
 		nullpo_retv(g);
@@ -1201,7 +1201,7 @@ int guild_emblem_changed(int len,int guild_id,int emblem_id,const char *data)
 		}
 	}
 	{ // Update guardians (mobs)
-		DBIterator* iter = db_iterator(castle_db);
+		DBIterator *iter = db_iterator(castle_db);
 		struct guild_castle* gc;
 
 		for(gc = (struct guild_castle*)dbi_first(iter); dbi_exists(iter); gc = (struct guild_castle*)dbi_next(iter)) {
@@ -1240,7 +1240,7 @@ int guild_emblem_changed(int len,int guild_id,int emblem_id,const char *data)
 static DBData create_expcache(DBKey key, va_list args)
 {
 	struct guild_expcache *c;
-	struct map_session_data *sd = va_arg(args, struct map_session_data*);
+	struct map_session_data *sd = va_arg(args, struct map_session_data *);
 
 	c = ers_alloc(expcache_ers, struct guild_expcache);
 	c->guild_id = sd->status.guild_id;
@@ -1941,7 +1941,7 @@ void guild_castle_map_init(void)
 	if (num > 0) {
 		struct guild_castle* gc = NULL;
 		int *castle_ids, *cursor;
-		DBIterator* iter = NULL;
+		DBIterator *iter = NULL;
 
 		CREATE(castle_ids, int, num);
 		cursor = castle_ids;

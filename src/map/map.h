@@ -30,7 +30,7 @@ enum E_MAPSERVER_ST {
 #define msg_txt(msg_number) map_msg_txt(msg_number)
 #define do_final_msg() map_do_final_msg()
 int map_msg_config_read(char *cfgName);
-const char* map_msg_txt(int msg_number);
+const char *map_msg_txt(int msg_number);
 void map_do_final_msg(void);
 
 #define MAX_NPC_PER_MAP 512
@@ -706,7 +706,7 @@ struct map_data_other_server {
 };
 
 int map_getcell(int16 m,int16 x,int16 y,cell_chk cellchk);
-int map_getcellp(struct map_data* m,int16 x,int16 y,cell_chk cellchk);
+int map_getcellp(struct map_data *m,int16 x,int16 y,cell_chk cellchk);
 void map_setcell(int16 m, int16 x, int16 y, cell_t cell, bool flag);
 void map_setgatcell(int16 m, int16 x, int16 y, int gat);
 
@@ -746,21 +746,21 @@ int map_freeblock(struct block_list *bl);
 int map_freeblock_lock(void);
 int map_freeblock_unlock(void);
 // Blocklist manipulation
-int map_addblock(struct block_list* bl);
-int map_delblock(struct block_list* bl);
+int map_addblock(struct block_list *bl);
+int map_delblock(struct block_list *bl);
 int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick);
-int map_foreachinrange(int (*func)(struct block_list*,va_list), struct block_list* center, int16 range, int type, ...);
-int map_foreachinshootrange(int (*func)(struct block_list*,va_list), struct block_list* center, int16 range, int type, ...);
-int map_foreachinarea(int (*func)(struct block_list*,va_list), int16 m, int16 x0, int16 y0, int16 x1, int16 y1, int type, ...);
-int map_forcountinrange(int (*func)(struct block_list*,va_list), struct block_list* center, int16 range, int count, int type, ...);
-int map_forcountinarea(int (*func)(struct block_list*,va_list), int16 m, int16 x0, int16 y0, int16 x1, int16 y1, int count, int type, ...);
-int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_list* center, int16 range, int16 dx, int16 dy, int type, ...);
-int map_foreachincell(int (*func)(struct block_list*,va_list), int16 m, int16 x, int16 y, int type, ...);
-int map_foreachinpath(int (*func)(struct block_list*,va_list), int16 m, int16 x0, int16 y0, int16 x1, int16 y1, int16 range, int length, int type, ...);
-int map_foreachinmap(int (*func)(struct block_list*,va_list), int16 m, int type, ...);
+int map_foreachinrange(int (*func)(struct block_list *, va_list), struct block_list *center, int16 range, int type, ...);
+int map_foreachinshootrange(int (*func)(struct block_list *, va_list), struct block_list *center, int16 range, int type, ...);
+int map_foreachinarea(int (*func)(struct block_list *, va_list), int16 m, int16 x0, int16 y0, int16 x1, int16 y1, int type, ...);
+int map_forcountinrange(int (*func)(struct block_list *, va_list), struct block_list *center, int16 range, int count, int type, ...);
+int map_forcountinarea(int (*func)(struct block_list *, va_list), int16 m, int16 x0, int16 y0, int16 x1, int16 y1, int count, int type, ...);
+int map_foreachinmovearea(int (*func)(struct block_list *, va_list), struct block_list *center, int16 range, int16 dx, int16 dy, int type, ...);
+int map_foreachincell(int (*func)(struct block_list *, va_list), int16 m, int16 x, int16 y, int type, ...);
+int map_foreachinpath(int (*func)(struct block_list *, va_list), int16 m, int16 x0, int16 y0, int16 x1, int16 y1, int16 range, int length, int type, ...);
+int map_foreachinmap(int (*func)(struct block_list *, va_list), int16 m, int type, ...);
 // Blocklist nb in one cell
-int map_count_oncell(int16 m,int16 x,int16 y,int type,int flag);
-struct skill_unit *map_find_skill_unit_oncell(struct block_list *,int16 x,int16 y,uint16 skill_id,struct skill_unit *,int flag);
+int map_count_oncell(int16 m, int16 x, int16 y, int type, int flag);
+struct skill_unit *map_find_skill_unit_oncell(struct block_list *, int16 x, int16 y, uint16 skill_id, struct skill_unit *, int flag);
 // search and creation
 int map_get_new_object_id(void);
 int map_search_freecell(struct block_list *src, int16 m, int16 *x, int16 *y, int16 rx, int16 ry, int flag);
@@ -773,7 +773,7 @@ bool map_addnpc(int16 m,struct npc_data *);
 // Map item
 int map_clearflooritem_timer(int tid, unsigned int tick, int id, intptr_t data);
 int map_removemobs_timer(int tid, unsigned int tick, int id, intptr_t data);
-void map_clearflooritem(struct block_list* bl);
+void map_clearflooritem(struct block_list *bl);
 int map_addflooritem(struct item *item,int amount,int16 m,int16 x,int16 y,int first_charid,int second_charid,int third_charid,int flags);
 
 // Instances
@@ -781,39 +781,39 @@ int map_addinstancemap(const char*,int);
 int map_delinstancemap(int);
 
 // player to map session
-void map_addnickdb(int charid, const char* nick);
-void map_delnickdb(int charid, const char* nick);
-void map_reqnickdb(struct map_session_data* sd,int charid);
-const char* map_charid2nick(int charid);
-struct map_session_data* map_charid2sd(int charid);
+void map_addnickdb(int charid, const char *nick);
+void map_delnickdb(int charid, const char *nick);
+void map_reqnickdb(struct map_session_data *sd,int charid);
+const char *map_charid2nick(int charid);
+struct map_session_data *map_charid2sd(int charid);
 
-struct map_session_data* map_id2sd(int id);
-struct mob_data* map_id2md(int id);
+struct map_session_data *map_id2sd(int id);
+struct mob_data *map_id2md(int id);
 struct npc_data* map_id2nd(int id);
 struct homun_data* map_id2hd(int id);
 struct mercenary_data* map_id2mc(int id);
 struct pet_data* map_id2pd(int id);
 struct elemental_data* map_id2ed(int id);
-struct chat_data* map_id2cd(int id);
-struct block_list* map_id2bl(int id);
+struct chat_data *map_id2cd(int id);
+struct block_list *map_id2bl(int id);
 bool map_blid_exists(int id);
 
 #define map_id2index(id) map[(id)].index
-const char* map_mapid2mapname(int m);
+const char *map_mapid2mapname(int m);
 int16 map_mapindex2mapid(unsigned short mapindex);
-int16 map_mapname2mapid(const char* name);
+int16 map_mapname2mapid(const char *name);
 int map_mapname2ipport(unsigned short name, uint32* ip, uint16* port);
 int map_setipport(unsigned short map, uint32 ip, uint16 port);
 int map_eraseipport(unsigned short map, uint32 ip, uint16 port);
 int map_eraseallipport(void);
 void map_addiddb(struct block_list *);
 void map_deliddb(struct block_list *bl);
-void map_foreachpc(int (*func)(struct map_session_data* sd, va_list args), ...);
-void map_foreachmob(int (*func)(struct mob_data* md, va_list args), ...);
+void map_foreachpc(int (*func)(struct map_session_data *sd, va_list args), ...);
+void map_foreachmob(int (*func)(struct mob_data *md, va_list args), ...);
 void map_foreachnpc(int (*func)(struct npc_data* nd, va_list args), ...);
-void map_foreachregen(int (*func)(struct block_list* bl, va_list args), ...);
-void map_foreachiddb(int (*func)(struct block_list* bl, va_list args), ...);
-struct map_session_data* map_nick2sd(const char*);
+void map_foreachregen(int (*func)(struct block_list *bl, va_list args), ...);
+void map_foreachiddb(int (*func)(struct block_list *bl, va_list args), ...);
+struct map_session_data *map_nick2sd(const char *);
 struct mob_data * map_getmob_boss(int16 m);
 struct mob_data * map_id2boss(int id);
 
@@ -829,10 +829,10 @@ enum e_mapitflags
 struct s_mapiterator;
 struct s_mapiterator*   mapit_alloc(enum e_mapitflags flags, enum bl_type types);
 void                    mapit_free(struct s_mapiterator* mapit);
-struct block_list*      mapit_first(struct s_mapiterator* mapit);
-struct block_list*      mapit_last(struct s_mapiterator* mapit);
-struct block_list*      mapit_next(struct s_mapiterator* mapit);
-struct block_list*      mapit_prev(struct s_mapiterator* mapit);
+struct block_list *     mapit_first(struct s_mapiterator* mapit);
+struct block_list *     mapit_last(struct s_mapiterator* mapit);
+struct block_list *     mapit_next(struct s_mapiterator* mapit);
+struct block_list *     mapit_prev(struct s_mapiterator* mapit);
 bool                    mapit_exists(struct s_mapiterator* mapit);
 #define mapit_getallusers() mapit_alloc(MAPIT_NORMAL,BL_PC)
 #define mapit_geteachpc()   mapit_alloc(MAPIT_NORMAL,BL_PC)
@@ -847,10 +847,10 @@ int map_random_dir(struct block_list *bl, short *x, short *y); // [Skotlex]
 
 int cleanup_sub(struct block_list *bl, va_list ap);
 
-int map_delmap(char* mapname);
+int map_delmap(char *mapname);
 void map_flags_init(void);
 
-bool map_iwall_set(int16 m, int16 x, int16 y, int size, int8 dir, bool shootable, const char* wall_name); 
+bool map_iwall_set(int16 m, int16 x, int16 y, int size, int8 dir, bool shootable, const char *wall_name); 
 void map_iwall_get(struct map_session_data *sd);
 void map_iwall_remove(const char *wall_name);
 
@@ -897,7 +897,7 @@ typedef struct mercenary_data   TBL_MER;
 typedef struct elemental_data	TBL_ELEM;
 
 #define BL_CAST(type_, bl) \
-	( ((bl) == (struct block_list*)NULL || (bl)->type != (type_)) ? (T ## type_ *)NULL : (T ## type_ *)(bl) )
+	( ((bl) == (struct block_list *)NULL || (bl)->type != (type_)) ? (T ## type_ *)NULL : (T ## type_ *)(bl) )
 
 #ifdef BETA_THREAD_TEST
 
@@ -920,9 +920,9 @@ extern char log_db_db[32];
 
 extern int db_use_sqldbs;
 
-extern Sql* mmysql_handle;
-extern Sql* qsmysql_handle;
-extern Sql* logmysql_handle;
+extern Sql *mmysql_handle;
+extern Sql *qsmysql_handle;
+extern Sql *logmysql_handle;
 
 extern char buyingstores_db[32];
 extern char buyingstore_items_db[32];

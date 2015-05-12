@@ -52,18 +52,18 @@ struct s_autotrader {
 	struct map_session_data *sd;
 };
 
-int8 buyingstore_setup(struct map_session_data* sd, unsigned char slots);
-int8 buyingstore_create(struct map_session_data* sd, int zenylimit, unsigned char result, const char* storename, const uint8* itemlist, unsigned int count, struct s_autotrader *at);
-void buyingstore_close(struct map_session_data* sd);
-void buyingstore_open(struct map_session_data* sd, int account_id);
-void buyingstore_trade(struct map_session_data* sd, int account_id, unsigned int buyer_id, const uint8* itemlist, unsigned int count);
-bool buyingstore_search(struct map_session_data* sd, unsigned short nameid);
-bool buyingstore_searchall(struct map_session_data* sd, const struct s_search_store_search* s);
+int8 buyingstore_setup(struct map_session_data *sd, unsigned char slots);
+int8 buyingstore_create(struct map_session_data *sd, int zenylimit, unsigned char result, const char *storename, const uint8 *itemlist, unsigned int count, struct s_autotrader *at);
+void buyingstore_close(struct map_session_data *sd);
+void buyingstore_open(struct map_session_data *sd, int account_id);
+void buyingstore_trade(struct map_session_data *sd, int account_id, unsigned int buyer_id, const uint8 *itemlist, unsigned int count);
+bool buyingstore_search(struct map_session_data *sd, unsigned short nameid);
+bool buyingstore_searchall(struct map_session_data *sd, const struct s_search_store_search *s);
 
 void do_final_buyingstore(void);
 void do_init_buyingstore(void);
 
 void do_init_buyingstore_autotrade(void);
-void buyingstore_reopen(struct map_session_data* sd);
+void buyingstore_reopen(struct map_session_data *sd);
 
 #endif  // _BUYINGSTORE_H_

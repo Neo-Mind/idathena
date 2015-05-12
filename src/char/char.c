@@ -34,7 +34,7 @@
 
 #define MAX_STARTITEM 32 //Max number of items a new players can start with
 #define CHAR_MAX_MSG 300 //Max number of msg_conf
-static char* msg_table[CHAR_MAX_MSG]; // Login Server messages_conf
+static char *msg_table[CHAR_MAX_MSG]; // Login Server messages_conf
 
 char char_db[256] = "char";
 char scdata_db[256] = "sc_data";
@@ -74,7 +74,7 @@ char bonus_script_db[256] = "bonus_script";
 // Show loading/saving messages
 int save_log = 1;
 
-static DBMap* char_db_; // int char_id -> struct mmo_charstatus*
+static DBMap *char_db_; // int char_id -> struct mmo_charstatus*
 
 char db_path[1024] = "db";
 
@@ -192,14 +192,14 @@ int pincode_changetime = 0;
 int pincode_maxtry = 3;
 bool pincode_force = true;
 
-void pincode_check(int fd, struct char_session_data* sd);
-void pincode_change(int fd, struct char_session_data* sd);
-void pincode_setnew(int fd, struct char_session_data* sd);
-void pincode_sendstate(int fd, struct char_session_data* sd, uint16 state);
-void pincode_notifyLoginPinUpdate(int account_id, char* pin);
+void pincode_check(int fd, struct char_session_data *sd);
+void pincode_change(int fd, struct char_session_data *sd);
+void pincode_setnew(int fd, struct char_session_data *sd);
+void pincode_sendstate(int fd, struct char_session_data *sd, uint16 state);
+void pincode_notifyLoginPinUpdate(int account_id, char *pin);
 void pincode_notifyLoginPinError(int account_id);
-void pincode_decrypt(uint32 userSeed, char* pin);
-int pincode_compare(int fd, struct char_session_data* sd, char* pin);
+void pincode_decrypt(uint32 userSeed, char *pin);
+int pincode_compare(int fd, struct char_session_data *sd, char *pin);
 
 int mapif_vipack(int mapfd, uint32 aid, uint32 vip_time, uint8 isvip, int group_id);
 int loginif_reqvipdata(uint32 aid, uint8 type, int32 timediff, int mapfd);
@@ -210,8 +210,8 @@ bool char_move_enabled = true;
 bool char_movetoused = true;
 bool char_moves_unlimited = false;
 
-void moveCharSlot(int fd, struct char_session_data* sd, unsigned short from, unsigned short to);
-void moveCharSlotReply(int fd, struct char_session_data* sd, unsigned short index, short reason);
+void moveCharSlot(int fd, struct char_session_data *sd, unsigned short from, unsigned short to);
+void moveCharSlotReply(int fd, struct char_session_data *sd, unsigned short index, short reason);
 
 // Custom limits for the fame lists [Skotlex]
 int fame_list_size_chemist = MAX_FAME_LIST;
@@ -255,7 +255,7 @@ struct auth_node {
 	uint8 version;
 };
 
-static DBMap* auth_db; // int account_id -> struct auth_node*
+static DBMap *auth_db; // int account_id -> struct auth_node*
 
 //-----------------------------------------------------
 // Online User Database
@@ -270,7 +270,7 @@ struct online_char_data {
 	bool pincode_success;
 };
 
-static DBMap* online_char_db; // int account_id -> struct online_char_data*
+static DBMap *online_char_db; // int account_id -> struct online_char_data*
 static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, intptr_t data);
 int delete_char_sql(int char_id);
 
@@ -350,7 +350,7 @@ void set_char_online(int map_id, int char_id, int account_id)
 	}
 
 	//Set char online in guild cache. If char is in memory, use the guild id on it, otherwise seek it.
-	cp = (struct mmo_charstatus*)idb_get(char_db_, char_id);
+	cp = (struct mmo_charstatus *)idb_get(char_db_, char_id);
 	inter_guild_CharOnline(char_id, cp ? cp->guild_id : -1);
 
 	//Notify login server
@@ -370,7 +370,7 @@ void set_char_offline(int char_id, int account_id)
 		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `online`='0' WHERE `account_id`='%d'", char_db, account_id) )
 			Sql_ShowDebug(sql_handle);
 	} else {
-		struct mmo_charstatus* cp = (struct mmo_charstatus*)idb_get(char_db_,char_id);
+		struct mmo_charstatus *cp = (struct mmo_charstatus *)idb_get(char_db_,char_id);
 		inter_guild_CharOffline(char_id, cp ? cp->guild_id : -1);
 		if( cp )
 			idb_remove(char_db_, char_id);
@@ -491,7 +491,7 @@ static DBData create_charstatus(DBKey key, va_list args)
 
 int inventory_to_sql(const struct item items[], int max, int id);
 
-int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
+int mmo_char_tosql(int char_id, struct mmo_charstatus *p)
 {
 	int i = 0;
 	int count = 0;
@@ -769,8 +769,8 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 	SqlStmt* stmt;
 	int i;
 	int j;
-	const char* tablename;
-	const char* selectoption;
+	const char *tablename;
+	const char *selectoption;
 	struct item item; // temp storage variable
 	bool* flag; // bit array for inventory matching
 	bool found;
@@ -1045,11 +1045,11 @@ int inventory_to_sql(const struct item items[], int max, int id) {
 }
 
 
-int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
+int mmo_char_tobuf(uint8 *buf, struct mmo_charstatus *p);
 
 //=====================================================================================================
 // Loads the basic character rooster for the given account. Returns total buffer used.
-int mmo_chars_fromsql(struct char_session_data* sd, uint8* buf)
+int mmo_chars_fromsql(struct char_session_data *sd, uint8 *buf)
 {
 	SqlStmt* stmt;
 	struct mmo_charstatus p;
@@ -1143,11 +1143,11 @@ int mmo_chars_fromsql(struct char_session_data* sd, uint8* buf)
 }
 
 //=====================================================================================================
-int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything)
+int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, bool load_everything)
 {
 	int i,j;
 	char t_msg[128] = "";
-	struct mmo_charstatus* cp;
+	struct mmo_charstatus *cp;
 	StringBuf buf;
 	SqlStmt* stmt;
 	char last_map[MAP_NAME_LENGTH_EXT];
@@ -1559,10 +1559,10 @@ int check_char_name(char * name, char * esc_name)
  *  char_id: Success
  */
 #if PACKETVER >= 20120307
-int make_new_char_sql(struct char_session_data* sd, char* name_, int slot, int hair_color, int hair_style) {
+int make_new_char_sql(struct char_session_data *sd, char *name_, int slot, int hair_color, int hair_style) {
 	int str = 1, agi = 1, vit = 1, int_ = 1, dex = 1, luk = 1;
 #else
-int make_new_char_sql(struct char_session_data* sd, char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style) {
+int make_new_char_sql(struct char_session_data *sd, char *name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style) {
 #endif
 
 	char name[NAME_LENGTH];
@@ -1854,10 +1854,10 @@ int count_users(void)
 //Used in packets 0x6b (chars info) and 0x6d (new char info)
 //Returns the size
 #define MAX_CHAR_BUF 144 //Max size (for WFIFOHEAD calls)
-int mmo_char_tobuf(uint8* buffer, struct mmo_charstatus* p)
+int mmo_char_tobuf(uint8 *buffer, struct mmo_charstatus *p)
 {
 	unsigned short offset = 0;
-	uint8* buf;
+	uint8 *buf;
 
 	if( buffer == NULL || p == NULL )
 		return 0;
@@ -1906,7 +1906,7 @@ int mmo_char_tobuf(uint8* buffer, struct mmo_charstatus* p)
 	WBUFW(buf,106) = (p->rename > 0) ? 0 : 1;
 	offset += 2;
 #if (PACKETVER >= 20100720 && PACKETVER <= 20100727) || PACKETVER >= 20100803
-	mapindex_getmapname_ext(mapindex_id2name(p->last_point.map),(char*)WBUFP(buf,108));
+	mapindex_getmapname_ext(mapindex_id2name(p->last_point.map),(char *)WBUFP(buf,108));
 	offset += MAP_NAME_LENGTH_EXT;
 #endif
 #if PACKETVER >= 20100803
@@ -1945,7 +1945,7 @@ int mmo_char_tobuf(uint8* buffer, struct mmo_charstatus* p)
 //----------------------------------------
 // Tell client how many pages, kRO sends 17 (Yommy)
 //----------------------------------------
-void char_charlist_notify(int fd, struct char_session_data* sd) {
+void char_charlist_notify(int fd, struct char_session_data *sd) {
 	int found = 0, count = 0, i = 0;
 
 	for( i = 0; i < MAX_CHARS; i++ ) {
@@ -1964,9 +1964,9 @@ void char_charlist_notify(int fd, struct char_session_data* sd) {
 	WFIFOSET(fd,6);
 }
 
-void char_block_character(int fd, struct char_session_data* sd);
+void char_block_character(int fd, struct char_session_data *sd);
 int charblock_timer(int tid, unsigned int tick, int id, intptr_t data) {
-	struct char_session_data* sd = NULL;
+	struct char_session_data *sd = NULL;
 	int i = 0;
 
 	ARR_FIND(0, fd_max, i, session[i] && (sd = (struct char_session_data*)session[i]->session_data) && sd->account_id == id);
@@ -1984,7 +1984,7 @@ int charblock_timer(int tid, unsigned int tick, int id, intptr_t data) {
  * 0x20d <PacketLength>.W <TAG_CHARACTER_BLOCK_INFO>24B (HC_BLOCK_CHARACTER)
  * <GID>L <szExpireDate>20B (TAG_CHARACTER_BLOCK_INFO)
  */
-void char_block_character(int fd, struct char_session_data* sd) {
+void char_block_character(int fd, struct char_session_data *sd) {
 	int i = 0, j = 0, len = 4;
 	time_t now = time(NULL);
 
@@ -2019,7 +2019,7 @@ void char_block_character(int fd, struct char_session_data* sd) {
 	}
 }
 
-void mmo_char_send099d(int fd, struct char_session_data* sd) {
+void mmo_char_send099d(int fd, struct char_session_data *sd) {
 	WFIFOHEAD(fd,4 + (MAX_CHARS * MAX_CHAR_BUF));
 	WFIFOW(fd,0) = 0x99d;
 	WFIFOW(fd,2) = mmo_chars_fromsql(sd,WFIFOP(fd,4)) + 4;
@@ -2027,14 +2027,14 @@ void mmo_char_send099d(int fd, struct char_session_data* sd) {
 }
 
 //struct PACKET_CH_CHARLIST_REQ {0x0 short PacketType}
-void char_parse_req_charlist(int fd, struct char_session_data* sd) {
+void char_parse_req_charlist(int fd, struct char_session_data *sd) {
 	mmo_char_send099d(fd,sd);
 }
 
 //----------------------------------------
 // Function to send characters to a player
 //----------------------------------------
-int mmo_char_send006b(int fd, struct char_session_data* sd) {
+int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	int j, offset = 0;
 	bool newvers = (sd->version >= date2version(20100413));
 	if( newvers ) //20100413
@@ -2065,7 +2065,7 @@ int mmo_char_send006b(int fd, struct char_session_data* sd) {
 //-------------------------------------------------
 // Notify client about charselect window data [Ind]
 //-------------------------------------------------
-void mmo_char_send082d(int fd, struct char_session_data* sd) {
+void mmo_char_send082d(int fd, struct char_session_data *sd) {
 	if( save_log )
 		ShowInfo("Loading Char Data 82d ("CL_BOLD"%d"CL_RESET")\n",sd->account_id);
 	WFIFOHEAD(fd,29);
@@ -2080,7 +2080,7 @@ void mmo_char_send082d(int fd, struct char_session_data* sd) {
 	WFIFOSET(fd,29);
 }
 
-void mmo_char_send(int fd, struct char_session_data* sd) {
+void mmo_char_send(int fd, struct char_session_data *sd) {
 	//ShowInfo("sd->version = %d\n",sd->version);
 	if( sd->version > date2version(20130000) ) {
 		mmo_char_send082d(fd,sd);
@@ -2097,7 +2097,7 @@ int char_married(int pl1, int pl2)
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `partner_id` FROM `%s` WHERE `char_id` = '%d'", char_db, pl1) )
 		Sql_ShowDebug(sql_handle);
 	else if( SQL_SUCCESS == Sql_NextRow(sql_handle) ) {
-		char* data;
+		char *data;
 
 		Sql_GetData(sql_handle, 0, &data, NULL);
 		if( pl2 == atoi(data) ) {
@@ -2114,7 +2114,7 @@ int char_child(int parent_id, int child_id)
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `child` FROM `%s` WHERE `char_id` = '%d'", char_db, parent_id) )
 		Sql_ShowDebug(sql_handle);
 	else if( SQL_SUCCESS == Sql_NextRow(sql_handle) ) {
-		char* data;
+		char *data;
 
 		Sql_GetData(sql_handle, 0, &data, NULL);
 		if( child_id == atoi(data) ) {
@@ -2134,7 +2134,7 @@ int char_family(int cid1, int cid2, int cid3)
 		int charid;
 		int partnerid;
 		int childid;
-		char* data;
+		char *data;
 
 		Sql_GetData(sql_handle, 0, &data, NULL); charid = atoi(data);
 		Sql_GetData(sql_handle, 1, &data, NULL); partnerid = atoi(data);
@@ -2158,7 +2158,7 @@ int char_family(int cid1, int cid2, int cid3)
 void disconnect_player(int account_id)
 {
 	int i;
-	struct char_session_data* sd;
+	struct char_session_data *sd;
 
 	//Disconnect player if online on char-server
 	ARR_FIND(0, fd_max, i, session[i] && (sd = (struct char_session_data*)session[i]->session_data) && sd->account_id == account_id);
@@ -2175,7 +2175,7 @@ void disconnect_player(int account_id)
 void set_session_flag_(int account_id, int val, bool set)
 {
 	int i;
-	struct char_session_data* sd;
+	struct char_session_data *sd;
 
 	ARR_FIND(0, fd_max, i, session[i] && (sd = (struct char_session_data*)session[i]->session_data) && sd->account_id == account_id);
 	if (i < fd_max) {
@@ -2376,7 +2376,7 @@ int loginif_parse_reqpincode(int fd, struct char_session_data *sd) {
 
 
 int parse_fromlogin(int fd) {
-	struct char_session_data* sd = NULL;
+	struct char_session_data *sd = NULL;
 	int i;
 
 	// Only process data from the login-server
@@ -2527,10 +2527,10 @@ int parse_fromlogin(int fd) {
 					int class_[MAX_CHARS];
 					int guild_id[MAX_CHARS];
 					int num;
-					char* data;
+					char *data;
 					int acc = RFIFOL(fd,2);
 					int sex = RFIFOB(fd,6);
-					struct auth_node* node = (struct auth_node*)idb_get(auth_db, acc);
+					struct auth_node *node = (struct auth_node *)idb_get(auth_db, acc);
 
 					RFIFOSKIP(fd,7);
 
@@ -2713,9 +2713,9 @@ int parse_fromlogin(int fd) {
 					return 0;
 
 				mapif_parse_accinfo2(true, RFIFOL(fd,167), RFIFOL(fd,171), RFIFOL(fd,175), RFIFOL(fd,179),
-					(char*)RFIFOP(fd,2), (char*)RFIFOP(fd,26), (char*)RFIFOP(fd,59),
-					(char*)RFIFOP(fd,99), (char*)RFIFOP(fd,119), (char*)RFIFOP(fd,151),
-					(char*)RFIFOP(fd,156), RFIFOL(fd,115), RFIFOL(fd,143), RFIFOL(fd,147));
+					(char *)RFIFOP(fd,2), (char *)RFIFOP(fd,26), (char *)RFIFOP(fd,59),
+					(char *)RFIFOP(fd,99), (char *)RFIFOP(fd,119), (char *)RFIFOP(fd,151),
+					(char *)RFIFOP(fd,156), RFIFOL(fd,115), RFIFOL(fd,143), RFIFOL(fd,147));
 				RFIFOSKIP(fd,183);
 				break;
 
@@ -2767,7 +2767,7 @@ int request_accreg2(int account_id, int char_id)
 }
 
 //Send packet forward to login-server for account saving
-int save_accreg2(unsigned char* buf, int len)
+int save_accreg2(unsigned char *buf, int len)
 {
 	loginif_check(0);
 
@@ -2782,7 +2782,7 @@ int save_accreg2(unsigned char* buf, int len)
 void char_read_fame_list(void)
 {
 	int i;
-	char* data;
+	char *data;
 	size_t len;
 
 	// Empty ranking lists
@@ -2959,9 +2959,9 @@ static void char_send_maps(int fd, int map_id, int count, unsigned char *mapbuf)
 
 //Loads a character's name and stores it in the buffer given (must be NAME_LENGTH in size)
 //Returns 1 on found, 0 on not found (buffer is filled with Unknown char name)
-int char_loadName(int char_id, char* name)
+int char_loadName(int char_id, char *name)
 {
-	char* data;
+	char *data;
 	size_t len;
 
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `name` FROM `%s` WHERE `char_id`='%d'", char_db, char_id) )
@@ -3035,7 +3035,7 @@ int mapif_parse_reqcharban(int fd) {
 	else {
 		//int aid = RFIFOL(fd,2); AID of player who as requested the ban
 		int timediff = RFIFOL(fd,6);
-		const char* name = (char*)RFIFOP(fd,10); //Name of the target character
+		const char *name = (char *)RFIFOP(fd,10); //Name of the target character
 
 		RFIFOSKIP(fd,10 + NAME_LENGTH);
 		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `account_id`,`char_id`,`unban_time` FROM `%s` WHERE `name` = '%s'", char_db, name) )
@@ -3048,7 +3048,7 @@ int mapif_parse_reqcharban(int fd) {
 			return -1;
 		} else {
 			int t_cid = 0, t_aid = 0;
-			char* data;
+			char *data;
 			time_t unban_time;
 			time_t now = time(NULL);
 			SqlStmt* stmt = SqlStmt_Malloc(sql_handle);
@@ -3096,7 +3096,7 @@ int mapif_parse_reqcharunban(int fd) {
 	if( RFIFOREST(fd) < 6 + NAME_LENGTH )
 		return 0;
 	else {
-		const char* name = (char*)RFIFOP(fd,6);
+		const char *name = (char *)RFIFOP(fd,6);
 
 		RFIFOSKIP(fd,6 + NAME_LENGTH);
 		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `unban_time` = '0' WHERE `name` = '%s' LIMIT 1", char_db, name) ) {
@@ -3287,7 +3287,7 @@ int parse_frommap(int fd)
 					if( Sql_NumRows(sql_handle) > 0 ) {
 						struct status_change_data scdata;
 						int count;
-						char* data;
+						char *data;
 
 						WFIFOHEAD(fd,14 + 50 * sizeof(struct status_change_data));
 						WFIFOW(fd,0) = 0x2b1d;
@@ -3447,17 +3447,17 @@ int parse_frommap(int fd)
 					return 0;
 				{
 					int map_id, map_fd = -1;
-					struct mmo_charstatus* char_data;
+					struct mmo_charstatus *char_data;
 					struct mmo_charstatus char_dat;
 
 					map_id = search_mapserver(RFIFOW(fd,18), ntohl(RFIFOL(fd,24)), ntohs(RFIFOW(fd,28))); //Locate mapserver by ip and port
 					if( map_id >= 0 )
 						map_fd = server[map_id].fd;
 					//Char should just had been saved before this packet, so this should be safe [Skotlex]
-					char_data = (struct mmo_charstatus*)uidb_get(char_db_, RFIFOL(fd,14));
+					char_data = (struct mmo_charstatus *)uidb_get(char_db_, RFIFOL(fd,14));
 					if( char_data == NULL ) { //Really shouldn't happen.
 						mmo_char_fromsql(RFIFOL(fd,14), &char_dat, true);
-						char_data = (struct mmo_charstatus*)uidb_get(char_db_, RFIFOL(fd,14));
+						char_data = (struct mmo_charstatus *)uidb_get(char_db_, RFIFOL(fd,14));
 					}
 
 					if( runflag == CHARSERVER_ST_RUNNING &&
@@ -3465,7 +3465,7 @@ int parse_frommap(int fd)
 						char_data )
 					{ //Send the map server the auth of this player
 						struct online_char_data* data;
-						struct auth_node* node;
+						struct auth_node *node;
 
 						//Update the "last map" as this is where the player must be spawned on the new map server
 						char_data->last_point.map = RFIFOW(fd,18);
@@ -3770,8 +3770,8 @@ int parse_frommap(int fd)
 					int login_id1;
 					char sex;
 					uint32 ip;
-					struct auth_node* node;
-					struct mmo_charstatus* cd;
+					struct auth_node *node;
+					struct mmo_charstatus *cd;
 					struct mmo_charstatus char_dat;
 					bool autotrade;
 
@@ -3783,11 +3783,11 @@ int parse_frommap(int fd)
 					autotrade  = RFIFOB(fd,19);
 					RFIFOSKIP(fd,20);
 
-					node = (struct auth_node*)idb_get(auth_db, account_id);
-					cd = (struct mmo_charstatus*)uidb_get(char_db_, char_id);
+					node = (struct auth_node *)idb_get(auth_db, account_id);
+					cd = (struct mmo_charstatus *)uidb_get(char_db_, char_id);
 					if( cd == NULL ) { //Really shouldn't happen.
 						mmo_char_fromsql(char_id, &char_dat, true);
-						cd = (struct mmo_charstatus*)uidb_get(char_db_, char_id);
+						cd = (struct mmo_charstatus *)uidb_get(char_db_, char_id);
 					}
 					if( runflag == CHARSERVER_ST_RUNNING && autotrade && cd ) {
 						uint32 mmo_charstatus_len = sizeof(struct mmo_charstatus) + 25;
@@ -3871,7 +3871,7 @@ int parse_frommap(int fd)
 
 					session[sfd]->flag.server = 1; /* To ensure we won't drop our own packet */
 					WFIFOHEAD(sfd,RFIFOW(fd,2));
-					memcpy((char*)WFIFOP(sfd,0), (char*)RFIFOP(fd, 0), RFIFOW(fd,2));
+					memcpy((char *)WFIFOP(sfd,0), (char *)RFIFOP(fd, 0), RFIFOW(fd,2));
 					WFIFOSET(sfd,RFIFOW(fd,2));
 					flush_fifo(sfd);
 					do_close(sfd);
@@ -3990,7 +3990,7 @@ void char_delete2_ack(int fd, int char_id, uint32 result, time_t delete_date)
 void char_delete2_accept_ack(int fd, int char_id, uint32 result)
 { // HC: <082a>.W <char id>.L <Msg:0-5>.L
 	if( result == 1 ) {
-		struct char_session_data* sd = (struct char_session_data*)session[fd]->session_data;
+		struct char_session_data *sd = (struct char_session_data*)session[fd]->session_data;
 
 		if( sd->version >= date2version(20130320) )
 			mmo_char_send(fd,sd);
@@ -4017,10 +4017,10 @@ void char_delete2_cancel_ack(int fd, int char_id, uint32 result)
 }
 
 
-static void char_delete2_req(int fd, struct char_session_data* sd)
+static void char_delete2_req(int fd, struct char_session_data *sd)
 { // CH: <0827>.W <char id>.L
 	int char_id, party_id, guild_id, i;
-	char* data;
+	char *data;
 	time_t delete_date;
 
 	char_id = RFIFOL(fd,2);
@@ -4083,12 +4083,12 @@ static void char_delete2_req(int fd, struct char_session_data* sd)
 }
 
 
-static void char_delete2_accept(int fd, struct char_session_data* sd)
+static void char_delete2_accept(int fd, struct char_session_data *sd)
 { // CH: <0829>.W <char id>.L <birth date:YYMMDD>.6B
 	char birthdate[8+1];
 	int char_id, i;
 	unsigned int base_level;
-	char* data;
+	char *data;
 	time_t delete_date;
 
 	char_id = RFIFOL(fd,2);
@@ -4153,7 +4153,7 @@ static void char_delete2_accept(int fd, struct char_session_data* sd)
 }
 
 
-static void char_delete2_cancel(int fd, struct char_session_data* sd)
+static void char_delete2_cancel(int fd, struct char_session_data *sd)
 { // CH: <082b>.W <char id>.L
 	int char_id, i;
 
@@ -4183,7 +4183,7 @@ int parse_char(int fd)
 	int i;
 	char email[40];
 	int map_fd;
-	struct char_session_data* sd;
+	struct char_session_data *sd;
 	uint32 ipl = session[fd]->client_addr;
 
 	sd = (struct char_session_data *)session[fd]->session_data;
@@ -4295,7 +4295,7 @@ int parse_char(int fd)
 					char *data;
 					int char_id;
 					uint32 subnet_map_ip;
-					struct auth_node* node;
+					struct auth_node *node;
 					int server_id = 0;
 					int slot = RFIFOB(fd,2);
 
@@ -4427,7 +4427,7 @@ int parse_char(int fd)
 					WFIFOHEAD(fd,28);
 					WFIFOW(fd,0) = 0x71;
 					WFIFOL(fd,2) = cd->char_id;
-					mapindex_getmapname_ext(mapindex_id2name(cd->last_point.map),(char*)WFIFOP(fd,6));
+					mapindex_getmapname_ext(mapindex_id2name(cd->last_point.map),(char *)WFIFOP(fd,6));
 					subnet_map_ip = lan_subnetcheck(ipl); //Advanced subnet check [LuzZza]
 					WFIFOL(fd,22) = htonl((subnet_map_ip) ? subnet_map_ip : server[i].ip);
 					WFIFOW(fd,26) = ntows(htons(server[i].port)); //[!] LE byte order here [!]
@@ -4463,9 +4463,9 @@ int parse_char(int fd)
 					i = -2;
 				else
 #if PACKETVER >= 20120307
-					i = make_new_char_sql(sd,(char*)RFIFOP(fd,2),RFIFOB(fd,26),RFIFOW(fd,27),RFIFOW(fd,29));
+					i = make_new_char_sql(sd,(char *)RFIFOP(fd,2),RFIFOB(fd,26),RFIFOW(fd,27),RFIFOW(fd,29));
 #else
-					i = make_new_char_sql(sd,(char*)RFIFOP(fd,2),RFIFOB(fd,26),RFIFOB(fd,27),RFIFOB(fd,28),RFIFOB(fd,29),RFIFOB(fd,30),RFIFOB(fd,31),RFIFOB(fd,32),RFIFOW(fd,33),RFIFOW(fd,35));
+					i = make_new_char_sql(sd,(char *)RFIFOP(fd,2),RFIFOB(fd,26),RFIFOB(fd,27),RFIFOB(fd,28),RFIFOB(fd,29),RFIFOB(fd,30),RFIFOB(fd,31),RFIFOB(fd,32),RFIFOW(fd,33),RFIFOW(fd,35));
 #endif
 
 				if( i < 0 ) {
@@ -4572,7 +4572,7 @@ int parse_char(int fd)
 					int i, cid = RFIFOL(fd,2);
 					char name[NAME_LENGTH];
 					char esc_name[NAME_LENGTH * 2 + 1];
-					safestrncpy(name,(char*)RFIFOP(fd,6),NAME_LENGTH);
+					safestrncpy(name,(char *)RFIFOP(fd,6),NAME_LENGTH);
 					RFIFOSKIP(fd,30);
 
 					ARR_FIND(0,MAX_CHARS,i,sd->found_char[i] == cid);
@@ -4602,7 +4602,7 @@ int parse_char(int fd)
 					int i, aid = RFIFOL(fd,2), cid = RFIFOL(fd,6);
 					char name[NAME_LENGTH];
 					char esc_name[NAME_LENGTH * 2 + 1];
-					safestrncpy(name,(char*)RFIFOP(fd,10),NAME_LENGTH);
+					safestrncpy(name,(char *)RFIFOP(fd,10),NAME_LENGTH);
 					RFIFOSKIP(fd,34);
 
 					if( aid != sd->account_id )
@@ -4755,8 +4755,8 @@ int parse_char(int fd)
 				if( RFIFOREST(fd) < 60 )
 					return 0;
 				else {
-					char* l_user = (char*)RFIFOP(fd,2);
-					char* l_pass = (char*)RFIFOP(fd,26);
+					char *l_user = (char *)RFIFOP(fd,2);
+					char *l_pass = (char *)RFIFOP(fd,26);
 
 					l_user[23] = '\0';
 					l_pass[23] = '\0';
@@ -4796,7 +4796,7 @@ int parse_char(int fd)
 }
 
 //Console Command Parser [Wizputer]
-int parse_console(const char* buf)
+int parse_console(const char *buf)
 {
 	char type[64];
 	char command[64];
@@ -4981,12 +4981,12 @@ int check_connect_login_server(int tid, unsigned int tick, int id, intptr_t data
 //------------------------------------------------
 //Pincode system
 //------------------------------------------------
-void pincode_check(int fd, struct char_session_data* sd) {
+void pincode_check(int fd, struct char_session_data *sd) {
 	char pin[PINCODE_LENGTH + 1];
 
 	memset(pin,0,PINCODE_LENGTH + 1);
 
-	strncpy((char*)pin,(char*)RFIFOP(fd,6),PINCODE_LENGTH);
+	strncpy((char *)pin,(char *)RFIFOP(fd,6),PINCODE_LENGTH);
 
 	pincode_decrypt(sd->pincode_seed,pin);
 
@@ -4994,7 +4994,7 @@ void pincode_check(int fd, struct char_session_data* sd) {
 		pincode_sendstate(fd,sd,PINCODE_PASSED);
 }
 
-int pincode_compare(int fd, struct char_session_data* sd, char* pin) {
+int pincode_compare(int fd, struct char_session_data *sd, char *pin) {
 	if( strcmp(sd->pincode,pin) == 0 ) {
 		sd->pincode_try = 0;
 		return 1;
@@ -5008,20 +5008,20 @@ int pincode_compare(int fd, struct char_session_data* sd, char* pin) {
 	}
 }
 
-void pincode_change(int fd, struct char_session_data* sd) {
+void pincode_change(int fd, struct char_session_data *sd) {
 	char oldpin[PINCODE_LENGTH + 1];
 	char newpin[PINCODE_LENGTH + 1];
 
 	memset(oldpin,0,PINCODE_LENGTH + 1);
 	memset(newpin,0,PINCODE_LENGTH + 1);
 
-	strncpy(oldpin,(char*)RFIFOP(fd,6),PINCODE_LENGTH);
+	strncpy(oldpin,(char *)RFIFOP(fd,6),PINCODE_LENGTH);
 	pincode_decrypt(sd->pincode_seed,oldpin);
 
 	if( !pincode_compare(fd,sd,oldpin) )
 		return;
 
-	strncpy(newpin,(char*)RFIFOP(fd,10),PINCODE_LENGTH);
+	strncpy(newpin,(char *)RFIFOP(fd,10),PINCODE_LENGTH);
 	pincode_decrypt(sd->pincode_seed,newpin);
 
 	pincode_notifyLoginPinUpdate(sd->account_id,newpin);
@@ -5031,12 +5031,12 @@ void pincode_change(int fd, struct char_session_data* sd) {
 	pincode_sendstate(fd,sd,PINCODE_PASSED);
 }
 
-void pincode_setnew(int fd, struct char_session_data* sd) {
+void pincode_setnew(int fd, struct char_session_data *sd) {
 	char newpin[PINCODE_LENGTH + 1];
 
 	memset(newpin,0,PINCODE_LENGTH + 1);
 
-	strncpy(newpin,(char*)RFIFOP(fd,6),PINCODE_LENGTH);
+	strncpy(newpin,(char *)RFIFOP(fd,6),PINCODE_LENGTH);
 	pincode_decrypt(sd->pincode_seed,newpin);
 
 	pincode_notifyLoginPinUpdate(sd->account_id,newpin);
@@ -5054,7 +5054,7 @@ void pincode_setnew(int fd, struct char_session_data* sd) {
 // 6 = Client shows msgstr(1897) Unable to use your KSSN number
 // 7 = Char select window shows a button - client sends 0x8c5
 // 8 = Pincode was incorrect
-void pincode_sendstate(int fd, struct char_session_data* sd, uint16 state) {
+void pincode_sendstate(int fd, struct char_session_data *sd, uint16 state) {
 	WFIFOHEAD(fd,12);
 	WFIFOW(fd,0) = 0x8b9;
 	WFIFOL(fd,2) = sd->pincode_seed = rnd()%0xFFFF;
@@ -5063,14 +5063,14 @@ void pincode_sendstate(int fd, struct char_session_data* sd, uint16 state) {
 	WFIFOSET(fd,12);
 }
 
-void pincode_notifyLoginPinUpdate(int account_id, char* pin) {
+void pincode_notifyLoginPinUpdate(int account_id, char *pin) {
 	int size = 8 + PINCODE_LENGTH + 1;
 
 	WFIFOHEAD(login_fd,size);
 	WFIFOW(login_fd,0) = 0x2738;
 	WFIFOW(login_fd,2) = size;
 	WFIFOL(login_fd,4) = account_id;
-	strncpy((char*)WFIFOP(login_fd,8),pin,PINCODE_LENGTH + 1);
+	strncpy((char *)WFIFOP(login_fd,8),pin,PINCODE_LENGTH + 1);
 	WFIFOSET(login_fd,size);
 }
 
@@ -5081,7 +5081,7 @@ void pincode_notifyLoginPinError(int account_id) {
 	WFIFOSET(login_fd,6);
 }
 
-void pincode_decrypt(uint32 userSeed, char* pin) {
+void pincode_decrypt(uint32 userSeed, char *pin) {
 	int i;
 	char tab[10] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 	char *buf;
@@ -5110,7 +5110,7 @@ void pincode_decrypt(uint32 userSeed, char* pin) {
 //------------------------------------------------
 //Add On system
 //------------------------------------------------
-void moveCharSlot( int fd, struct char_session_data* sd, unsigned short from, unsigned short to ) {
+void moveCharSlot( int fd, struct char_session_data *sd, unsigned short from, unsigned short to ) {
 	// Have we changed to often or is it disabled?
 	if( !char_move_enabled || ( !char_moves_unlimited && sd->char_moves[from] <= 0 ) ) {
 		moveCharSlotReply( fd, sd, from, 1 );
@@ -5161,7 +5161,7 @@ void moveCharSlot( int fd, struct char_session_data* sd, unsigned short from, un
 // Reason
 // 0: Success
 // 1: Failed
-void moveCharSlotReply( int fd, struct char_session_data* sd, unsigned short index, short reason ) {
+void moveCharSlotReply( int fd, struct char_session_data *sd, unsigned short index, short reason ) {
 	WFIFOHEAD(fd,8);
 	WFIFOW(fd,0) = 0x8d5;
 	WFIFOW(fd,2) = 8;
@@ -5425,7 +5425,7 @@ int char_lan_config_read(const char *lancfgName)
 	return 0;
 }
 
-void sql_config_read(const char* cfgName)
+void sql_config_read(const char *cfgName)
 {
 	char line[1024], w1[1024], w2[1024];
 	FILE* fp;
@@ -5518,7 +5518,7 @@ void sql_config_read(const char* cfgName)
 	ShowInfo("Done reading %s.\n", cfgName);
 }
 
-int char_config_read(const char* cfgName)
+int char_config_read(const char *cfgName)
 {
 	char line[1024], w1[1024], w2[1024];
 	FILE* fp = fopen(cfgName, "r");
@@ -5619,7 +5619,7 @@ int char_config_read(const char* cfgName)
 			char *lineitem, **fields;
 			int fields_length = 3 + 1;
 
-			fields = (char**)aMalloc(fields_length*sizeof(char*));
+			fields = (char**)aMalloc(fields_length*sizeof(char *));
 			lineitem = strtok(w2, ":");
 			while(lineitem != NULL) {
 				int n = sv_split(lineitem, strlen(lineitem), 0, ',', fields, fields_length, SV_NOESCAPE_NOTERMINATE);
@@ -5891,7 +5891,7 @@ int do_init(int argc, char **argv)
 int char_msg_config_read(char *cfgName) {
 	return _msg_config_read(cfgName,CHAR_MAX_MSG,msg_table);
 }
-const char* char_msg_txt(int msg_number) {
+const char *char_msg_txt(int msg_number) {
 	return _msg_txt(msg_number,CHAR_MAX_MSG,msg_table);
 }
 void char_do_final_msg(void) {

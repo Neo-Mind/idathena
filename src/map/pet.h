@@ -98,11 +98,11 @@ struct pet_data {
 	unsigned int next_walktime,last_thinktime;
 	unsigned short rate_fix; //Support rate as modified by intimacy (1000 = 100%) [Skotlex]
 
-	struct pet_recovery* recovery;
-	struct pet_bonus* bonus;
-	struct pet_skill_attack* a_skill;
-	struct pet_skill_support* s_skill;
-	struct pet_loot* loot;
+	struct pet_recovery *recovery;
+	struct pet_bonus *bonus;
+	struct pet_skill_attack *a_skill;
+	struct pet_skill_support *s_skill;
+	struct pet_loot *loot;
 
 	int masterteleport_timer;
 	struct map_session_data *master;
@@ -125,7 +125,7 @@ int pet_catch_process2(struct map_session_data *sd,int target_id);
 bool pet_get_egg(int account_id,short pet_class,int pet_id);
 int pet_menu(struct map_session_data *sd,int menunum);
 int pet_change_name(struct map_session_data *sd,char *name);
-int pet_change_name_ack(struct map_session_data *sd, char* name, int flag);
+int pet_change_name_ack(struct map_session_data *sd, char *name, int flag);
 int pet_equipitem(struct map_session_data *sd,int index);
 int pet_lootitem_drop(struct pet_data *pd,struct map_session_data *sd);
 int pet_attackskill(struct pet_data *pd, int target_id);

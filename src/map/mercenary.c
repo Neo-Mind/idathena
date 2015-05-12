@@ -368,7 +368,7 @@ bool mercenary_recv_data(struct s_mercenary *merc, bool flag)
 
 	db = &mercenary_db[i];
 	if( !sd->md ) {
-		sd->md = md = (struct mercenary_data*)aCalloc(1,sizeof(struct mercenary_data));
+		sd->md = md = (struct mercenary_data *)aCalloc(1,sizeof(struct mercenary_data));
 		md->bl.type = BL_MER;
 		md->bl.id = npc_get_new_npc_id();
 		md->devotion_flag = 0;
@@ -488,7 +488,7 @@ int mercenary_checkskill(struct mercenary_data *md, uint16 skill_id)
 /**
  * Read each line of Mercenary's database
  */
-static bool mercenary_readdb_sub(char* str[], int columns, int current)
+static bool mercenary_readdb_sub(char *str[], int columns, int current)
 {
 	int ele;
 	struct s_mercenary_db *db;
@@ -554,7 +554,7 @@ void mercenary_readdb(void)
 /**
  * Read each line of Mercenary's skill
  */
-static bool mercenary_read_skilldb_sub(char* str[], int columns, int current)
+static bool mercenary_read_skilldb_sub(char *str[], int columns, int current)
 { // <merc id>,<skill id>,<skill level>
 	struct s_mercenary_db *db;
 	uint16 i, class_, skill_id, skill_lv;

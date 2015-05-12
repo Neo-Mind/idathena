@@ -99,7 +99,6 @@ dic_fild01,161,266,4	duplicate(Teleport Cat#ep14_2)	Teleport Cat No.6	421
 //============================================================
 ecl_fild01,97,322,0	script	#ep14_2Entrance	45,3,3,{
 	end;
-	
 OnTouch:
 	if (ep14_2_oliver < 3) {
 		mes "[Security Guard]";
@@ -2320,7 +2319,6 @@ ecl_in01,70,88,4	script	Sack Merchant#ep14_2	495,{
 
 eclage,292,265,0	script	#ep14_2Yube Entrance	45,2,2,{
 	end;
-	
 OnTouch:
 	if (ep14_2_oliver < 15) {
 		mes "- Looks like the door is locked. -";
@@ -6163,7 +6161,7 @@ OnOn1:
 }
 
 eclage,164,102,3	script	Cruyan#eclage	442,{
-	if ( ep14_2_detect < 3 || (ep14_2_detect >= 10 && ep14_2_detect <= 12) ){
+	if (ep14_2_detect < 3 || (ep14_2_detect >= 10 && ep14_2_detect <= 12)) {
 	}
 	else if (ep14_2_detect == 3) {
 		mes "[Cruyan]";
@@ -9471,7 +9469,6 @@ ecl_in02,98,32,3	script	Eclage Guard#tl1b	461,{
 
 ecl_in02,133,115,0	script	#pa0829Prison Guard	139,3,3,{
 	end;
-	
 OnTouch:
 	if (ep14_2_etran < 2) {
 		mes "[Clever]";
@@ -12826,13 +12823,11 @@ ecl_fild01,237,181,5	script	Cute Laphine#1	446,{
 
 ecl_tdun02,99,63,5	script	Rosi#No.1	893,1,1,{
 	end;
-	
 OnInit:
 	if (atoi( charat( strnpcinfo(0), getstrlen(strnpcinfo(0))-1 ) ) > 1){
 		disablenpc strnpcinfo(0);
 	}
 	end;
-	
 OnTouch:
 	if (ep14_2_nines < 2) {
 		mes "[Rosi]";
@@ -12918,13 +12913,11 @@ ecl_tdun02,22,36,5	duplicate(Rosi#No.1)	Rosi#No.3	893,1,1
 
 ecl_tdun01,11,62,5	script	Euncheong#No.1	896,1,1,{
 	end;
-	
 OnInit:
 	if (atoi( charat( strnpcinfo(0), getstrlen(strnpcinfo(0))-1 ) ) > 1){
 		disablenpc strnpcinfo(0);
 	}
 	end;
-
 OnTouch:
 	if (ep14_2_nines < 2) {
 		mes "[Euncheong]";
@@ -14082,7 +14075,6 @@ ecl_tdun04,26,39,1	script	Professor Worm#worm	627,{
 
 ecl_tdun04,21,41,0	script	#pf	139,2,2,{
 	end;
-	
 OnTouch:
 	.@pro = rand(1,100);
 	if (ep14_2_profe == 1) {
@@ -14910,7 +14902,7 @@ ecl_in01,32,52,5	script	Traveler Fome#tl01	515,3,3,{
 	mes "I should start planning on moving to the next region. ";
 	mes "I'm debating whether I should just go back or go to Mora Village...";
 	close;
-	
+
 OnTouch:
 	if (ep14_2_mylord == 0 && BaseLevel > 98) {
 		mes "A group of travelers of Alpheim are having a conversation.";
@@ -19427,6 +19419,7 @@ OnTouch:
 }
 
 que_avan01,25,41,5	script	Hisie#tlhunt	623,10,10,{
+	end;
 OnTouch:
 	if (ep14_2_mylord == 22) {
 		cutin "hisie01",0;

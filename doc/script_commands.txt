@@ -7185,7 +7185,7 @@ Parameters (indexes) for monsters are:
 	5 - map ID			12 - sex			19 - cloth color	26 - INT
 	6 - x				13 - class (Monster ID, Job ID)	20 - shield		27 - DEX
 
-Parameter (indexes) for homunculi are:
+Parameter (indexes) for homunculus are:
 
 	0 - size (big, small, normal)	7  - map ID		14 - canmove_tick	21 - immune from attacks state
 	1 - level			8  - x			15 - STR
@@ -8515,6 +8515,12 @@ Valid types are:
 
 This will recalculate the homunculus stats according to its level, of the 
 current invoking character.
+
+---------------------------------------
+
+*homdelete;
+
+This will delete the homunculus.
 
 ---------------------------------------
 

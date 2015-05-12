@@ -10,7 +10,7 @@
 void do_init_cashshop( void );
 void do_final_cashshop( void );
 void cashshop_reloaddb( void );
-bool cashshop_buylist( struct map_session_data* sd, uint32 kafrapoints, int n, uint16* item_list );
+bool cashshop_buylist( struct map_session_data *sd, uint32 kafrapoints, int n, uint16* item_list );
 
 // Taken from AEGIS
 enum CASH_SHOP_TAB_CODE {

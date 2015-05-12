@@ -87,8 +87,8 @@ int npc_get_new_npc_id(void) {
 	}
 }
 
-static DBMap* ev_db; // const char* event_name -> struct event_data*
-static DBMap* npcname_db; // const char* npc_name -> struct npc_data*
+static DBMap *ev_db; // const char *event_name -> struct event_data*
+static DBMap *npcname_db; // const char *npc_name -> struct npc_data*
 
 struct event_data {
 	struct npc_data *nd;
@@ -102,7 +102,7 @@ static char *npc_last_path;
 static char *npc_last_ref;
 
 struct npc_path_data {
-	char* path;
+	char *path;
 	unsigned short references;
 };
 struct npc_path_data *npc_last_npd;
@@ -130,7 +130,7 @@ struct view_data* npc_get_viewdata(int class_) { //Returns the viewdata for norm
 	return NULL;
 }
 
-int npc_isnear_sub(struct block_list* bl, va_list args) {
+int npc_isnear_sub(struct block_list *bl, va_list args) {
 	struct npc_data *nd = (struct npc_data*)bl;
 	int skill_id = va_arg(args, int);
 
@@ -206,7 +206,7 @@ int npc_enable_sub(struct block_list *bl, va_list ap)
 	nullpo_ret(nd = va_arg(ap, struct npc_data *));
 
 	if( bl->type == BL_PC ) {
-		TBL_PC *sd = (TBL_PC*)bl;
+		TBL_PC *sd = (TBL_PC *)bl;
 
 		if( nd->sc.option&OPTION_INVISIBLE )
 			return 1;
@@ -225,7 +225,7 @@ int npc_enable_sub(struct block_list *bl, va_list ap)
 /*==========================================
  * Disable / Enable NPC
  *------------------------------------------*/
-int npc_enable(const char* name, int flag)
+int npc_enable(const char *name, int flag)
 {
 	struct npc_data* nd = npc_name2id(name);
 
@@ -263,13 +263,13 @@ int npc_enable(const char* name, int flag)
 /*==========================================
  * NPC lookup (get npc_data through npcname)
  *------------------------------------------*/
-struct npc_data* npc_name2id(const char* name)
+struct npc_data* npc_name2id(const char *name)
 {
 	return (struct npc_data *) strdb_get(npcname_db, name);
 }
 #ifdef SECURE_NPCTIMEOUT
 int npc_rr_secure_timeout_timer(int tid, unsigned int tick, int id, intptr_t data) {
-	struct map_session_data* sd = NULL;
+	struct map_session_data *sd = NULL;
 	unsigned int timeout = NPC_SECURE_TIMEOUT_NEXT;
 	int cur_tick = gettick(); //Ensure we are on last tick
 
@@ -302,7 +302,7 @@ int npc_rr_secure_timeout_timer(int tid, unsigned int tick, int id, intptr_t dat
 /*==========================================
  * Dequeue event and add timer for execution (100ms)
  *------------------------------------------*/
-int npc_event_dequeue(struct map_session_data* sd)
+int npc_event_dequeue(struct map_session_data *sd)
 {
 	nullpo_ret(sd);
 
@@ -337,7 +337,7 @@ int npc_event_dequeue(struct map_session_data* sd)
  *------------------------------------------*/
 static int npc_event_export(struct npc_data *nd, int i)
 {
-	char* lname = nd->u.scr.label_list[i].name;
+	char *lname = nd->u.scr.label_list[i].name;
 	int pos = nd->u.scr.label_list[i].pos;
 	if ((lname[0] == 'O' || lname[0] == 'o') && (lname[1] == 'N' || lname[1] == 'n')) {
 		struct event_data *ev;
@@ -353,7 +353,7 @@ static int npc_event_export(struct npc_data *nd, int i)
 	return 0;
 }
 
-int npc_event_sub(struct map_session_data* sd, struct event_data* ev, const char* eventname); //[Lance]
+int npc_event_sub(struct map_session_data *sd, struct event_data* ev, const char *eventname); //[Lance]
 
 /**
  * Exec name (NPC events) on player or global
@@ -362,10 +362,10 @@ int npc_event_sub(struct map_session_data* sd, struct event_data* ev, const char
  */
 int npc_event_doall_sub(DBKey key, DBData *data, va_list ap)
 {
-	const char* p = key.str;
+	const char *p = key.str;
 	struct event_data* ev;
 	int* c;
-	const char* name;
+	const char *name;
 	int rid;
 
 	nullpo_ret(ev = db_data2ptr(data));
@@ -391,10 +391,10 @@ int npc_event_doall_sub(DBKey key, DBData *data, va_list ap)
  */
 static int npc_event_do_sub(DBKey key, DBData *data, va_list ap)
 {
-	const char* p = key.str;
+	const char *p = key.str;
 	struct event_data* ev;
 	int* c;
-	const char* name;
+	const char *name;
 
 	nullpo_ret(ev = db_data2ptr(data));
 	nullpo_ret(c = va_arg(ap, int *));
@@ -410,7 +410,7 @@ static int npc_event_do_sub(DBKey key, DBData *data, va_list ap)
 }
 
 // runs the specified event (supports both single-npc and global events)
-int npc_event_do(const char* name)
+int npc_event_do(const char *name)
 {
 	int c = 0;
 
@@ -423,13 +423,13 @@ int npc_event_do(const char* name)
 }
 
 // runs the specified event (global only)
-int npc_event_doall(const char* name)
+int npc_event_doall(const char *name)
 {
 	return npc_event_doall_id(name, 0);
 }
 
 // runs the specified event, with a RID attached (global only)
-int npc_event_doall_id(const char* name, int rid)
+int npc_event_doall_id(const char *name, int rid)
 {
 	int c = 0;
 	char buf[64];
@@ -454,7 +454,7 @@ int npc_event_do_clock(int tid, unsigned int tick, int id, intptr_t data)
 	t = localtime(&timer);
 
 	if (t->tm_min != ev_tm_b.tm_min ) {
-		char* day;
+		char *day;
 
 		switch (t->tm_wday) {
 			case 0: day = "Sun"; break;
@@ -693,7 +693,7 @@ int npc_timerevent_stop(struct npc_data* nd)
 /*==========================================
  * Aborts a running NPC timer that is attached to a player.
  *------------------------------------------*/
-void npc_timerevent_quit(struct map_session_data* sd)
+void npc_timerevent_quit(struct map_session_data *sd)
 {
 	const struct TimerData *td;
 	struct npc_data* nd;
@@ -795,7 +795,7 @@ int npc_settimerevent_tick(struct npc_data* nd, int newtimer)
 	return 0;
 }
 
-int npc_event_sub(struct map_session_data* sd, struct event_data* ev, const char* eventname)
+int npc_event_sub(struct map_session_data *sd, struct event_data* ev, const char *eventname)
 {
 	if ( sd->npc_id != 0 )
 	{
@@ -824,7 +824,7 @@ int npc_event_sub(struct map_session_data* sd, struct event_data* ev, const char
 /*==========================================
  * NPC processing event type
  *------------------------------------------*/
-int npc_event(struct map_session_data* sd, const char* eventname, int ontouch)
+int npc_event(struct map_session_data *sd, const char *eventname, int ontouch)
 {
 	struct event_data* ev = (struct event_data*)strdb_get(ev_db, eventname);
 	struct npc_data *nd;
@@ -863,7 +863,7 @@ int npc_touch_areanpc_sub(struct block_list *bl, va_list ap)
 	nullpo_ret((sd = map_id2sd(bl->id)));
 
 	pc_id = va_arg(ap,int);
-	name = va_arg(ap,char*);
+	name = va_arg(ap,char *);
 	
 	if( sd->state.warping )
 		return 0;
@@ -881,7 +881,7 @@ int npc_touch_areanpc_sub(struct block_list *bl, va_list ap)
  * Chk if sd is still touching his assigned npc.
  * If not, it unsets it and searches for another player in range.
  *------------------------------------------*/
-int npc_touchnext_areanpc(struct map_session_data* sd, bool leavemap)
+int npc_touchnext_areanpc(struct map_session_data *sd, bool leavemap)
 {
 	struct npc_data *nd = map_id2nd(sd->touching_id);
 	short xs, ys;
@@ -909,7 +909,7 @@ int npc_touchnext_areanpc(struct map_session_data* sd, bool leavemap)
 /*==========================================
  * Exec OnTouch for player if in range of area event
  *------------------------------------------*/
-int npc_touch_areanpc(struct map_session_data* sd, int16 m, int16 x, int16 y)
+int npc_touch_areanpc(struct map_session_data *sd, int16 m, int16 x, int16 y)
 {
 	int xs,ys;
 	int f = 1;
@@ -997,7 +997,7 @@ int npc_touch_areanpc(struct map_session_data* sd, int16 m, int16 x, int16 y)
 /*==========================================
  * Exec OnUnTouch for player if out range of area event
  *------------------------------------------*/
-int npc_untouch_areanpc(struct map_session_data* sd, int16 m, int16 x, int16 y)
+int npc_untouch_areanpc(struct map_session_data *sd, int16 m, int16 x, int16 y)
 {
 	struct npc_data *nd;
 
@@ -1144,7 +1144,7 @@ int npc_check_areanpc(int flag, int16 m, int16 x, int16 y, int16 range)
  * Chk if player not too far to access the npc.
  * Returns npc_data (success) or NULL (fail).
  *------------------------------------------*/
-struct npc_data* npc_checknear(struct map_session_data* sd, struct block_list* bl)
+struct npc_data* npc_checknear(struct map_session_data *sd, struct block_list *bl)
 {
 	struct npc_data *nd;
 	int distance = AREA_SIZE + 1;
@@ -1179,7 +1179,7 @@ struct npc_data* npc_checknear(struct map_session_data* sd, struct block_list* b
 /*==========================================
  * Make NPC talk in global chat (like npctalk)
  *------------------------------------------*/
-int npc_globalmessage(const char* name, const char* mes)
+int npc_globalmessage(const char *name, const char *mes)
 {
 	struct npc_data* nd = npc_name2id(name);
 	char temp[100];
@@ -1194,7 +1194,7 @@ int npc_globalmessage(const char* name, const char* mes)
 }
 
 // MvP tomb [GreenBox]
-void run_tomb(struct map_session_data* sd, struct npc_data* nd)
+void run_tomb(struct map_session_data *sd, struct npc_data* nd)
 {
 	char buffer[200];
     char time[10];
@@ -1222,7 +1222,7 @@ void run_tomb(struct map_session_data* sd, struct npc_data* nd)
  * NPC 1st call when clicking on npc
  * Do specific action for NPC type (openshop, run scripts...)
  *------------------------------------------*/
-int npc_click(struct map_session_data* sd, struct npc_data* nd)
+int npc_click(struct map_session_data *sd, struct npc_data* nd)
 {
 	nullpo_retr(1, sd);
 
@@ -1289,16 +1289,16 @@ int npc_click(struct map_session_data* sd, struct npc_data* nd)
 /*==========================================
  *
  *------------------------------------------*/
-int npc_scriptcont(struct map_session_data* sd, int id, bool closing)
+int npc_scriptcont(struct map_session_data *sd, int id, bool closing)
 {
 	nullpo_retr(1, sd);
 
 	if( id != sd->npc_id ) {
-		TBL_NPC* nd_sd=(TBL_NPC*)map_id2bl(sd->npc_id);
-		TBL_NPC* nd=(TBL_NPC*)map_id2bl(id);
+		TBL_NPC* nd_sd=(TBL_NPC *)map_id2bl(sd->npc_id);
+		TBL_NPC* nd=(TBL_NPC *)map_id2bl(id);
 		ShowDebug("npc_scriptcont: %s (sd->npc_id=%d) is not %s (id=%d).\n",
-			nd_sd?(char*)nd_sd->name:"'Unknown NPC'", (int)sd->npc_id,
-		  	nd?(char*)nd->name:"'Unknown NPC'", (int)id);
+			nd_sd?(char *)nd_sd->name:"'Unknown NPC'", (int)sd->npc_id,
+		  	nd?(char *)nd->name:"'Unknown NPC'", (int)id);
 		return 1;
 	}
 	
@@ -1329,7 +1329,7 @@ int npc_scriptcont(struct map_session_data* sd, int id, bool closing)
 /*==========================================
  * Chk if valid call then open buy or selling list
  *------------------------------------------*/
-int npc_buysellsel(struct map_session_data* sd, int id, int type)
+int npc_buysellsel(struct map_session_data *sd, int id, int type)
 {
 	struct npc_data *nd;
 
@@ -1917,7 +1917,7 @@ int npc_remove_map(struct npc_data* nd)
 static int npc_unload_ev(DBKey key, DBData *data, va_list ap)
 {
 	struct event_data* ev = db_data2ptr(data);
-	char* npcname = va_arg(ap, char *);
+	char *npcname = va_arg(ap, char *);
 
 	if(strcmp(ev->nd->exname,npcname) == 0) {
 		db_remove(ev_db, key);
@@ -2059,7 +2059,7 @@ static void npc_clearsrcfile(void)
  * @param name : file to add
  * @return 0 = Error, 1 = Success
  */
-int npc_addsrcfile(const char* name)
+int npc_addsrcfile(const char *name)
 {
 	struct npc_src_list* file;
 	struct npc_src_list* file_prev = NULL;
@@ -2093,7 +2093,7 @@ int npc_addsrcfile(const char* name)
 }
 
 /// Removes a npc source file (or all)
-void npc_delsrcfile(const char* name)
+void npc_delsrcfile(const char *name)
 {
 	struct npc_src_list* file = npc_src_files;
 	struct npc_src_list* file_prev = NULL;
@@ -2122,9 +2122,9 @@ void npc_delsrcfile(const char* name)
 
 /// Parses and sets the name and exname of a npc.
 /// Assumes that m, x and y are already set in nd.
-static void npc_parsename(struct npc_data* nd, const char* name, const char* start, const char* buffer, const char* filepath)
+static void npc_parsename(struct npc_data* nd, const char *name, const char *start, const char *buffer, const char *filepath)
 {
-	const char* p;
+	const char *p;
 	struct npc_data* dnd; //Duplicate npc
 	char newname[NAME_LENGTH];
 
@@ -2194,7 +2194,7 @@ static void npc_parsename(struct npc_data* nd, const char* name, const char* sta
 
 		npc_last_npd = npd;
 		npc_last_ref = npd->path;
-		npc_last_path = (char*) filepath;
+		npc_last_path = (char *) filepath;
 	} else {
 		nd->path = npc_last_ref;
 		if( npc_last_npd )
@@ -2206,7 +2206,7 @@ static void npc_parsename(struct npc_data* nd, const char* name, const char* sta
  * Parses NPC view.
  * Support for using Constants in place of NPC View IDs.
  */
-int npc_parseview(const char* w4, const char* start, const char* buffer, const char* filepath) {
+int npc_parseview(const char *w4, const char *start, const char *buffer, const char *filepath) {
 	int val = -1, i = 0;
 	char viewid[1024];	//Max size of name from const.txt, see read_constdb.
 
@@ -2273,7 +2273,7 @@ struct npc_data* npc_create_npc(int m, int x, int y)
  * @param to_y : y coordinate to warp to
  * @return NULL:failed creation, npc_data* new warp
  */
-struct npc_data* npc_add_warp(char* name, short from_mapid, short from_x, short from_y, short xs, short ys, unsigned short to_mapindex, short to_x, short to_y)
+struct npc_data* npc_add_warp(char *name, short from_mapid, short from_x, short from_y, short xs, short ys, unsigned short to_mapindex, short to_x, short to_y)
 {
 	int i, flag = 0;
 	struct npc_data *nd;
@@ -2330,7 +2330,7 @@ struct npc_data* npc_add_warp(char* name, short from_mapid, short from_x, short 
  * @param filepath : filename with path wich we are parsing
  * @return new index for next parsing
  */
-static const char* npc_parse_warp(char* w1, char* w2, char* w3, char* w4, const char* start, const char* buffer, const char* filepath)
+static const char *npc_parse_warp(char *w1, char *w2, char *w3, char *w4, const char *start, const char *buffer, const char *filepath)
 {
 	int x, y, xs, ys, to_x, to_y, m;
 	unsigned short i;
@@ -2651,18 +2651,18 @@ bool npc_shop_discount(enum npc_subtype type, bool discount) {
  */
 int npc_convertlabel_db(DBKey key, DBData *data, va_list ap)
 {
-	const char* lname = (const char*)key.str;
+	const char *lname = (const char *)key.str;
 	int lpos = db_data2i(data);
 	struct npc_label_list** label_list;
 	int* label_list_num;
-	const char* filepath;
+	const char *filepath;
 	struct npc_label_list* label;
 	const char *p;
 	int len;
 
 	nullpo_ret(label_list = va_arg(ap,struct npc_label_list**));
 	nullpo_ret(label_list_num = va_arg(ap,int*));
-	nullpo_ret(filepath = va_arg(ap,const char*));
+	nullpo_ret(filepath = va_arg(ap,const char *));
 
 	//In case of labels not terminated with ':', for user defined function support
 	p = lname;
@@ -2691,9 +2691,9 @@ int npc_convertlabel_db(DBKey key, DBData *data, va_list ap)
 }
 
 //Skip the contents of a script.
-static const char* npc_skip_script(const char* start, const char* buffer, const char* filepath)
+static const char *npc_skip_script(const char *start, const char *buffer, const char *filepath)
 {
-	const char* p;
+	const char *p;
 	int curly_count;
 
 	if( start == NULL )
@@ -2748,13 +2748,13 @@ static const char* npc_skip_script(const char* start, const char* buffer, const 
  * @param filepath : filename with path wich we are parsing
  * @return new index for next parsing
  */
-static const char* npc_parse_script(char* w1, char* w2, char* w3, char* w4, const char* start, const char* buffer, const char* filepath, bool runOnInit) {
+static const char *npc_parse_script(char *w1, char *w2, char *w3, char *w4, const char *start, const char *buffer, const char *filepath, bool runOnInit) {
 	int x, y, dir = 0, m, xs = 0, ys = 0; // [Valaris] thanks to fov
 	char mapname[32];
 	struct script_code *script;
 	int i;
-	const char* end;
-	const char* script_start;
+	const char *end;
+	const char *script_start;
 
 	struct npc_label_list* label_list;
 	int label_list_num;
@@ -2788,7 +2788,7 @@ static const char* npc_parse_script(char* w1, char* w2, char* w3, char* w4, cons
 	label_list = NULL;
 	label_list_num = 0;
 	if( script ) {
-		DBMap* label_db = script_get_label_db();
+		DBMap *label_db = script_get_label_db();
 		label_db->foreach(label_db, npc_convertlabel_db, &label_list, &label_list_num, filepath);
 		db_clear(label_db); //Not needed anymore, so clear the db
 	}
@@ -2861,12 +2861,12 @@ static const char* npc_parse_script(char* w1, char* w2, char* w3, char* w4, cons
 /// shop/cashshop/npc: <map name>,<x>,<y>,<facing>%TAB%duplicate(<name of target>)%TAB%<NPC Name>%TAB%<sprite id>
 /// npc: -%TAB%duplicate(<name of target>)%TAB%<NPC Name>%TAB%<sprite id>,<triggerX>,<triggerY>
 /// npc: <map name>,<x>,<y>,<facing>%TAB%duplicate(<name of target>)%TAB%<NPC Name>%TAB%<sprite id>,<triggerX>,<triggerY>
-const char* npc_parse_duplicate(char* w1, char* w2, char* w3, char* w4, const char* start, const char* buffer, const char* filepath)
+const char *npc_parse_duplicate(char *w1, char *w2, char *w3, char *w4, const char *start, const char *buffer, const char *filepath)
 {
 	int x, y, dir, m, xs = -1, ys = -1;
 	char srcname[128];
 	int i;
-	const char* end;
+	const char *end;
 	size_t length;
 
 	int src_id;
@@ -3059,7 +3059,7 @@ int npc_duplicate4instance(struct npc_data *snd, int16 m) {
 		strdb_put(npcname_db, wnd->exname, wnd);
 	} else {
 		static char w1[50], w2[50], w3[50], w4[50];
-		const char* stat_buf = "- call from instancing subsystem -\n";
+		const char *stat_buf = "- call from instancing subsystem -\n";
 
 		snprintf(w1, sizeof(w1), "%s,%d,%d,%d", map[m].name, snd->bl.x, snd->bl.y, snd->ud.dir);
 		snprintf(w2, sizeof(w2), "duplicate(%s)", snd->exname);
@@ -3289,7 +3289,7 @@ void npc_setcells(struct npc_data* nd)
 	}
 }
 
-int npc_unsetcells_sub(struct block_list* bl, va_list ap)
+int npc_unsetcells_sub(struct block_list *bl, va_list ap)
 {
 	struct npc_data *nd = (struct npc_data*)bl;
 	int id =  va_arg(ap,int);
@@ -3347,7 +3347,7 @@ void npc_movenpc(struct npc_data* nd, int16 x, int16 y)
 ///
 /// @param nd Target npc
 /// @param newname New display name
-void npc_setdisplayname(struct npc_data* nd, const char* newname)
+void npc_setdisplayname(struct npc_data* nd, const char *newname)
 {
 	nullpo_retv(nd);
 
@@ -3413,7 +3413,7 @@ int npc_do_atcmd_event(struct map_session_data *sd, const char *command, const c
 
 	// split atcmd parameters based on spaces
 
-	temp = (char*)aMalloc(strlen(message) + 1);
+	temp = (char *)aMalloc(strlen(message) + 1);
 
 	for( i = 0; i < ( strlen( message ) + 1 ) && k < 127; i ++ ) {
 		if( message[i] == ' ' || message[i] == '\0' ) {
@@ -3440,13 +3440,13 @@ int npc_do_atcmd_event(struct map_session_data *sd, const char *command, const c
 
 /// Parses a function.
 /// function%TAB%script%TAB%<function name>%TAB%{<code>}
-static const char* npc_parse_function(char* w1, char* w2, char* w3, char* w4, const char* start, const char* buffer, const char* filepath)
+static const char *npc_parse_function(char *w1, char *w2, char *w3, char *w4, const char *start, const char *buffer, const char *filepath)
 {
-	DBMap* func_db;
+	DBMap *func_db;
 	DBData old_data;
 	struct script_code *script;
-	const char* end;
-	const char* script_start;
+	const char *end;
+	const char *script_start;
 
 	script_start = strstr(start,"\t{");
 	end = strchr(start,'\n');
@@ -3489,14 +3489,14 @@ void npc_parse_mob2(struct spawn_data* mob)
 	int i;
 
 	for( i = mob->active; i < mob->num; ++i ) {
-		struct mob_data* md = mob_spawn_dataset(mob);
+		struct mob_data *md = mob_spawn_dataset(mob);
 		md->spawn = mob;
 		md->spawn->active++;
 		mob_spawn(md);
 	}
 }
 
-static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const char* start, const char* buffer, const char* filepath)
+static const char *npc_parse_mob(char *w1, char *w2, char *w3, char *w4, const char *start, const char *buffer, const char *filepath)
 {
 	int num, mob_id, m, x, y, xs, ys, i, j;
 	int mob_lv = -1, ai = -1, size = -1;
@@ -3658,7 +3658,7 @@ static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const c
  * eg : bat_c01	mapflag	battleground	2
  * also chking if mapflag conflict with another
  *------------------------------------------*/
-static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, const char* start, const char* buffer, const char* filepath)
+static const char *npc_parse_mapflag(char *w1, char *w2, char *w3, char *w4, const char *start, const char *buffer, const char *filepath)
 {
 	int16 m;
 	char mapname[32];
@@ -3996,14 +3996,14 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
  * @param runOnInit :  should we exec OnInit when it's done ?
  * @return 0 : Error, 1 : Success
  */
-int npc_parsesrcfile(const char* filepath, bool runOnInit)
+int npc_parsesrcfile(const char *filepath, bool runOnInit)
 {
 	int16 m, x, y;
 	int lines = 0;
 	FILE* fp;
 	size_t len;
-	char* buffer;
-	const char* p;
+	char *buffer;
+	const char *p;
 
 	if( check_filepath(filepath) != 2 ) { //This is not a file 
 		ShowDebug("npc_parsesrcfile: Path doesn't seem to be a file skipping it : '%s'.\n", filepath);
@@ -4019,7 +4019,7 @@ int npc_parsesrcfile(const char* filepath, bool runOnInit)
 
 	fseek(fp, 0, SEEK_END);
 	len = ftell(fp);
-	buffer = (char*)aMalloc(len + 1);
+	buffer = (char *)aMalloc(len + 1);
 	fseek(fp, 0, SEEK_SET);
 	len = fread(buffer, 1, len, fp);
 	buffer[len] = '\0';
@@ -4148,7 +4148,7 @@ int npc_parsesrcfile(const char* filepath, bool runOnInit)
 	return 1;
 }
 
-int npc_script_event(struct map_session_data* sd, enum npce_event type)
+int npc_script_event(struct map_session_data *sd, enum npce_event type)
 {
 	int i;
 	if (type == NPCE_MAX)
@@ -4181,7 +4181,7 @@ void npc_read_event_script(void)
 	};
 
 	for( i = 0; i < NPCE_MAX; i++ ) {
-		DBIterator* iter;
+		DBIterator *iter;
 		DBKey key;
 		DBData *data;
 
@@ -4191,7 +4191,7 @@ void npc_read_event_script(void)
 		script_event[i].event_count = 0;
 		iter = db_iterator(ev_db);
 		for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) ) {
-			const char* p = key.str;
+			const char *p = key.str;
 			struct event_data* ed = db_data2ptr(data);
 			unsigned char count = script_event[i].event_count;
 
@@ -4255,7 +4255,7 @@ int npc_reload(void) {
 	int16 m, i;
 	int npc_new_min = npc_id;
 	struct s_mapiterator* iter;
-	struct block_list* bl;
+	struct block_list *bl;
 
 	//Clear guild flag cache
 	guild_flags_clear();
@@ -4271,7 +4271,7 @@ int npc_reload(void) {
 	npc_market_fromsql();
 #endif
 	iter = mapit_geteachiddb();
-	for( bl = (struct block_list*)mapit_first(iter); mapit_exists(iter); bl = (struct block_list*)mapit_next(iter) ) {
+	for( bl = (struct block_list *)mapit_first(iter); mapit_exists(iter); bl = (struct block_list *)mapit_next(iter) ) {
 		switch( bl->type ) {
 			case BL_NPC:
 				if( bl->id != fake_nd->bl.id ) //Don't remove fake_nd
@@ -4341,7 +4341,7 @@ int npc_reload(void) {
 }
 
 //Unload all npc in the given file
-bool npc_unloadfile( const char* path ) {
+bool npc_unloadfile( const char *path ) {
 	DBIterator * iter = db_iterator(npcname_db);
 	struct npc_data* nd = NULL;
 	bool found = false;

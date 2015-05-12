@@ -35,7 +35,7 @@ struct guild *guild_search(int guild_id);
 struct guild *guild_searchname(char *str);
 struct guild_castle *guild_castle_search(int gcid);
 
-struct guild_castle* guild_mapname2gc(const char* mapname);
+struct guild_castle* guild_mapname2gc(const char *mapname);
 struct guild_castle* guild_mapindex2gc(short mapindex);
 
 struct map_session_data *guild_getavailablesd(struct guild *g);
@@ -60,7 +60,7 @@ int guild_member_withdraw(int guild_id,int account_id,int char_id,int flag,
 	const char *name,const char *mes);
 int guild_expulsion(struct map_session_data *sd,int guild_id,
 	int account_id,int char_id,const char *mes);
-int guild_skillup(struct map_session_data* sd, uint16 skill_id);
+int guild_skillup(struct map_session_data *sd, uint16 skill_id);
 void guild_block_skill(struct map_session_data *sd, int time);
 int guild_reqalliance(struct map_session_data *sd,struct map_session_data *tsd);
 int guild_reply_reqalliance(struct map_session_data *sd,int account_id,int flag);

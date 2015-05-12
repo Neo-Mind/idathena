@@ -17,11 +17,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static DBMap* channel_db; //Channels
+static DBMap *channel_db; //Channels
 
 struct Channel_Config channel_config;
 
-DBMap* channel_get_db(void) {
+DBMap *channel_get_db(void) {
 	return channel_db;
 }
 
@@ -926,7 +926,7 @@ int channel_pcsetopt(struct map_session_data *sd, char *chname, const char *opti
 	struct Channel *channel;
 	char output[128];
 	int k, s = 0;
-	const char* opt_str[] = {
+	const char *opt_str[] = {
 		"None",
 		"JoinAnnounce",
 		"MessageDelay",

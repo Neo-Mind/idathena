@@ -79,7 +79,7 @@ typedef enum c_op {
 } c_op;
 
 struct script_retinfo {
-	struct DBMap* var_function;// scope variables
+	struct DBMap *var_function;// scope variables
 	struct script_code* script;// script code
 	int pos;// script location
 	int nargs;// argument count
@@ -100,8 +100,8 @@ struct script_data {
 // it must be saved when script state is RERUNLINE. [Eoe / jA 1094]
 struct script_code {
 	int script_size;
-	unsigned char* script_buf;
-	struct DBMap* script_vars;
+	unsigned char *script_buf;
+	struct DBMap *script_vars;
 };
 
 struct script_stack {
@@ -109,7 +109,7 @@ struct script_stack {
 	int sp_max;// capacity of the stack
 	int defsp;
 	struct script_data *stack_data;// stack
-	struct DBMap* var_function;// scope variables
+	struct DBMap *var_function;// scope variables
 };
 
 
@@ -135,7 +135,7 @@ struct script_state {
 	unsigned op2ref : 1;// used by op_2
 	unsigned npc_item_flag : 1;
 	unsigned mes_active : 1;  // Store if invoking character has a NPC dialog box open.
-	char* funcname; // Stores the current running function name
+	char *funcname; // Stores the current running function name
 };
 
 struct script_reg {
@@ -145,7 +145,7 @@ struct script_reg {
 
 struct script_regstr {
 	int index;
-	char* data;
+	char *data;
 };
 
 enum script_parse_options {
@@ -154,17 +154,17 @@ enum script_parse_options {
 	SCRIPT_RETURN_EMPTY_SCRIPT = 0x4// returns the script object instead of NULL for empty scripts
 };
 
-const char* skip_space(const char* p);
-void script_error(const char* src, const char* file, int start_line, const char* error_msg, const char* error_pos);
-void script_warning(const char* src, const char* file, int start_line, const char* error_msg, const char* error_pos);
+const char *skip_space(const char *p);
+void script_error(const char *src, const char *file, int start_line, const char *error_msg, const char *error_pos);
+void script_warning(const char *src, const char *file, int start_line, const char *error_msg, const char *error_pos);
 
-struct script_code* parse_script(const char* src,const char* file,int line,int options);
-void run_script_sub(struct script_code *rootscript,int pos,int rid,int oid, char* file, int lineno);
+struct script_code* parse_script(const char *src,const char *file,int line,int options);
+void run_script_sub(struct script_code *rootscript,int pos,int rid,int oid, char *file, int lineno);
 void run_script(struct script_code*,int,int,int);
 
 int set_var(struct map_session_data *sd, char *name, void *val);
 int conv_num(struct script_state *st,struct script_data *data);
-const char* conv_str(struct script_state *st,struct script_data *data);
+const char *conv_str(struct script_state *st,struct script_data *data);
 int run_script_timer(int tid, unsigned int tick, int id, intptr_t data);
 void run_script_main(struct script_state *st);
 
@@ -175,22 +175,22 @@ void script_free_vars(struct DBMap *storage);
 struct script_state* script_alloc_state(struct script_code* script, int pos, int rid, int oid);
 void script_free_state(struct script_state* st);
 
-struct DBMap* script_get_label_db(void);
-struct DBMap* script_get_userfunc_db(void);
+struct DBMap *script_get_label_db(void);
+struct DBMap *script_get_userfunc_db(void);
 void script_run_autobonus(const char *autobonus, struct map_session_data *sd, unsigned int pos);
 
-bool script_get_constant(const char* name, int* value);
-void script_set_constant(const char* name, int value, bool isparameter);
+bool script_get_constant(const char *name, int* value);
+void script_set_constant(const char *name, int value, bool isparameter);
 void script_hardcoded_constants(void);
 
-void script_cleararray_pc(struct map_session_data* sd, const char* varname, void* value);
-void script_setarray_pc(struct map_session_data* sd, const char* varname, uint8 idx, void* value, int* refcache);
+void script_cleararray_pc(struct map_session_data *sd, const char *varname, void* value);
+void script_setarray_pc(struct map_session_data *sd, const char *varname, uint8 idx, void* value, int* refcache);
 
 int script_config_read(char *cfgName);
 void do_init_script(void);
 void do_final_script(void);
-int add_str(const char* p);
-const char* get_str(int id);
+int add_str(const char *p);
+const char *get_str(int id);
 void script_reload(void);
 
 // @commands (script based)

@@ -143,7 +143,7 @@ void chrif_check_shutdown(void) {
 }
 
 struct auth_node *chrif_search(int account_id) {
-	return (struct auth_node*)idb_get(auth_db, account_id);
+	return (struct auth_node *)idb_get(auth_db, account_id);
 }
 
 struct auth_node *chrif_auth_check(int account_id, int char_id, enum sd_state state) {
@@ -660,7 +660,7 @@ void chrif_authok(int fd) {
 	int account_id, group_id, char_id;
 	uint32 login_id1, login_id2;
 	time_t expiration_time;
-	struct mmo_charstatus* status;
+	struct mmo_charstatus *status;
 	struct auth_node *node;
 	bool changing_mapservers;
 	TBL_PC* sd;
@@ -677,7 +677,7 @@ void chrif_authok(int fd) {
 	expiration_time = (time_t)(int32)RFIFOL(fd,16);
 	group_id = RFIFOL(fd,20);
 	changing_mapservers = (RFIFOB(fd,24));
-	status = (struct mmo_charstatus*)RFIFOP(fd,25);
+	status = (struct mmo_charstatus *)RFIFOP(fd,25);
 	char_id = status->char_id;
 
 	//Check if we don't already have player data in our server
@@ -722,7 +722,7 @@ void chrif_authfail(int fd) {/* HELLO WORLD. ip in RFIFOL 15 is not being used (
 	int account_id, char_id;
 	uint32 login_id1;
 	char sex;
-	struct auth_node* node;
+	struct auth_node *node;
 
 	account_id = RFIFOL(fd,2);
 	char_id    = RFIFOL(fd,6);
@@ -752,7 +752,7 @@ int auth_db_cleanup_sub(DBKey key, DBData *data, va_list ap) {
 	struct auth_node *node = db_data2ptr(data);
 
 	if(DIFF_TICK(gettick(),node->node_created)>60000) {
-		const char* states[] = { "Login", "Logout", "Map change" };
+		const char *states[] = { "Login", "Logout", "Map change" };
 
 		switch (node->state) {
 			case ST_LOGOUT:
@@ -995,7 +995,7 @@ int chrif_divorce(int partner_id1, int partner_id2) {
  * only used if 'partner_id' is offline
  *------------------------------------------*/
 int chrif_divorceack(int char_id, int partner_id) {
-	struct map_session_data* sd;
+	struct map_session_data *sd;
 	int i;
 
 	if( !char_id || !partner_id )
@@ -1021,7 +1021,7 @@ int chrif_divorceack(int char_id, int partner_id) {
  * Removes Baby from parents
  *------------------------------------------*/
 int chrif_deadopt(int father_id, int mother_id, int child_id) {
-	struct map_session_data* sd;
+	struct map_session_data *sd;
 	uint16 idx = skill_get_index(WE_CALLBABY);
 
 	if( father_id && (sd = map_charid2sd(father_id)) != NULL && sd->status.child == child_id ) {
@@ -1115,12 +1115,12 @@ int chrif_req_charunban(int aid, const char *character_name) {
 //Disconnect the player out of the game, simple packet
 //packet.w AID.L WHY.B 2+4+1 = 7byte
 int chrif_disconnectplayer(int fd) {
-	struct map_session_data* sd;
+	struct map_session_data *sd;
 	int account_id = RFIFOL(fd, 2);
 
 	sd = map_id2sd(account_id);
 	if( sd == NULL ) {
-		struct auth_node* auth = chrif_search(account_id);
+		struct auth_node *auth = chrif_search(account_id);
 		
 		if( auth != NULL && chrif_auth_delete(account_id, auth->char_id, ST_LOGIN) )
 			return 0;
@@ -1154,7 +1154,7 @@ int chrif_disconnectplayer(int fd) {
 /*==========================================
  * Request/Receive top 10 Fame character list
  *------------------------------------------*/
-int chrif_updatefamelist(struct map_session_data* sd) {
+int chrif_updatefamelist(struct map_session_data *sd) {
 	char type;
 
 	chrif_check(-1);
@@ -1802,7 +1802,7 @@ int send_usercount_tochar(int tid, unsigned int tick, int id, intptr_t data) {
  *------------------------------------------*/
 int send_users_tochar(void) {
 	int users = 0, i = 0;
-	struct map_session_data* sd;
+	struct map_session_data *sd;
 	struct s_mapiterator* iter;
 
 	chrif_check(-1);
@@ -1814,7 +1814,7 @@ int send_users_tochar(void) {
 
 	iter = mapit_getallusers();
 
-	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) ) {
+	for( sd = (TBL_PC *)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC *)mapit_next(iter) ) {
 		WFIFOL(char_fd,6+8*i) = sd->status.account_id;
 		WFIFOL(char_fd,6+8*i+4) = sd->status.char_id;
 		i++;
@@ -1879,7 +1879,7 @@ int chrif_removefriend(int char_id, int friend_id) {
 	return 0;
 }
 
-int chrif_send_report(char* buf, int len) {
+int chrif_send_report(char *buf, int len) {
 #ifndef STATS_OPT_OUT
 	chrif_check(-1);
 	WFIFOHEAD(char_fd,len + 2);
@@ -1895,7 +1895,7 @@ int chrif_send_report(char* buf, int len) {
  * @see DBApply
  */
 int auth_db_final(DBKey key, DBData *data, va_list ap) {
-	struct auth_node *node = (struct auth_node*)db_data2ptr(data);
+	struct auth_node *node = (struct auth_node *)db_data2ptr(data);
 
 	if (node->char_dat)
 		aFree(node->char_dat);

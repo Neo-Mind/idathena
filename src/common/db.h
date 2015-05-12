@@ -289,7 +289,7 @@ struct DBIterator
 	 * @return Data of the entry
 	 * @protected
 	 */
-	DBData* (*first)(DBIterator* self, DBKey* out_key);
+	DBData* (*first)(DBIterator *self, DBKey* out_key);
 
 	/**
 	 * Fetches the last entry in the database.
@@ -300,7 +300,7 @@ struct DBIterator
 	 * @return Data of the entry
 	 * @protected
 	 */
-	DBData* (*last)(DBIterator* self, DBKey* out_key);
+	DBData* (*last)(DBIterator *self, DBKey* out_key);
 
 	/**
 	 * Fetches the next entry in the database.
@@ -311,7 +311,7 @@ struct DBIterator
 	 * @return Data of the entry
 	 * @protected
 	 */
-	DBData* (*next)(DBIterator* self, DBKey* out_key);
+	DBData* (*next)(DBIterator *self, DBKey* out_key);
 
 	/**
 	 * Fetches the previous entry in the database.
@@ -322,7 +322,7 @@ struct DBIterator
 	 * @return Data of the entry
 	 * @protected
 	 */
-	DBData* (*prev)(DBIterator* self, DBKey* out_key);
+	DBData* (*prev)(DBIterator *self, DBKey* out_key);
 
 	/**
 	 * Returns true if the fetched entry exists.
@@ -332,7 +332,7 @@ struct DBIterator
 	 * @return true is the entry exists
 	 * @protected
 	 */
-	bool (*exists)(DBIterator* self);
+	bool (*exists)(DBIterator *self);
 
 	/**
 	 * Removes the current entry from the database.
@@ -345,14 +345,14 @@ struct DBIterator
 	 * @protected
 	 * @see DBMap#remove
 	 */
-	int (*remove)(DBIterator* self, DBData *out_data);
+	int (*remove)(DBIterator *self, DBData *out_data);
 
 	/**
 	 * Destroys this iterator and unlocks the database.
 	 * @param self Iterator
 	 * @protected
 	 */
-	void (*destroy)(DBIterator* self);
+	void (*destroy)(DBIterator *self);
 
 };
 
@@ -373,7 +373,7 @@ struct DBMap {
 	 * @return New iterator
 	 * @protected
 	 */
-	DBIterator* (*iterator)(DBMap* self);
+	DBIterator *(*iterator)(DBMap *self);
 
 	/**
 	 * Returns true if the entry exists.
@@ -382,7 +382,7 @@ struct DBMap {
 	 * @return true is the entry exists
 	 * @protected
 	 */
-	bool (*exists)(DBMap* self, DBKey key);
+	bool (*exists)(DBMap *self, DBKey key);
 
 	/**
 	 * Get the data of the entry identified by the key.
@@ -391,7 +391,7 @@ struct DBMap {
 	 * @return Data of the entry or NULL if not found
 	 * @protected
 	 */
-	DBData* (*get)(DBMap* self, DBKey key);
+	DBData* (*get)(DBMap *self, DBKey key);
 
 	/**
 	 * Just calls {@link DBMap#vgetall}.
@@ -410,7 +410,7 @@ struct DBMap {
 	 * @protected
 	 * @see DBMap#vgetall(DBMap*,void **,unsigned int,DBMatcher,va_list)
 	 */
-	unsigned int (*getall)(DBMap* self, DBData** buf, unsigned int max, DBMatcher match, ...);
+	unsigned int (*getall)(DBMap *self, DBData** buf, unsigned int max, DBMatcher match, ...);
 
 	/**
 	 * Get the data of the entries matched by <code>match</code>.
@@ -428,7 +428,7 @@ struct DBMap {
 	 * @protected
 	 * @see DBMap#getall(DBMap*,void **,unsigned int,DBMatcher,...)
 	 */
-	unsigned int (*vgetall)(DBMap* self, DBData** buf, unsigned int max, DBMatcher match, va_list args);
+	unsigned int (*vgetall)(DBMap *self, DBData** buf, unsigned int max, DBMatcher match, va_list args);
 
 	/**
 	 * Just calls {@link DBMap#vensure}.
@@ -443,7 +443,7 @@ struct DBMap {
 	 * @protected
 	 * @see DBMap#vensure(DBMap*,DBKey,DBCreateData,va_list)
 	 */
-	DBData* (*ensure)(DBMap* self, DBKey key, DBCreateData create, ...);
+	DBData* (*ensure)(DBMap *self, DBKey key, DBCreateData create, ...);
 
 	/**
 	 * Get the data of the entry identified by the key.
@@ -457,7 +457,7 @@ struct DBMap {
 	 * @protected
 	 * @see DBMap#ensure(DBMap*,DBKey,DBCreateData,...)
 	 */
-	DBData* (*vensure)(DBMap* self, DBKey key, DBCreateData create, va_list args);
+	DBData* (*vensure)(DBMap *self, DBKey key, DBCreateData create, va_list args);
 
 	/**
 	 * Put the data identified by the key in the database.
@@ -470,7 +470,7 @@ struct DBMap {
 	 * @return 1 if if the entry already exists, 0 otherwise
 	 * @protected
 	 */
-	int (*put)(DBMap* self, DBKey key, DBData data, DBData *out_data);
+	int (*put)(DBMap *self, DBKey key, DBData data, DBData *out_data);
 
 	/**
 	 * Remove an entry from the database.
@@ -482,7 +482,7 @@ struct DBMap {
 	 * @return 1 if if the entry already exists, 0 otherwise
 	 * @protected
 	 */
-	int (*remove)(DBMap* self, DBKey key, DBData *out_data);
+	int (*remove)(DBMap *self, DBKey key, DBData *out_data);
 
 	/**
 	 * Just calls {@link DBMap#vforeach}.
@@ -495,7 +495,7 @@ struct DBMap {
 	 * @protected
 	 * @see DBMap#vforeach(DBMap*,DBApply,va_list)
 	 */
-	int (*foreach)(DBMap* self, DBApply func, ...);
+	int (*foreach)(DBMap *self, DBApply func, ...);
 
 	/**
 	 * Apply <code>func</code> to every entry in the database.
@@ -507,7 +507,7 @@ struct DBMap {
 	 * @protected
 	 * @see DBMap#foreach(DBMap*,DBApply,...)
 	 */
-	int (*vforeach)(DBMap* self, DBApply func, va_list args);
+	int (*vforeach)(DBMap *self, DBApply func, va_list args);
 
 	/**
 	 * Just calls {@link DBMap#vclear}.
@@ -522,7 +522,7 @@ struct DBMap {
 	 * @protected
 	 * @see DBMap#vclear(DBMap*,DBApply,va_list)
 	 */
-	int (*clear)(DBMap* self, DBApply func, ...);
+	int (*clear)(DBMap *self, DBApply func, ...);
 
 	/**
 	 * Removes all entries from the database.
@@ -536,7 +536,7 @@ struct DBMap {
 	 * @protected
 	 * @see DBMap#clear(DBMap*,DBApply,...)
 	 */
-	int (*vclear)(DBMap* self, DBApply func, va_list args);
+	int (*vclear)(DBMap *self, DBApply func, va_list args);
 
 	/**
 	 * Just calls {@link DBMap#vdestroy}.
@@ -553,7 +553,7 @@ struct DBMap {
 	 * @protected
 	 * @see DBMap#vdestroy(DBMap*,DBApply,va_list)
 	 */
-	int (*destroy)(DBMap* self, DBApply func, ...);
+	int (*destroy)(DBMap *self, DBApply func, ...);
 
 	/**
 	 * Finalize the database, feeing all the memory it uses.
@@ -568,7 +568,7 @@ struct DBMap {
 	 * @protected
 	 * @see DBMap#destroy(DBMap*,DBApply,...)
 	 */
-	int (*vdestroy)(DBMap* self, DBApply func, va_list args);
+	int (*vdestroy)(DBMap *self, DBApply func, va_list args);
 
 	/**
 	 * Return the size of the database (number of items in the database).
@@ -576,7 +576,7 @@ struct DBMap {
 	 * @return Size of the database
 	 * @protected
 	 */
-	unsigned int (*size)(DBMap* self);
+	unsigned int (*size)(DBMap *self);
 
 	/**
 	 * Return the type of the database.
@@ -584,7 +584,7 @@ struct DBMap {
 	 * @return Type of the database
 	 * @protected
 	 */
-	DBType (*type)(DBMap* self);
+	DBType (*type)(DBMap *self);
 
 	/**
 	 * Return the options of the database.
@@ -592,7 +592,7 @@ struct DBMap {
 	 * @return Options of the database
 	 * @protected
 	 */
-	DBOptions (*options)(DBMap* self);
+	DBOptions (*options)(DBMap *self);
 
 };
 
@@ -775,7 +775,7 @@ DBReleaser db_custom_release(DBRelease which);
  * @see #db_default_release(DBType,DBOptions)
  * @see #db_fix_options(DBType,DBOptions)
  */
-DBMap* db_alloc(const char *file, int line, DBType type, DBOptions options, unsigned short maxlen);
+DBMap *db_alloc(const char *file, int line, DBType type, DBOptions options, unsigned short maxlen);
 
 /**
  * Manual cast from 'int' to the union DBKey.

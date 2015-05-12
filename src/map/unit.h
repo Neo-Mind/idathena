@@ -99,8 +99,8 @@ int unit_movepos(struct block_list *bl, short dst_x, short dst_y, int easy, bool
 int unit_warp(struct block_list *bl, short map, short x, short y, clr_type type);
 int unit_setdir(struct block_list *bl, unsigned char dir);
 uint8 unit_getdir(struct block_list *bl);
-int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag);
-int unit_blown_immune(struct block_list* bl, int flag);
+int unit_blown(struct block_list *bl, int dx, int dy, int count, int flag);
+int unit_blown_immune(struct block_list *bl, int flag);
 
 // Can-reach checks
 bool unit_can_reach_pos(struct block_list *bl,int x,int y,int easy);
@@ -136,7 +136,7 @@ struct unit_data* unit_bl2ud(struct block_list *bl);
 void unit_remove_map_pc(struct map_session_data *sd, clr_type clrtype);
 void unit_free_pc(struct map_session_data *sd);
 #define unit_remove_map(bl,clrtype) unit_remove_map_(bl,clrtype,__FILE__,__LINE__,__FUNCTION__)
-int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, int line, const char* func);
+int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char *file, int line, const char *func);
 int unit_free(struct block_list *bl, clr_type clrtype);
 int unit_changeviewsize(struct block_list *bl,short size);
 

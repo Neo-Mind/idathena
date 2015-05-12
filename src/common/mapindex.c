@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-DBMap* mapindex_db;
+DBMap *mapindex_db;
 struct _indexes {
 	char name[MAP_NAME_LENGTH]; //Stores map name
 } indexes[MAX_MAPINDEX];
@@ -24,9 +24,9 @@ char mapindex_cfgfile[80] = "db/map_index.txt";
 #define mapindex_exists(id) (indexes[id].name[0] != '\0')
 /// Retrieves the map name from 'string' (removing .gat extension if present).
 /// Result gets placed either into 'buf' or in a static local buffer.
-const char* mapindex_getmapname(const char* string, char* output) {
+const char *mapindex_getmapname(const char *string, char *output) {
 	static char buf[MAP_NAME_LENGTH];
-	char* dest = (output != NULL) ? output : buf;
+	char *dest = (output != NULL) ? output : buf;
 	
 	size_t len = strnlen(string, MAP_NAME_LENGTH_EXT);
 	if (len == MAP_NAME_LENGTH_EXT) {
@@ -45,9 +45,9 @@ const char* mapindex_getmapname(const char* string, char* output) {
 
 /// Retrieves the map name from 'string' (adding .gat extension if not already present).
 /// Result gets placed either into 'buf' or in a static local buffer.
-const char* mapindex_getmapname_ext(const char* string, char* output) {
+const char *mapindex_getmapname_ext(const char *string, char *output) {
 	static char buf[MAP_NAME_LENGTH_EXT];
-	char* dest = (output != NULL) ? output : buf;
+	char *dest = (output != NULL) ? output : buf;
 
 	size_t len;
 
@@ -74,7 +74,7 @@ const char* mapindex_getmapname_ext(const char* string, char* output) {
 
 /// Adds a map to the specified index
 /// Returns 1 if successful, 0 oherwise
-int mapindex_addmap(int index, const char* name) {
+int mapindex_addmap(int index, const char *name) {
 	char map_name[MAP_NAME_LENGTH];
 
 	if (index == -1) // Autogive index
@@ -110,7 +110,7 @@ int mapindex_addmap(int index, const char* name) {
 	return index;
 }
 
-unsigned short mapindex_name2id_sub(const char* name, const char *func) {
+unsigned short mapindex_name2id_sub(const char *name, const char *func) {
 	int i;
 	char map_name[MAP_NAME_LENGTH];
 
@@ -123,7 +123,7 @@ unsigned short mapindex_name2id_sub(const char* name, const char *func) {
 	return 0;
 }
 
-const char* mapindex_id2name_sub(unsigned short id, const char *file, int line, const char *func) {
+const char *mapindex_id2name_sub(unsigned short id, const char *file, int line, const char *func) {
 	if (id > MAX_MAPINDEX || !mapindex_exists(id)) {
 		ShowDebug("(%s) mapindex_id2name: Requested name for non-existant map index [%d] in cache. %s:%d\n", func, id, file, line);
 		return indexes[0].name; // dummy empty string so that the callee doesn't crash

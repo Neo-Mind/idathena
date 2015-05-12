@@ -646,7 +646,7 @@ static DBKey db_dup_key(DBMap_impl* db, DBKey key)
 		case DB_STRING:
 		case DB_ISTRING:
 			len = strnlen(key.str, db->maxlen);
-			str = (char*)aMalloc(len + 1);
+			str = (char *)aMalloc(len + 1);
 			memcpy(str, key.str, len);
 			str[len] = '\0';
 			key.str = str;
@@ -670,7 +670,7 @@ static void db_dup_key_free(DBMap_impl* db, DBKey key)
 	switch (db->type) {
 		case DB_STRING:
 		case DB_ISTRING:
-			aFree((char*)key.str);
+			aFree((char *)key.str);
 			return;
 
 		default:
@@ -1033,7 +1033,7 @@ static void db_release_key(DBKey key, DBData data, DBRelease which)
 {
 	(void)data;//not used
 	DB_COUNTSTAT(db_release_key);
-	if (which&DB_RELEASE_KEY) aFree((char*)key.str); // needs to be a pointer
+	if (which&DB_RELEASE_KEY) aFree((char *)key.str); // needs to be a pointer
 }
 
 /**
@@ -1069,7 +1069,7 @@ static void db_release_data(DBKey key, DBData data, DBRelease which)
 static void db_release_both(DBKey key, DBData data, DBRelease which)
 {
 	DB_COUNTSTAT(db_release_both);
-	if (which&DB_RELEASE_KEY) aFree((char*)key.str); // needs to be a pointer
+	if (which&DB_RELEASE_KEY) aFree((char *)key.str); // needs to be a pointer
 	if (which&DB_RELEASE_DATA && data.type == DB_DATA_PTR) aFree(data.u.ptr);
 }
 
@@ -1116,7 +1116,7 @@ static void db_release_both(DBKey key, DBData data, DBRelease which)
  * @protected
  * @see DBIterator#first
  */
-DBData* dbit_obj_first(DBIterator* self, DBKey* out_key)
+DBData* dbit_obj_first(DBIterator *self, DBKey* out_key)
 {
 	DBIterator_impl* it = (DBIterator_impl*)self;
 	
@@ -1138,7 +1138,7 @@ DBData* dbit_obj_first(DBIterator* self, DBKey* out_key)
  * @protected
  * @see DBIterator#last
  */
-DBData* dbit_obj_last(DBIterator* self, DBKey* out_key)
+DBData* dbit_obj_last(DBIterator *self, DBKey* out_key)
 {
 	DBIterator_impl* it = (DBIterator_impl*)self;
 	
@@ -1160,7 +1160,7 @@ DBData* dbit_obj_last(DBIterator* self, DBKey* out_key)
  * @protected
  * @see DBIterator#next
  */
-DBData* dbit_obj_next(DBIterator* self, DBKey* out_key)
+DBData* dbit_obj_next(DBIterator *self, DBKey* out_key)
 {
 	DBIterator_impl* it = (DBIterator_impl*)self;
 	DBNode node;
@@ -1236,7 +1236,7 @@ DBData* dbit_obj_next(DBIterator* self, DBKey* out_key)
  * @protected
  * @see DBIterator#prev
  */
-DBData* dbit_obj_prev(DBIterator* self, DBKey* out_key)
+DBData* dbit_obj_prev(DBIterator *self, DBKey* out_key)
 {
 	DBIterator_impl* it = (DBIterator_impl*)self;
 	DBNode node;
@@ -1312,7 +1312,7 @@ DBData* dbit_obj_prev(DBIterator* self, DBKey* out_key)
  * @protected
  * @see DBIterator#exists
  */
-bool dbit_obj_exists(DBIterator* self)
+bool dbit_obj_exists(DBIterator *self)
 {
 	DBIterator_impl* it = (DBIterator_impl*)self;
 
@@ -1332,7 +1332,7 @@ bool dbit_obj_exists(DBIterator* self)
  * @see DBMap#remove
  * @see DBIterator#remove
  */
-int dbit_obj_remove(DBIterator* self, DBData *out_data)
+int dbit_obj_remove(DBIterator *self, DBData *out_data)
 {
 	DBIterator_impl* it = (DBIterator_impl*)self;
 	DBNode node;
@@ -1359,7 +1359,7 @@ int dbit_obj_remove(DBIterator* self, DBData *out_data)
  * @param self Iterator
  * @protected
  */
-void dbit_obj_destroy(DBIterator* self)
+void dbit_obj_destroy(DBIterator *self)
 {
 	DBIterator_impl* it = (DBIterator_impl*)self;
 
@@ -1379,7 +1379,7 @@ void dbit_obj_destroy(DBIterator* self)
  * @return New iterator
  * @protected
  */
-static DBIterator* db_obj_iterator(DBMap* self)
+static DBIterator *db_obj_iterator(DBMap *self)
 {
 	DBMap_impl* db = (DBMap_impl*)self;
 	DBIterator_impl* it;
@@ -1411,7 +1411,7 @@ static DBIterator* db_obj_iterator(DBMap* self)
  * @protected
  * @see DBMap#exists
  */
-static bool db_obj_exists(DBMap* self, DBKey key)
+static bool db_obj_exists(DBMap *self, DBKey key)
 {
 	DBMap_impl* db = (DBMap_impl*)self;
 	DBNode node;
@@ -1462,7 +1462,7 @@ static bool db_obj_exists(DBMap* self, DBKey key)
  * @protected
  * @see DBMap#get
  */
-static DBData* db_obj_get(DBMap* self, DBKey key)
+static DBData* db_obj_get(DBMap *self, DBKey key)
 {
 	DBMap_impl* db = (DBMap_impl*)self;
 	DBNode node;
@@ -1522,7 +1522,7 @@ static DBData* db_obj_get(DBMap* self, DBKey key)
  * @protected
  * @see DBMap#vgetall
  */
-static unsigned int db_obj_vgetall(DBMap* self, DBData **buf, unsigned int max, DBMatcher match, va_list args)
+static unsigned int db_obj_vgetall(DBMap *self, DBData **buf, unsigned int max, DBMatcher match, va_list args)
 {
 	DBMap_impl* db = (DBMap_impl*)self;
 	unsigned int i;
@@ -1594,7 +1594,7 @@ static unsigned int db_obj_vgetall(DBMap* self, DBData **buf, unsigned int max, 
  * @see DBMap#vgetall
  * @see DBMap#getall
  */
-static unsigned int db_obj_getall(DBMap* self, DBData **buf, unsigned int max, DBMatcher match, ...)
+static unsigned int db_obj_getall(DBMap *self, DBData **buf, unsigned int max, DBMatcher match, ...)
 {
 	va_list args;
 	unsigned int ret;
@@ -1620,7 +1620,7 @@ static unsigned int db_obj_getall(DBMap* self, DBData **buf, unsigned int max, D
  * @protected
  * @see DBMap#vensure
  */
-static DBData* db_obj_vensure(DBMap* self, DBKey key, DBCreateData create, va_list args)
+static DBData* db_obj_vensure(DBMap *self, DBKey key, DBCreateData create, va_list args)
 {
 	DBMap_impl* db = (DBMap_impl*)self;
 	DBNode node;
@@ -1719,7 +1719,7 @@ static DBData* db_obj_vensure(DBMap* self, DBKey key, DBCreateData create, va_li
  * @see DBMap#vensure
  * @see DBMap#ensure
  */
-static DBData* db_obj_ensure(DBMap* self, DBKey key, DBCreateData create, ...)
+static DBData* db_obj_ensure(DBMap *self, DBKey key, DBCreateData create, ...)
 {
 	va_list args;
 	DBData *ret = NULL;
@@ -1746,7 +1746,7 @@ static DBData* db_obj_ensure(DBMap* self, DBKey key, DBCreateData create, ...)
  * @see #db_malloc_dbn(void)
  * @see DBMap#put
  */
-static int db_obj_put(DBMap* self, DBKey key, DBData data, DBData *out_data)
+static int db_obj_put(DBMap *self, DBKey key, DBData data, DBData *out_data)
 {
 	DBMap_impl* db = (DBMap_impl*)self;
 	DBNode node;
@@ -1851,7 +1851,7 @@ static int db_obj_put(DBMap* self, DBKey key, DBData data, DBData *out_data)
  * @see #db_free_add(DBMap_impl*,DBNode,DBNode *)
  * @see DBMap#remove
  */
-static int db_obj_remove(DBMap* self, DBKey key, DBData *out_data)
+static int db_obj_remove(DBMap *self, DBKey key, DBData *out_data)
 {
 	DBMap_impl* db = (DBMap_impl*)self;
 	DBNode node;
@@ -1907,7 +1907,7 @@ static int db_obj_remove(DBMap* self, DBKey key, DBData *out_data)
  * @protected
  * @see DBMap#vforeach
  */
-static int db_obj_vforeach(DBMap* self, DBApply func, va_list args)
+static int db_obj_vforeach(DBMap *self, DBApply func, va_list args)
 {
 	DBMap_impl* db = (DBMap_impl*)self;
 	unsigned int i;
@@ -1967,7 +1967,7 @@ static int db_obj_vforeach(DBMap* self, DBApply func, va_list args)
  * @see DBMap#vforeach
  * @see DBMap#foreach
  */
-static int db_obj_foreach(DBMap* self, DBApply func, ...)
+static int db_obj_foreach(DBMap *self, DBApply func, ...)
 {
 	va_list args;
 	int ret;
@@ -1993,7 +1993,7 @@ static int db_obj_foreach(DBMap* self, DBApply func, ...)
  * @protected
  * @see DBMap#vclear
  */
-static int db_obj_vclear(DBMap* self, DBApply func, va_list args)
+static int db_obj_vclear(DBMap *self, DBApply func, va_list args)
 {
 	DBMap_impl* db = (DBMap_impl*)self;
 	int sum = 0;
@@ -2067,7 +2067,7 @@ static int db_obj_vclear(DBMap* self, DBApply func, va_list args)
  * @see DBMap#vclear
  * @see DBMap#clear
  */
-static int db_obj_clear(DBMap* self, DBApply func, ...)
+static int db_obj_clear(DBMap *self, DBApply func, ...)
 {
 	va_list args;
 	int ret;
@@ -2094,7 +2094,7 @@ static int db_obj_clear(DBMap* self, DBApply func, ...)
  * @protected
  * @see DBMap#vdestroy
  */
-static int db_obj_vdestroy(DBMap* self, DBApply func, va_list args)
+static int db_obj_vdestroy(DBMap *self, DBApply func, va_list args)
 {
 	DBMap_impl* db = (DBMap_impl*)self;
 	int sum;
@@ -2148,7 +2148,7 @@ static int db_obj_vdestroy(DBMap* self, DBApply func, va_list args)
  * @see DBMap#vdestroy
  * @see DBMap#destroy
  */
-static int db_obj_destroy(DBMap* self, DBApply func, ...)
+static int db_obj_destroy(DBMap *self, DBApply func, ...)
 {
 	va_list args;
 	int ret;
@@ -2170,7 +2170,7 @@ static int db_obj_destroy(DBMap* self, DBApply func, ...)
  * @see DBMap_impl#item_count
  * @see DBMap#size
  */
-static unsigned int db_obj_size(DBMap* self)
+static unsigned int db_obj_size(DBMap *self)
 {
 	DBMap_impl* db = (DBMap_impl*)self;
 	unsigned int item_count;
@@ -2193,7 +2193,7 @@ static unsigned int db_obj_size(DBMap* self)
  * @see DBMap_impl#type
  * @see DBMap#type
  */
-static DBType db_obj_type(DBMap* self)
+static DBType db_obj_type(DBMap *self)
 {
 	DBMap_impl* db = (DBMap_impl*)self;
 	DBType type;
@@ -2216,7 +2216,7 @@ static DBType db_obj_type(DBMap* self)
  * @see DBMap_impl#options
  * @see DBMap#options
  */
-static DBOptions db_obj_options(DBMap* self)
+static DBOptions db_obj_options(DBMap *self)
 {
 	DBMap_impl* db = (DBMap_impl*)self;
 	DBOptions options;
@@ -2396,7 +2396,7 @@ DBReleaser db_custom_release(DBRelease which)
  * @see #DBMap_impl
  * @see #db_fix_options(DBType,DBOptions)
  */
-DBMap* db_alloc(const char *file, int line, DBType type, DBOptions options, unsigned short maxlen)
+DBMap *db_alloc(const char *file, int line, DBType type, DBOptions options, unsigned short maxlen)
 {
 	DBMap_impl* db;
 	unsigned int i;

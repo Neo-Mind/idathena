@@ -159,7 +159,7 @@ static bool mail_loadmessage(int mail_id, struct mail_message* msg)
 		StringBuf_Destroy(&buf);
 		return false;
 	} else {
-		char* data;
+		char *data;
 
 		Sql_GetData(sql_handle, 0, &data, NULL); msg->id = atoi(data);
 		Sql_GetData(sql_handle, 1, &data, NULL); safestrncpy(msg->send_name, data, NAME_LENGTH);
@@ -427,7 +427,7 @@ static void mapif_parse_Mail_send(int fd)
 	mapif_Mail_new(&msg); // notify recipient
 }
 
-void mail_sendmail(int send_id, const char* send_name, int dest_id, const char* dest_name, const char* title, const char* body, int zeny, struct item *item)
+void mail_sendmail(int send_id, const char *send_name, int dest_id, const char *dest_name, const char *title, const char *body, int zeny, struct item *item)
 {
 	struct mail_message msg;
 	memset(&msg, 0, sizeof(struct mail_message));

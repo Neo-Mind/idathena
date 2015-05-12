@@ -1316,7 +1316,7 @@ int hom_ressurect(struct map_session_data *sd, unsigned char per, short x, short
 	hd = sd->hd;
 
 	if (hd->homunculus.vaporize == HOM_ST_REST)
-		return 0; //Vaporized homunculi need to be 'called'
+		return 0; //Vaporized homunculus need to be 'called'
 
 	if (!status_isdead(&hd->bl))
 		return 0; //Already alive
@@ -1509,7 +1509,7 @@ int hom_max(struct homun_data *hd)
 /**
  * Read homunculus db
  */
-static bool read_homunculusdb_sub(char* str[], int columns, int current)
+static bool read_homunculusdb_sub(char *str[], int columns, int current)
 {
 	int classid;
 	struct s_homunculus_db *db;
@@ -1649,7 +1649,7 @@ void read_homunculusdb(void)
  * Read homunculus skill db
  * <hom class>,<skill id>,<max level>,<need level>,<req id1>,<req lv1>,<req id2>,<req lv2>,<req id3>,<req lv3>,<req id4>,<req lv4>,<req id5>,<req lv5>,<intimacy lv req>
  */
-static bool read_homunculus_skilldb_sub(char* split[], int columns, int current)
+static bool read_homunculus_skilldb_sub(char *split[], int columns, int current)
 {
 	int skill_id, class_idx;
 	int8 i, j;
